@@ -262,15 +262,17 @@ namespace ysSocket {
 
 		bool parse(char* message_buffer, size_t len, std::string key)
 		{
-			if (len <= 33) {
+			if (len < 33) 
+			{
 				type_msg = MSG_EMPTY; 
-				std::cerr << "ERROR MSG_EMPTY in MSG::parse() " << std::endl;
-				return true;
+				std::cerr << "WARNING MSG_EMPTY in MSG::parse() msg_len = " << len << std::endl;
+				return false;
 			}
 
 			if (key.size() == 0)
 			{
-				std::cerr << "ERROR KEY EMPTY in MSG::parse() " << std::endl;
+				std::cerr << "WARNING KEY EMPTY in MSG::parse() " << std::endl;
+				return false;
 			}
 
 			SHA256 sha;
@@ -279,7 +281,7 @@ namespace ysSocket {
 
 			if (memcmp(message_buffer + 1, digestkey, 32) != 0)
 			{
-				std::cerr << "ERROR INVALID key digest in MSG::parse() " << std::endl;
+				std::cerr << "WARNING INVALID key digest in MSG::parse() " << std::endl;
 			}
 			delete[]digestkey;
 

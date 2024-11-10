@@ -25,12 +25,12 @@ int main(int argc, char** argv) {
 
 	int port = 14001;
 	cout << "Port: ";
-	cout << port << std::endl;
-	//cin >> port;
-	cout << "Connection: ";
+	//cout << port << std::endl;
+	cin >> port;
+	cout << "Connection (1-16): ";
 	int connection_size = 16;
-	cout << connection_size << std::endl;
-	//cin >> connection_size;
+	//cout << connection_size << std::endl;
+	cin >> connection_size;
 
 	try {
 		chat_server = new ysServer(port, connection_size);

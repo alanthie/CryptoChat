@@ -24,9 +24,14 @@ namespace ysSocket {
 	std::string ysClient::get_input(const std::string& q)
 	{
 		std::cout << q << ": ";
-		std::string message = "";
-		std::getline(std::cin, message);
+		std::string message;
+		//std::getline(std::cin, message);
+		std::cin >> message;
 		std::cout << std::endl;
+
+		std::cin.ignore(0x7fffffffffffffff, '\n');
+		std::cin.clear();
+
 		return message;
 	}
 
@@ -222,6 +227,7 @@ namespace ysSocket {
 				message = get_input("Send first msg to server to receive instructions");
 
 				if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
+				if (message.size() == 0) message = "hello";
 
 				MSG m;
 				m.make_msg(MSG_TEXT, message, getDEFAULT_KEY());

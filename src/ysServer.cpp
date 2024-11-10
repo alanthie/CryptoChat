@@ -137,7 +137,7 @@ namespace ysSocket {
 	void ysServer::set_key_hint()
 	{
 		// ask user...
-		initial_key_hint = "P(1000)";
+		initial_key_hint = "1000th prime number";
 		initial_key = "7919";
 	}
 

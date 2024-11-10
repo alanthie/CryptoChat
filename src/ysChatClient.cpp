@@ -25,11 +25,11 @@ int main(int argc, char** argv) {
 
 	//string server = "localhost";
 	string server = "127.0.0.1";
-	cout << "Server: ";
+	cout << "Server (127.0.0.1 if local): ";
 	std::getline(std::cin, server);
-	//cout << "Port: ";
+	cout << "Port: ";
 	int port = 14001;
-	//cin >> port;
+	cin >> port;
 
 	try {
 

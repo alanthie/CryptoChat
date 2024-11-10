@@ -35,6 +35,7 @@
     <ClInclude Include="..\include\crypto_const.hpp" />
     <ClInclude Include="..\include\data.hpp" />
     <ClInclude Include="..\include\encrypt.h" />
+    <ClInclude Include="..\include\IDEA.hpp" />
     <ClInclude Include="..\include\random_engine.hpp" />
     <ClInclude Include="..\include\rng.h" />
     <ClInclude Include="..\include\SHA256.h" />
@@ -144,6 +145,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
