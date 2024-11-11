@@ -1,5 +1,6 @@
 /*
  * Author: Alain Lanthier
+ **
  */
 
 #ifndef YSSERVER_H
