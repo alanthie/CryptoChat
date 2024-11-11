@@ -317,7 +317,7 @@ namespace random
     }
 
     //BASEDIGIT64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+="; // NOT STANDARD
-    for (int j = 0; j < r.size(); j++)
+    for (int j = 0; j < (int)r.size(); j++)
     {
         if (r[j] == '+') r[j] = 'a';
         if (r[j] == '=') r[j] = 'b';
@@ -361,7 +361,7 @@ namespace random
 
     rng::tsc_seed seed;
     rng::rng128 gen(seed());
-	
+
 	n = (uint32_t)(rd.get_rand() * LIM);
 	n = gen() % LIM;
 

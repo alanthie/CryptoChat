@@ -1,5 +1,4 @@
 /*
-/*
  * Author: Alain Lanthier
  */
 
@@ -14,7 +13,7 @@
 
 namespace ysSocket {
 
-	class ysClient : protected ysNodeV4 
+	class ysClient : protected ysNodeV4
 	{
 	protected:
 		void setDefault();
@@ -30,9 +29,9 @@ namespace ysSocket {
 		// thread
 		std::thread m_thread;
 		std::mutex m_mu;
-		
+
 		void _connectServer();
-        
+
     public:
 		void receiveMessage();
 		void writeMessage();
@@ -59,11 +58,11 @@ namespace ysSocket {
 			sendMessageBuffer(t_socketFd, m, key);
 		}
 		int get_socket() { return m_socketFd; }
-		std::vector<netw_msg> get_vhistory() 
-		{ 
+		std::vector<netw_msg> get_vhistory()
+		{
 			// copy between threads
 			std::lock_guard l(_mutex);// recursive mutex deadlock to watch for
-			return vhistory; 
+			return vhistory;
 		}
 
 		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg)

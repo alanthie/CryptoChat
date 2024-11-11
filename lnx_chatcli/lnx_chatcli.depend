@@ -1,0 +1,197 @@
+# depslib dependency file v1.0
+1731284755 source:/home/allaptop/dev/CryptoChat/src/Base64.cpp
+	"../include/Base64.h"
+	<fstream>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/Base64.h
+	<string>
+	<vector>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/crc32a.cpp
+	"../include/crc32a.hpp"
+
+1731284755 /home/allaptop/dev/CryptoChat/include/crc32a.hpp
+	<cstdint>
+	<cstddef>
+
+1731293474 source:/home/allaptop/dev/CryptoChat/src/encrypt.cpp
+	<cstdint>
+	"../include/encrypt.h"
+	"../include/Base64.h"
+	"../include/vigenere.hpp"
+	<sstream>
+	<iostream>
+	<string>
+
+1731297138 /home/allaptop/dev/CryptoChat/include/encrypt.h
+	<cstdint>
+	<iostream>
+	<string>
+	"Base64.h"
+	"vigenere.hpp"
+
+1731284755 /home/allaptop/dev/CryptoChat/include/vigenere.hpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+
+1731294339 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+	"../include/terminal.h"
+	"../include/ysClient.h"
+	<stdarg.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/terminal.h
+	"terminal_base.h"
+	<iostream>
+	<string>
+	<vector>
+	<thread>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/terminal_base.h
+	<stdexcept>
+	<conio.h>
+	<windows.h>
+	<io.h>
+	<sys/ioctl.h>
+	<termios.h>
+	<unistd.h>
+	<errno.h>
+
+1731291250 /home/allaptop/dev/CryptoChat/include/ysClient.h
+	"ysNodeV4.h"
+	<iostream>
+	<functional>
+	<thread>
+	<mutex>
+
+1731294376 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+	"encrypt.h"
+	"random_engine.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+	<cstring>
+	<stdexcept>
+	<vector>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<errno.h>
+
+1731293848 /home/allaptop/dev/CryptoChat/include/random_engine.hpp
+	<random>
+	"data.hpp"
+	"rng.h"
+	<sys/timeb.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/data.hpp
+	"crypto_const.hpp"
+	"Buffer.hpp"
+	<filesystem>
+	<fstream>
+	<stdio.h>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/crypto_const.hpp
+	"base_const.hpp"
+	<filesystem>
+	<chrono>
+	<ctime>
+	<sstream>
+	<iomanip>
+	<string>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/base_const.hpp
+	<cstddef>
+	<map>
+	<string>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/Buffer.hpp
+	"crypto_const.hpp"
+	<stdint.h>
+	<string.h>
+	<algorithm>
+	<iostream>
+	<fstream>
+	<stdio.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/rng.h
+	<cstdint>
+	<random>
+	<thread>
+	<intrin.h>
+	<x86intrin.h>
+	<arm_neon.h>
+	<mmintrin.h>
+	<altivec.h>
+	<spe.h>
+
+1731290983 /home/allaptop/dev/CryptoChat/include/SHA256.h
+	<string>
+	<array>
+	<stdint.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/IDEA.hpp
+	<stdio.h>
+	<string.h>
+	<cinttypes>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/SHA256.cpp
+	"../include/SHA256.h"
+	<cstring>
+	<sstream>
+	<iomanip>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/vigenere.cpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+	"../include/vigenere.hpp"
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
+	<iostream>
+	<string>
+	<limits>
+	<csignal>
+	"../include/ysClient.h"
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/ysChatServer.cpp
+	<iostream>
+	<limits>
+	<csignal>
+	<chrono>
+	"../include/ysServer.h"
+
+1731285004 /home/allaptop/dev/CryptoChat/include/ysServer.h
+	"ysNodeV4.h"
+	<vector>
+	<functional>
+	<algorithm>
+	<thread>
+	<mutex>
+
+1731297603 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
+	<iostream>
+	<string>
+	<conio.h>
+	<stdlib.h>
+	<chrono>
+	"../include/ysClient.h"
+	"../include/crc32a.hpp"
+	<ciso646>
+	<iostream>
+	<string>
+
+1731294165 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+	<iostream>
+	"../include/ysNodeV4.h"
+

@@ -33,19 +33,19 @@ namespace ysSocket {
 	const int MESSAGE_SIZE = 4 * 1024; // 4k or better if supported 64k to 8MB, use in recv(), send()
 
 	// Make KEY_SIZE a multiple of 128 to support most encryption algos
-	const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size 
+	const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
 
 	// History size
 	const int HISTORY_SIZE = 10;
 
 	const bool USE_BASE64_RND_KEY_GENERATOR = true;
 
-	static std::string getDEFAULT_KEY()
+	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{
 		return std::string("ertyewrtyewrt654tg45y66u57u68itik96807iedhywt21t521t2134t3tvgtt3561365121");
 	}
 
-	static std::string get_input_string()
+	[[maybe_unused]] static std::string get_input_string()
 	{
 		std::string r;
 		std::cin >> r;
@@ -183,10 +183,10 @@ namespace ysSocket {
 			std::string s = encrypt_simple_string(b64_str, key);
 			make_msg(msgin.type_msg, s, msgin.buffer+1);
 
-			if (DEBUG_INFO) 
-				std::cout << "Encrypt [" 
-					+ get_summary_hex((char*)msgin.buffer+33, msgin.buffer_len - 33) + "]=>[" 
-					+ get_summary_hex((char*)this->buffer + 33, this->buffer_len - 33) 
+			if (DEBUG_INFO)
+				std::cout << "Encrypt ["
+					+ get_summary_hex((char*)msgin.buffer+33, msgin.buffer_len - 33) + "]=>["
+					+ get_summary_hex((char*)this->buffer + 33, this->buffer_len - 33)
 					+ "]" << std::endl;
 		}
 
@@ -204,8 +204,8 @@ namespace ysSocket {
 			//memcpy(buffer + 1, digestkey, 32);
 			memcpy(buffer + 1, msgin.buffer + 1, 32);
 
-			if (DEBUG_INFO) 
-				std::cout << "Decrypt [" 
+			if (DEBUG_INFO)
+				std::cout << "Decrypt ["
 				+ get_summary_hex((char*)msgin.buffer + 33, msgin.buffer_len - 33) + "]=>["
 				+ get_summary_hex((char*)this->buffer + 33, this->buffer_len - 33)
 				<< std::endl;
@@ -262,9 +262,9 @@ namespace ysSocket {
 
 		bool parse(char* message_buffer, size_t len, std::string key)
 		{
-			if (len < 33) 
+			if (len < 33)
 			{
-				type_msg = MSG_EMPTY; 
+				type_msg = MSG_EMPTY;
 				std::cerr << "WARNING MSG_EMPTY in MSG::parse() msg_len = " << len << std::endl;
 				return false;
 			}
@@ -518,7 +518,7 @@ namespace ysSocket {
 
 			return r;
 		}
-		
+
 	};
 
 	class ysNodeV4 {

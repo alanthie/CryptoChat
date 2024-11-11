@@ -4,6 +4,7 @@
 
 #include "../include/terminal.h"
 #include "../include/ysClient.h"
+#include <stdarg.h>
 
 using Term::Terminal;
 using Term::fg;
@@ -31,7 +32,7 @@ struct ClientTerm
         netw_client->add_to_history(is_receive, msg_type, msg );
     }
 
-    void draw_edit_msg(std::string& ab) 
+    void draw_edit_msg(std::string& ab)
     {
         ab.append(Term::erase_to_eol());
         int msglen = strlen(editmsg);
@@ -44,7 +45,7 @@ struct ClientTerm
         }
     }
 
-    void set_edit_msg(const char* fmt, ...) 
+    void set_edit_msg(const char* fmt, ...)
     {
         va_list ap;
         va_start(ap, fmt);
@@ -58,10 +59,10 @@ struct ClientTerm
         auto vh = netw_client->get_vhistory(); // get a copy since multi thread ressource
         int idx = ((int)vh.size()) - nrow_history;
         if (idx < 0) idx = 0;
-        for (int i = idx; i < vh.size(); i++)
+        for (int i = idx; i < (int)vh.size(); i++)
         {
             {
-                ab.append(std::to_string(i+1)); 
+                ab.append(std::to_string(i+1));
                 ab.append(" : ");
                 ab.append(vh[i].is_receive?"recv ":"send ");
                 ab.append(vh[i].msg);
@@ -85,10 +86,10 @@ struct ClientTerm
         ab.append(Term::erase_to_eol());
         ab.append("Status: ");
 
-        size_t msglen = status_msg.size();
-        if (msglen > ncols - 10)
-        {
-        }
+//        size_t msglen = status_msg.size();
+//        if (msglen > ncols - 10)
+//        {
+//        }
         ab.append(status_msg);
         ab.append("\r\n");
     }
@@ -117,12 +118,12 @@ struct ClientTerm
 
     ClientTerm(int r, int c) : nrows(r), ncols(c)
     {
-        int nrow_edit = 2;
-        int nrow_status = 1;
+        //int nrow_edit = 2;
+        //int nrow_status = 1;
         nrow_history = nrows - 6;
     }
 
-    char* prompt_msg(const Terminal& term, const char* prompt, void (*callback)(char*, int)) 
+    char* prompt_msg(const Terminal& term, const char* prompt, void (*callback)(char*, int))
     {
         size_t bufsize = 128;
         char* buf = (char*)malloc(bufsize);
@@ -178,9 +179,9 @@ int mainMenu(ysSocket::ysClient* netwclient)
 
         bool on = true;
         Term::Window scr(1, 1, cols, rows);
-        
+
         // LOOP
-        while (on) 
+        while (on)
         {
             char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter)", NULL);
             if (e != NULL)

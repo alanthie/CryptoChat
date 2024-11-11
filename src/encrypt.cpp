@@ -1,6 +1,8 @@
 #ifndef _INCLUDES_encrypt_H
 #define _INCLUDES_encrypt_H
 
+#include <cstdint>
+
 #include "../include/encrypt.h"
 #include "../include/Base64.h"
 #include "../include/vigenere.hpp"
@@ -56,8 +58,8 @@ std::string encrypt_simple_string(std::string& msg, std::string& key)
     //std::string b64_str = Base64::encode(msg2b);
     //std::string vigenere_msg2 = cryptoAL_vigenere::encrypt_vigenere(b64_str, key);
 
-    if (DEBUG_INFO) 
-        std::cout << "Encrypt simple [" 
+    if (DEBUG_INFO)
+        std::cout << "Encrypt simple ["
             + get_summary_hex((char*)msg.data(), msg.size()) + "]=>["
             + get_summary_hex((char*)vigenere_msg.data(), vigenere_msg.size())
             + "]" << std::endl;

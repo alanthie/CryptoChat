@@ -7,8 +7,12 @@
 
 #include <iostream>
 #include <string>
-#include <conio.h> 
-#include <stdlib.h> 
+#ifdef _WIN32
+#include <conio.h>
+#else
+#endif
+
+#include <stdlib.h>
 #include <chrono>
 #include "../include/ysClient.h"
 #include "../include/crc32a.hpp"
@@ -59,13 +63,13 @@ namespace ysSocket {
 		}
 	}
 
-	void ysClient::receiveMessage() 
+	void ysClient::receiveMessage()
 	{
 		this->m_thread = std::move(std::thread([=]{
 			int len;
 			char message_buffer[MESSAGE_SIZE + 1] = { 0 };
 
-			while ((len = recv(this->m_socketFd, message_buffer, MESSAGE_SIZE, 0)) > 0) 
+			while ((len = recv(this->m_socketFd, message_buffer, MESSAGE_SIZE, 0)) > 0)
 			{
 				message_buffer[len] = '\0';
 
@@ -90,7 +94,7 @@ namespace ysSocket {
 						showMessage(str_message);
 						std::string r = get_input("Enter key");
 						initial_key = r; // still key_valid = false;
-						 
+
 						if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
 						MSG m;
 						m.make_msg(MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
@@ -204,7 +208,7 @@ namespace ysSocket {
 
 					showMessage(str_message);
 					add_to_history(true, MSG_TEXT, str_message);
-					
+
 				}
 
 				std::memset(message_buffer, '\0', sizeof (message_buffer));
@@ -216,9 +220,9 @@ namespace ysSocket {
 	void ysClient::writeMessage()
 	{
 		int cnt = 0;
-		std::string message = ""; 
-		
-		while (this->m_state == STATE::OPEN) 
+		std::string message = "";
+
+		while (this->m_state == STATE::OPEN)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 

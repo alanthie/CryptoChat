@@ -41,7 +41,7 @@ namespace ysSocket {
 		m_onMessage = t_function;
 	}
 
-	void ysServer::runServer() 
+	void ysServer::runServer()
 	{
 		this->createServer();
 		this->bindServer();
@@ -100,7 +100,7 @@ namespace ysSocket {
 				cryptoAL::cryptodata dataout;
 				datain.buffer.write(bdat.data(), bdat.size());
 
-				// "encode_idea data file must be multiple of 8 bytes idea: "  
+				// "encode_idea data file must be multiple of 8 bytes idea: "
 				// "encode_idea key must be multiple of 16 bytes: "
 
 				bool r = MSG::encode_idea(datain, bkey.data(), bkey.size(), dataenc);
@@ -149,9 +149,93 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::bindServer() {
-		if (bind(this->m_socketFd, reinterpret_cast<sockaddr*> (&this->m_socketInfo), this->m_addressLen) == -1) {
-			throw std::runtime_error("Could not bind socket");
+	void ysServer::bindServer()
+	{
+		if (bind(this->m_socketFd, reinterpret_cast<sockaddr*> (&this->m_socketInfo), this->m_addressLen) == -1)
+		{
+            std::string serr;
+#ifdef _WIN32
+#else
+            int r = errno;
+            serr = std::to_string(r) + " ";
+            if (r == EACCES) serr = "EACCES";
+            else if (r == EADDRINUSE) serr = "EADDRINUSE";
+            else if (r == EADDRINUSE) serr = "EADDRINUSE";
+            else if (r == EINVAL) serr = "EINVAL";
+            else if (r == ENOTSOCK) serr = "ENOTSOCK";
+            else if (r == EADDRNOTAVAIL) serr = "EADDRNOTAVAIL";
+
+            else if (r == EFAULT) serr = "EFAULT";
+            else if (r == ELOOP) serr = "ELOOP";
+            else if (r == ENAMETOOLONG) serr = "ENAMETOOLONG";
+            else if (r == ENOENT) serr = "ENOENT";
+            else if (r == ENOMEM) serr = "ENOMEM";
+            else if (r == ENOTDIR) serr = "ENOTDIR";
+            else if (r == EROFS) serr = "ENOTEROFSDIR";
+
+#endif
+		/*
+		RETURN VALUE         top
+
+       On success, zero is returned.  On error, -1 is returned, and
+       errno is set to indicate the error.
+
+ERRORS         top
+
+       EACCES The address is protected, and the user is not the
+              superuser.
+
+       EADDRINUSE
+              The given address is already in use.
+
+       EADDRINUSE
+              (Internet domain sockets) The port number was specified as
+              zero in the socket address structure, but, upon attempting
+              to bind to an ephemeral port, it was determined that all
+              port numbers in the ephemeral port range are currently in
+              use.  See the discussion of
+              /proc/sys/net/ipv4/ip_local_port_range ip(7).
+
+       EBADF  sockfd is not a valid file descriptor.
+
+       EINVAL The socket is already bound to an address.
+
+       EINVAL addrlen is wrong, or addr is not a valid address for this
+              socket's domain.
+
+       ENOTSOCK
+              The file descriptor sockfd does not refer to a socket.
+
+       The following errors are specific to UNIX domain (AF_UNIX)
+       sockets:
+
+       EACCES Search permission is denied on a component of the path
+              prefix.  (See also path_resolution(7).)
+
+       EADDRNOTAVAIL
+              A nonexistent interface was requested or the requested
+              address was not local.
+
+       EFAULT addr points outside the user's accessible address space.
+
+       ELOOP  Too many symbolic links were encountered in resolving
+              addr.
+
+       ENAMETOOLONG
+              addr is too long.
+
+       ENOENT A component in the directory prefix of the socket pathname
+              does not exist.
+
+       ENOMEM Insufficient kernel memory was available.
+
+       ENOTDIR
+              A component of the path prefix is not a directory.
+
+       EROFS  The socket inode would reside on a read-only filesystem.
+
+		*/
+			throw std::runtime_error("Could not bind socket " + serr);
 		}
 	}
 
@@ -171,7 +255,7 @@ namespace ysSocket {
 			int temp_socket = accept(this->m_socketFd, reinterpret_cast<sockaddr*> (&temp_addr), &temp_len);
 
 			// check connection limit
-			if (this->m_nodeSize + 1 > this->m_connectionSize) 
+			if (this->m_nodeSize + 1 > this->m_connectionSize)
 			{
 				MSG  m;
 				m.make_msg(MSG_TEXT, "Server is full.", getDEFAULT_KEY());
@@ -249,7 +333,7 @@ namespace ysSocket {
 						else
 						{
 							std::cout << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
-						}	
+						}
 					}
 					else if (m.type_msg == MSG_CMD_RESP_ACCEPT_RND_KEY)
 					{
@@ -257,7 +341,7 @@ namespace ysSocket {
 						if (DEBUG_INFO) std::cout.flush();
 
 						std::string s = m.get_data_as_string(); // rnd key digest
-						
+
 						SHA256 sha;
 						sha.update((uint8_t*)v_client[idx]->pending_random_key.data(), v_client[idx]->pending_random_key.size());
 						uint8_t* digestkey = sha.digest();
@@ -271,7 +355,7 @@ namespace ysSocket {
 							MSG m;
 							m.make_msg(MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
 								v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
-								
+
 							sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 
 							v_client[idx]->random_key = v_client[idx]->pending_random_key;
@@ -388,7 +472,7 @@ namespace ysSocket {
 	}
 
 	void ysServer::sendMessageClients(const std::string& t_message) {
-		for (auto &client : v_client) 
+		for (auto &client : v_client)
 		{
 			MSG  m;
 
@@ -405,10 +489,10 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket) 
+	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket)
 	{
 		for (auto &client : v_client) {
-			if (client->getSocketFd() != t_socket) 
+			if (client->getSocketFd() != t_socket)
 			{
 				std::string key;
 				if (!client->initial_key_validation_done)

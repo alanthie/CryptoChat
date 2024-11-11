@@ -79,7 +79,7 @@ namespace ysSocket {
 		this->m_state = STATE::OPEN;
 	}
 //
-//	void ysNodeV4::sendMessage(const int& t_socketFd, const std::string& t_message) 
+//	void ysNodeV4::sendMessage(const int& t_socketFd, const std::string& t_message)
 //	{
 //		int r = send(t_socketFd, t_message.c_str(), t_message.size(), 0);
 //
@@ -118,11 +118,11 @@ namespace ysSocket {
 #else
 		if (r == -1)
 		{
-			std::cout << "ERROR - send failed with error: %d\n", errno());
+			std::cout << "ERROR - send failed with error: " << errno << "\n";
 		}
-		else if (r < m2.buffer_len)
+		else if (r < (int)m2.buffer_len)
 		{
-			std::cout << "WARNING - not all data send from sendMessageBuffer\n");
+			std::cout << "WARNING - not all data send from sendMessageBuffer\n";
 		}
 #endif
 	}

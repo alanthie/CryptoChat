@@ -1,10 +1,16 @@
 #ifndef _INCLUDES_encrypt_H
 #define _INCLUDES_encrypt_H
 
-#include "Base64.h"
-#include "vigenere.hpp"
+#ifdef _WIN32
+//
+#else
+#include <cstdint>
+#endif
+
 #include <iostream>
 #include <string>
+#include "Base64.h"
+#include "vigenere.hpp"
 
 
 std::string encrypt_simple_string(std::string& msg, std::string& key);

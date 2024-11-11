@@ -1,0 +1,605 @@
+# depslib dependency file v1.0
+1731284755 source:/home/allaptop/dev/CryptoChat/src/Base64.cpp
+	"../include/Base64.h"
+	<fstream>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/Base64.h
+	<string>
+	<vector>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/crc32a.cpp
+	"../include/crc32a.hpp"
+
+1731284755 /home/allaptop/dev/CryptoChat/include/crc32a.hpp
+	<cstdint>
+	<cstddef>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/vigenere.cpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+	"../include/vigenere.hpp"
+
+1731284755 /home/allaptop/dev/CryptoChat/include/vigenere.hpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/SHA256.cpp
+	"../include/SHA256.h"
+	<cstring>
+	<sstream>
+	<iomanip>
+
+1731290983 /home/allaptop/dev/CryptoChat/include/SHA256.h
+	<string>
+	<array>
+	<stdint.h>
+
+1731284755 source:/home/allaptop/dev/CryptoChat/src/ysChatServer.cpp
+	<iostream>
+	<limits>
+	<csignal>
+	<chrono>
+	"../include/ysServer.h"
+
+1731285004 /home/allaptop/dev/CryptoChat/include/ysServer.h
+	"ysNodeV4.h"
+	<vector>
+	<functional>
+	<algorithm>
+	<thread>
+	<mutex>
+
+1731294376 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+	"encrypt.h"
+	"random_engine.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+	<cstring>
+	<stdexcept>
+	<vector>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<errno.h>
+
+1731297138 /home/allaptop/dev/CryptoChat/include/encrypt.h
+	<cstdint>
+	<iostream>
+	<string>
+	"Base64.h"
+	"vigenere.hpp"
+
+1731293848 /home/allaptop/dev/CryptoChat/include/random_engine.hpp
+	<random>
+	"data.hpp"
+	"rng.h"
+	<sys/timeb.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/data.hpp
+	"crypto_const.hpp"
+	"Buffer.hpp"
+	<filesystem>
+	<fstream>
+	<stdio.h>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/crypto_const.hpp
+	"base_const.hpp"
+	<filesystem>
+	<chrono>
+	<ctime>
+	<sstream>
+	<iomanip>
+	<string>
+	<iostream>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/base_const.hpp
+	<cstddef>
+	<map>
+	<string>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/Buffer.hpp
+	"crypto_const.hpp"
+	<stdint.h>
+	<string.h>
+	<algorithm>
+	<iostream>
+	<fstream>
+	<stdio.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/rng.h
+	<cstdint>
+	<random>
+	<thread>
+	<intrin.h>
+	<x86intrin.h>
+	<arm_neon.h>
+	<mmintrin.h>
+	<altivec.h>
+	<spe.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/IDEA.hpp
+	<stdio.h>
+	<string.h>
+	<cinttypes>
+
+1731296757 source:/home/allaptop/dev/CryptoChat/src/ysServer.cpp
+	<iostream>
+	<string>
+	"../include/ysServer.h"
+	"../include/SHA256.h"
+	"../include/crc32a.hpp"
+
+1723128462 /usr/include/stdint.h
+	<bits/libc-header-start.h>
+	<bits/types.h>
+	<bits/wchar.h>
+	<bits/wordsize.h>
+	<bits/stdint-intn.h>
+	<bits/stdint-uintn.h>
+	<bits/stdint-least.h>
+
+1723128462 /usr/include/stdio.h
+	<bits/libc-header-start.h>
+	<stddef.h>
+	<stdarg.h>
+	<bits/types.h>
+	<bits/types/__fpos_t.h>
+	<bits/types/__fpos64_t.h>
+	<bits/types/__FILE.h>
+	<bits/types/FILE.h>
+	<bits/types/struct_FILE.h>
+	<bits/types/cookie_io_functions_t.h>
+	<stdarg.h>
+	<bits/stdio_lim.h>
+	<bits/floatn.h>
+	<bits/getopt_posix.h>
+	<bits/stdio2-decl.h>
+	<bits/stdio-ldbl.h>
+	<bits/stdio.h>
+	<bits/stdio2.h>
+
+1723128462 /usr/include/string.h
+	<bits/libc-header-start.h>
+	<stddef.h>
+	<bits/types/locale_t.h>
+	<strings.h>
+	<bits/string_fortified.h>
+
+1723128462 /usr/include/strings.h
+	<features.h>
+	<stddef.h>
+	<bits/types/locale_t.h>
+	<bits/strings_fortified.h>
+
+1723128462 /usr/include/features.h
+	<features-time64.h>
+	<stdc-predef.h>
+	<sys/cdefs.h>
+	<gnu/stubs.h>
+
+1723128462 /usr/include/features-time64.h
+	<bits/wordsize.h>
+	<bits/timesize.h>
+
+1723128462 /usr/include/stdc-predef.h
+
+1723128462 /usr/include/ctype.h
+	<features.h>
+	<bits/types.h>
+	<bits/endian.h>
+	<bits/types/locale_t.h>
+
+1723128462 /usr/include/netinet/in.h
+	<features.h>
+	<bits/stdint-uintn.h>
+	<sys/socket.h>
+	<bits/types.h>
+	<bits/in.h>
+	<endian.h>
+	<bits/byteswap.h>
+	<bits/uintn-identity.h>
+
+1723128462 /usr/include/endian.h
+	<features.h>
+	<bits/endian.h>
+	<bits/byteswap.h>
+	<bits/uintn-identity.h>
+
+1723128462 /usr/include/arpa/inet.h
+	<features.h>
+	<netinet/in.h>
+
+1723128462 /usr/include/unistd.h
+	<features.h>
+	<bits/posix_opt.h>
+	<bits/environments.h>
+	<bits/types.h>
+	<stddef.h>
+	<bits/confname.h>
+	<bits/getopt_posix.h>
+	<bits/unistd.h>
+	<bits/unistd_ext.h>
+
+1723128462 /usr/include/errno.h
+	<features.h>
+	<bits/errno.h>
+	<bits/types/error_t.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h
+	"stdint-gcc.h"
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint-gcc.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/x86intrin.h
+	<x86gprintrin.h>
+	<immintrin.h>
+	<mm3dnow.h>
+	<fma4intrin.h>
+	<xopintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/x86gprintrin.h
+	<ia32intrin.h>
+	<stddef.h>
+	<adxintrin.h>
+	<bmiintrin.h>
+	<bmi2intrin.h>
+	<cetintrin.h>
+	<cldemoteintrin.h>
+	<clflushoptintrin.h>
+	<clwbintrin.h>
+	<clzerointrin.h>
+	<cmpccxaddintrin.h>
+	<enqcmdintrin.h>
+	<fxsrintrin.h>
+	<lzcntintrin.h>
+	<lwpintrin.h>
+	<movdirintrin.h>
+	<mwaitintrin.h>
+	<mwaitxintrin.h>
+	<pconfigintrin.h>
+	<popcntintrin.h>
+	<pkuintrin.h>
+	<prfchiintrin.h>
+	<raointintrin.h>
+	<rdseedintrin.h>
+	<rtmintrin.h>
+	<serializeintrin.h>
+	<sgxintrin.h>
+	<tbmintrin.h>
+	<tsxldtrkintrin.h>
+	<uintrintrin.h>
+	<waitpkgintrin.h>
+	<wbnoinvdintrin.h>
+	<xsaveintrin.h>
+	<xsavecintrin.h>
+	<xsaveoptintrin.h>
+	<xsavesintrin.h>
+	<xtestintrin.h>
+	<hresetintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/ia32intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h
+	<machine/ansi.h>
+	<sys/_types.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/adxintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/bmiintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/bmi2intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/cetintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/cldemoteintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/clflushoptintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/clwbintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/clzerointrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/cmpccxaddintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/enqcmdintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/fxsrintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/lzcntintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/lwpintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/movdirintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/mwaitintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/mwaitxintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/pconfigintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/popcntintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/pkuintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/prfchiintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/raointintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/rdseedintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/rtmintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/serializeintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/sgxintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/tbmintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/tsxldtrkintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/uintrintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/waitpkgintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/wbnoinvdintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xsaveintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xsavecintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xsaveoptintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xsavesintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xtestintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/hresetintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/immintrin.h
+	<x86gprintrin.h>
+	<mmintrin.h>
+	<xmmintrin.h>
+	<emmintrin.h>
+	<pmmintrin.h>
+	<tmmintrin.h>
+	<smmintrin.h>
+	<wmmintrin.h>
+	<avxintrin.h>
+	<avxvnniintrin.h>
+	<avxifmaintrin.h>
+	<avxvnniint8intrin.h>
+	<avx2intrin.h>
+	<avx512fintrin.h>
+	<avx512erintrin.h>
+	<avx512pfintrin.h>
+	<avx512cdintrin.h>
+	<avx512vlintrin.h>
+	<avx512bwintrin.h>
+	<avx512dqintrin.h>
+	<avx512vlbwintrin.h>
+	<avx512vldqintrin.h>
+	<avx512ifmaintrin.h>
+	<avx512ifmavlintrin.h>
+	<avx512vbmiintrin.h>
+	<avx512vbmivlintrin.h>
+	<avx5124fmapsintrin.h>
+	<avx5124vnniwintrin.h>
+	<avx512vpopcntdqintrin.h>
+	<avx512vbmi2intrin.h>
+	<avx512vbmi2vlintrin.h>
+	<avx512vnniintrin.h>
+	<avx512vnnivlintrin.h>
+	<avx512vpopcntdqvlintrin.h>
+	<avx512bitalgintrin.h>
+	<avx512vp2intersectintrin.h>
+	<avx512vp2intersectvlintrin.h>
+	<avx512fp16intrin.h>
+	<avx512fp16vlintrin.h>
+	<shaintrin.h>
+	<fmaintrin.h>
+	<f16cintrin.h>
+	<rtmintrin.h>
+	<gfniintrin.h>
+	<vaesintrin.h>
+	<vpclmulqdqintrin.h>
+	<avx512bf16vlintrin.h>
+	<avx512bf16intrin.h>
+	<avxneconvertintrin.h>
+	<amxtileintrin.h>
+	<amxint8intrin.h>
+	<amxbf16intrin.h>
+	<amxcomplexintrin.h>
+	<prfchwintrin.h>
+	<keylockerintrin.h>
+	<amxfp16intrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/mmintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h
+	<mmintrin.h>
+	<mm_malloc.h>
+	<emmintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/mm_malloc.h
+	<stdlib.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/emmintrin.h
+	<xmmintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/pmmintrin.h
+	<emmintrin.h>
+	<mwaitintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/tmmintrin.h
+	<pmmintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/smmintrin.h
+	<tmmintrin.h>
+	<popcntintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/wmmintrin.h
+	<emmintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avxintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avxvnniintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avxifmaintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avxvnniint8intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx2intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512fintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512erintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512pfintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512cdintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512bwintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512dqintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vlbwintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vldqintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512ifmaintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512ifmavlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vbmiintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vbmivlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx5124fmapsintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx5124vnniwintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vpopcntdqintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vbmi2intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vbmi2vlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vnniintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vnnivlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vpopcntdqvlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512bitalgintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vp2intersectintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vp2intersectvlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512fp16intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512fp16vlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/shaintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/fmaintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/f16cintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/gfniintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/vaesintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/vpclmulqdqintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512bf16vlintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512bf16intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/avxneconvertintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxtileintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxint8intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxbf16intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxcomplexintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/prfchwintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/keylockerintrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxfp16intrin.h
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/mm3dnow.h
+	<mmintrin.h>
+	<prfchwintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/fma4intrin.h
+	<ammintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/ammintrin.h
+	<pmmintrin.h>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/xopintrin.h
+	<fma4intrin.h>
+
+1731293474 source:/home/allaptop/dev/CryptoChat/src/encrypt.cpp
+	<cstdint>
+	"../include/encrypt.h"
+	"../include/Base64.h"
+	"../include/vigenere.hpp"
+	<sstream>
+	<iostream>
+	<string>
+
+1731294165 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+	<iostream>
+	"../include/ysNodeV4.h"
+
+1731294339 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+	"../include/terminal.h"
+	"../include/ysClient.h"
+	<stdarg.h>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/terminal.h
+	"terminal_base.h"
+	<iostream>
+	<string>
+	<vector>
+	<thread>
+
+1731284755 /home/allaptop/dev/CryptoChat/include/terminal_base.h
+	<stdexcept>
+	<conio.h>
+	<windows.h>
+	<io.h>
+	<sys/ioctl.h>
+	<termios.h>
+	<unistd.h>
+	<errno.h>
+
+1731291250 /home/allaptop/dev/CryptoChat/include/ysClient.h
+	"ysNodeV4.h"
+	<iostream>
+	<functional>
+	<thread>
+	<mutex>
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h
+

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <array>
+#include <stdint.h>
+
 
 class SHA256 {
 
