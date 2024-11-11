@@ -10,6 +10,7 @@
 #include <functional>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 namespace ysSocket {
 
@@ -40,6 +41,7 @@ namespace ysSocket {
 		bool key_valid = false;
 		bool rnd_valid = false;
 		bool user_valid = false;
+		std::atomic<bool> input_interrupted = false;
 
 	public:
 		ysClient();

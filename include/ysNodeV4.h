@@ -36,7 +36,7 @@ namespace ysSocket {
 	const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
 
 	// History size
-	const int HISTORY_SIZE = 10;
+	const int HISTORY_SIZE = 20;
 
 	const bool USE_BASE64_RND_KEY_GENERATOR = true;
 
@@ -265,13 +265,13 @@ namespace ysSocket {
 			if (len < 33)
 			{
 				type_msg = MSG_EMPTY;
-				std::cerr << "WARNING MSG_EMPTY in MSG::parse() msg_len = " << len << std::endl;
+				std::cerr << "WARNING MSG_EMPTY msg_len = " << len << std::endl;
 				return false;
 			}
 
 			if (key.size() == 0)
 			{
-				std::cerr << "WARNING KEY EMPTY in MSG::parse() " << std::endl;
+				std::cerr << "WARNING KEY EMPTY " << std::endl;
 				return false;
 			}
 

@@ -63,8 +63,9 @@ struct ClientTerm
         {
             {
                 ab.append(std::to_string(i+1));
-                ab.append(" : ");
+                ab.append(" ");
                 ab.append(vh[i].is_receive?"recv ":"send ");
+                ab.append(" : ");
                 ab.append(vh[i].msg);
                 ab.append(Term::erase_to_eol());
                 ab.append("\r\n");
@@ -114,8 +115,6 @@ struct ClientTerm
         term.write(ab);
     }
 
-
-
     ClientTerm(int r, int c) : nrows(r), ncols(c)
     {
         //int nrow_edit = 2;
@@ -131,34 +130,43 @@ struct ClientTerm
         size_t buflen = 0;
         buf[0] = '\0';
 
-        while (1) {
-            set_edit_msg(prompt, buf);
-            refresh_screen(term);
+        while (1)
+        {
+            {
+                set_edit_msg(prompt, buf);
+                refresh_screen(term);
 
-            int c = term.read_key();
-            if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE) {
-                if (buflen != 0) buf[--buflen] = '\0';
-            }
-            else if (c == Key::ESC) {
-                set_edit_msg("");
-                //if (callback) callback(buf, c);
-                free(buf);
-                return NULL;
-            }
-            else if (c == Key::ENTER) {
-                if (buflen != 0) {
+                int c = term.read_key();
+                if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
+                {
+                    if (buflen != 0) buf[--buflen] = '\0';
+                }
+                else if (c == Key::ESC)
+                {
                     set_edit_msg("");
                     //if (callback) callback(buf, c);
-                    return buf;
+                    free(buf);
+                    return NULL;
                 }
-            }
-            else if (!myiscntrl(c) && c < 128) {
-                if (buflen == bufsize - 1) {
-                    bufsize *= 2;
-                    buf = (char*)realloc(buf, bufsize);
+                else if (c == Key::ENTER)
+                {
+                    if (buflen != 0)
+                    {
+                        set_edit_msg("");
+                        //if (callback) callback(buf, c);
+                        return buf;
+                    }
                 }
-                buf[buflen++] = c;
-                buf[buflen] = '\0';
+                else if (!myiscntrl(c) && c >= 32 && c < 127 )// printable char
+                {
+                    if (buflen == bufsize - 1)
+                    {
+                        bufsize *= 2;
+                        buf = (char*)realloc(buf, bufsize);
+                    }
+                    buf[buflen++] = c;
+                    buf[buflen] = '\0';
+                }
             }
 
             //if (callback) callback(buf, c);

@@ -21,7 +21,7 @@ void printMessage(const string&);
 
 int main(int argc, char** argv) {
 
-	signal(SIGINT, signalHandler);
+	//signal(SIGINT, signalHandler);
 
 	//string server = "localhost";
 	string server = "127.0.0.1";
@@ -36,9 +36,9 @@ int main(int argc, char** argv) {
 		chat_client = new ysClient(server, port);
 		chat_client->setOnMessage(printMessage);
 		chat_client->connectServer();
-		
+
 		chat_client->writeMessage();
-		
+
 		delete chat_client;
 
 	} catch (const exception& e) {
@@ -48,17 +48,22 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-void signalHandler(int code) {
+void signalHandler(int code)
+{
+    chat_client->input_interrupted.store(true);
+
 	char ch;
 	cout << "Are you sure you want to close socket?(Y/N)";
-	cin >> ch;
+
+    cin >> ch; // Linux BUG mixing of cin and getchar
 	if (toupper(ch) == 'Y' && chat_client != nullptr) {
 		delete chat_client;
 		exit(0);
 	}
 	cin.clear();
-	//cin.ignore(numeric_limits<streamsize>::max(), '\n');
 	cin.ignore(0x7fffffffffffffff, '\n');
+
+    chat_client->input_interrupted.store(false);
 }
 
 void printMessage(const string& t_message) {

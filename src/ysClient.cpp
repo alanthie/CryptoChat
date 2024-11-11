@@ -65,7 +65,8 @@ namespace ysSocket {
 
 	void ysClient::receiveMessage()
 	{
-		this->m_thread = std::move(std::thread([=]{
+		this->m_thread = std::move(std::thread([=, this]
+		{
 			int len;
 			char message_buffer[MESSAGE_SIZE + 1] = { 0 };
 
@@ -83,133 +84,109 @@ namespace ysSocket {
 				else
 					r = m.parse(message_buffer, len, random_key);
 
-				std::string str_message = m.get_data_as_string();
+                if (r == true)
+                {
+                    std::string str_message = m.get_data_as_string();
 
-				if (m.type_msg == MSG_CMD_REQU_KEY_HINT)
-				{
-					// ask user
-					{
-						if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
+                    if (m.type_msg == MSG_CMD_REQU_KEY_HINT)
+                    {
+                        // ask user
+                        {
+                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
 
-						showMessage(str_message);
-						std::string r = get_input("Enter key");
-						initial_key = r; // still key_valid = false;
+                            showMessage(str_message);
+                            std::string r = get_input("Enter key");
+                            initial_key = r; // still key_valid = false;
 
-						if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
-						MSG m;
-						m.make_msg(MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
-						this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
-					}
-				}
-				else if (m.type_msg == MSG_CMD_INFO_KEY_VALID)
-				{
-					{
-						if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
+                            if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+                            MSG m;
+                            m.make_msg(MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
+                            this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+                        }
+                    }
+                    else if (m.type_msg == MSG_CMD_INFO_KEY_VALID)
+                    {
+                        {
+                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
 
-						// CONFIRMED new key
-						key_valid = true;
+                            // CONFIRMED new key
+                            key_valid = true;
 
-						showMessage(str_message);
-						add_to_history(true, MSG_CMD_INFO_KEY_VALID, str_message);
-					}
-				}
-				else if (m.type_msg == MSG_CMD_REQU_ACCEPT_RND_KEY)
-				{
-					{
-						pending_random_key = str_message;
-						std::string work = pending_random_key;
+                            showMessage(str_message);
+                            add_to_history(true, MSG_CMD_INFO_KEY_VALID, str_message);
+                        }
+                    }
+                    else if (m.type_msg == MSG_CMD_REQU_ACCEPT_RND_KEY)
+                    {
+                        pending_random_key = str_message;
+                        std::string work = pending_random_key;
 
-						if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
-						if (DEBUG_INFO)
-							std::cout << "Random key recv ["
-								+ get_summary_hex((char*)work.data(), work.size())
-								+ "]" << std::endl;
+                        SHA256 sha;
+                        sha.update((uint8_t*)work.data(), work.size());
+                        uint8_t* digestkey = sha.digest();
+                        std::string str_digest = sha.toString(digestkey);
+                        delete[]digestkey;
 
-						SHA256 sha;
-						sha.update((uint8_t*)work.data(), work.size());
-						uint8_t* digestkey = sha.digest();
-						std::string str_digest = sha.toString(digestkey);
-						delete[]digestkey;
+                        if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
+                        if (DEBUG_INFO)
+                        {
+                            std::cout << "Random key recv ["
+                                + get_summary_hex((char*)work.data(), work.size())
+                                + "]" << std::endl;
 
-						if (DEBUG_INFO)
-							std::cout << "Random key digest recv ["
-								+ str_digest
-								+ "]" << std::endl;
+                            std::cout << "Random key digest recv ["
+                                + str_digest
+                                + "]" << std::endl;
 
-						// TEST again
-						{
-							SHA256 sha;
-							sha.update(work);
-							uint8_t* digestkey = sha.digest();
-							std::string str_digest = sha.toString(digestkey);
-							delete[]digestkey;
-
-							if (DEBUG_INFO)
-								std::cout << "Random key digest recv ["
-								+ str_digest
-								+ "]" << std::endl;
-
-							CRC32 chk;
-							chk.update((char*)work.data(), work.size());
-							if (DEBUG_INFO)
-							{
-								std::cout << "Random key CRC32 recv ["
-								<< chk.get_hash()
-								<< "]" << std::endl;
-							}
+                            CRC32 chk;
+                            chk.update((char*)work.data(), work.size());
+                            std::cout << "Random key CRC32 recv ["
+                            << chk.get_hash()
+                            << "]" << std::endl;
+                        }
 
 
-							if (DEBUG_INFO)
-							{
-								std::cout << "Random key recv ["
-									<< work
-									<< "]" << std::endl;
-							}
-						}
+                        if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
+                        MSG m;
+                        m.make_msg(MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, rnd_valid ? random_key : initial_key);
+                        this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
+                    }
+                    else if (m.type_msg == MSG_CMD_INFO_RND_KEY_VALID)
+                    {
+                        {
+                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
 
+                            // CONFIRMED new rnd key
+                            random_key = pending_random_key;
+                            rnd_valid = true;
+                        }
+                    }
+                    else if (m.type_msg == MSG_CMD_REQU_USERNAME)
+                    {
+                        {
+                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
 
-						if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
-						MSG m;
-						m.make_msg(MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, rnd_valid ? random_key : initial_key);
-						this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
-					}
-				}
-				else if (m.type_msg == MSG_CMD_INFO_RND_KEY_VALID)
-				{
-					{
-						if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
+                            showMessage(str_message);
+                            std::string r = get_input("Enter username");
 
-						// CONFIRMED new rnd key
-						random_key = pending_random_key;
-						rnd_valid = true;
-					}
-				}
-				else if (m.type_msg == MSG_CMD_REQU_USERNAME)
-				{
-					{
-						if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
+                            if (r.size() == 0) r = "anonymous";
+                            user_valid = true;
 
-						showMessage(str_message);
-						std::string r = get_input("Enter username");
+                            if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
+                            MSG m;
+                            m.make_msg(MSG_CMD_RESP_USERNAME, r, rnd_valid ? random_key : initial_key);
+                            this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
+                        }
+                    }
 
-						if (r.size() == 0) r = "anonymous";
-						user_valid = true;
+                    else if (m.type_msg == MSG_TEXT)
+                    {
+                        if (DEBUG_INFO) std::cout << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
 
-						if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
-						MSG m;
-						m.make_msg(MSG_CMD_RESP_USERNAME, r, rnd_valid ? random_key : initial_key);
-						this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
-					}
-				}
-
-				else if (m.type_msg == MSG_TEXT)
-				{
-					if (DEBUG_INFO) std::cout << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
-
-					showMessage(str_message);
-					add_to_history(true, MSG_TEXT, str_message);
-
-				}
+                        showMessage(str_message);
+                        add_to_history(true, MSG_TEXT, str_message);
+                    }
+                }
 
 				std::memset(message_buffer, '\0', sizeof (message_buffer));
 			}
@@ -228,7 +205,7 @@ namespace ysSocket {
 
 			if (cnt == 0)
 			{
-				message = get_input("Send first msg to server to receive instructions");
+				//message = get_input("Send first msg to server to receive instructions");
 
 				if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
 				if (message.size() == 0) message = "hello";
