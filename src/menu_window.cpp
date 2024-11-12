@@ -4,6 +4,7 @@
 
 #include "../include/terminal.h"
 #include "../include/ysClient.h"
+#include "../include/data.hpp"
 #include <stdarg.h>
 
 using Term::Terminal;
@@ -26,6 +27,41 @@ struct ClientTerm
 
     char editmsg[800] = { 0 };
     std::string status_msg;
+
+    static std::vector<std::string> split(std::string& s, const std::string& delimiter)
+    {
+        std::vector<std::string> tokens;
+        size_t pos = 0;
+        std::string token;
+        while ((pos = s.find(delimiter)) != std::string::npos) {
+            token = s.substr(0, pos);
+            tokens.push_back(token);
+            s.erase(0, pos + delimiter.length());
+        }
+        tokens.push_back(s);
+
+        return tokens;
+    }
+
+    bool is_file_command(const std::string& m)
+    {
+        if (m.size() < 5) return false;
+        if ((m[0]=='<') && (m[1]=='<') && (m[m.size()-1]=='>') && (m[m.size()-2]=='>'))
+        return true;
+    }
+    std::string file_from_command(const std::string& m)
+    {
+        return m.substr(2, m.size()-4);
+    }
+    std::string read_file(const std::string& fname)
+    {
+        cryptoAL::cryptodata file;
+        if (file.read_from_file(fname))
+        {
+            return std::string(file.buffer.getdata(), file.buffer.size());
+        }
+        return {};
+    }
 
     void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg)
     {
@@ -61,16 +97,19 @@ struct ClientTerm
         if (idx < 0) idx = 0;
         for (int i = idx; i < (int)vh.size(); i++)
         {
+            std::vector<std::string> vlines = ClientTerm::split(vh[i].msg, "\r\n");
+
+			for (size_t j = 0; j < vlines.size(); j++)
             {
                 ab.append(std::to_string(i+1));
                 ab.append(" ");
                 ab.append(vh[i].is_receive?"recv ":"send ");
                 ab.append(" : ");
-                ab.append(vh[i].msg);
+                ab.append(vlines[j]);
                 ab.append(Term::erase_to_eol());
                 ab.append("\r\n");
-                cnt++;
             }
+            cnt++;
         }
 
 
@@ -191,11 +230,20 @@ int mainMenu(ysSocket::ysClient* netwclient)
         // LOOP
         while (on)
         {
-            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter)", NULL);
+            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/<<filename>>)", NULL);
             if (e != NULL)
             {
                 std::string message = std::string(e, strlen(e));
 
+                if (ct.is_file_command(message))
+                {
+                    std::string filename = ct.file_from_command(message);
+                    //std::cout << filename<< std::endl;
+                    message = ct.read_file(filename);
+                    //std::cout << message << std::endl;
+                }
+
+                if (message.size() > 0)
                 {
                     std::string key;
                     if (!ct.netw_client->key_valid)

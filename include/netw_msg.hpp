@@ -111,6 +111,8 @@ struct MSG
 
 	static bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next);
 	static bool decode_idea(cryptoAL::cryptodata& data_encrypted, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_decrypted);
+
+	static std::vector<std::string> split(std::string& s, const std::string& delimiter) ;
 };
 
 }

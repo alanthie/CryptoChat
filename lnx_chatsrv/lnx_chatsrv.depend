@@ -58,7 +58,7 @@
 	<thread>
 	<mutex>
 
-1731376482 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731379450 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"SHA256.h"
@@ -135,7 +135,7 @@
 	<string.h>
 	<cinttypes>
 
-1731376482 source:/home/allaptop/dev/CryptoChat/src/ysServer.cpp
+1731391671 source:/home/allaptop/dev/CryptoChat/src/ysServer.cpp
 	<iostream>
 	<string>
 	"../include/ysServer.h"
@@ -573,9 +573,10 @@
 	<iostream>
 	"../include/ysNodeV4.h"
 
-1731376482 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1731390651 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/terminal.h"
 	"../include/ysClient.h"
+	"../include/data.hpp"
 	<stdarg.h>
 
 1731284755 /home/allaptop/dev/CryptoChat/include/terminal.h
@@ -803,7 +804,7 @@
 1731356456 source:/home/server/dev/CryptoChat/src/netw_msg.cpp
 	"../include/netw_msg.hpp"
 
-1731378237 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+1731391150 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
@@ -812,6 +813,6 @@
 	"SHA256.h"
 	"IDEA.hpp"
 
-1731376482 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
+1731391231 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
 	"../include/netw_msg.hpp"
 
