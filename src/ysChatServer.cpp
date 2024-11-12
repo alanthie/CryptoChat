@@ -1,7 +1,7 @@
 /*
  * Author: Alain Lanthier
  */
- 
+
 //g++ -c ysClient.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
 //g++ -o runserver ysClient.o ysNodeV4.o ysServer.o ysChatServer.o  -std=c++17 -pthread
 
@@ -23,20 +23,20 @@ int main(int argc, char** argv) {
 
 	signal(SIGINT, signalHandler);
 
-	int port = 14001;
-	cout << "Port: ";
+	int port = 14002;
+	//cout << "Port: ";
 	//cout << port << std::endl;
-	cin >> port;
-	cout << "Connection (1-16): ";
-	int connection_size = 16;
+	//cin >> port;
+	//cout << "Connection (1-128): ";
+	int connection_size = 128;
 	//cout << connection_size << std::endl;
-	cin >> connection_size;
+	//cin >> connection_size;
 
 	try {
 		chat_server = new ysServer(port, connection_size);
 		chat_server->setOnMessage(printMessage);
 		chat_server->runServer();
-			
+
 		delete chat_server;
 
 	} catch (const exception& e) {

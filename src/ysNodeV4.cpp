@@ -78,21 +78,6 @@ namespace ysSocket {
 		}
 		this->m_state = STATE::OPEN;
 	}
-//
-//	void ysNodeV4::sendMessage(const int& t_socketFd, const std::string& t_message)
-//	{
-//		int r = send(t_socketFd, t_message.c_str(), t_message.size(), 0);
-//
-//#ifdef _WIN32
-//		if (r == SOCKET_ERROR) {
-//			std::cout << "send failed with error: %d\n", WSAGetLastError();
-//		}
-//#else
-//		if (r == -1) {
-//			std::cout << "send failed with error: %d\n", errno());
-//		}
-//#endif
-//	}
 
 	void ysNodeV4::sendMessageBuffer(const int& t_socketFd, MSG& m, std::string key)
 	{
@@ -126,31 +111,6 @@ namespace ysSocket {
 		}
 #endif
 	}
-
-//	void ysNodeV4::sendMessageBuffer(const int& t_socketFd, uint8_t* t_message, size_t len)
-//	{
-//		//if (key.size() == 0)
-//		//{
-//		//	std::cerr << "KEY EMPTY in sendMessageBuffer() " << std::endl;
-//		//}
-//
-//		MSG m, m2;
-//		m.make_msg(t_message, len);
-//		m2.make_encrypt_msg(m, key);
-//
-//		//int r = send(t_socketFd, (char*)t_message, (int)len, 0);
-//		int r = send(t_socketFd, (char*)m2.buffer, (int)m2.buffer_len, 0);
-//
-//#ifdef _WIN32
-//		if (r == SOCKET_ERROR) {
-//			std::cout << "send failed with error: %d\n", WSAGetLastError();
-//		}
-//#else
-//		if (r == -1) {
-//			std::cout << "send failed with error: %d\n", errno());
-//		}
-//#endif
-//	}
 
 	void ysNodeV4::closeSocket() {
 		if (this->m_state == STATE::CLOSED) {

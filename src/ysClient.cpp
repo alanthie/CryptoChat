@@ -16,6 +16,7 @@
 #include <chrono>
 #include "../include/ysClient.h"
 #include "../include/crc32a.hpp"
+#include "../include/Menu.h"
 
 #include <ciso646>
 #include <iostream>
@@ -90,12 +91,49 @@ namespace ysSocket {
 
                     if (m.type_msg == MSG_CMD_REQU_KEY_HINT)
                     {
+                        static std::vector<std::string> questions = split(str_message, ";");
+//                        for(size_t i = 0; i< questions.size(); i++)
+//                            std::cout << questions[i] << std:: endl;
+
+                        std::string a[questions.size()] = {};
+                        while (true)
+                        {
+                            Menu qa;
+                            qa.set_heading("Challenges (q TO QUIT MENU)");
+                            qa.set_max_len(80);
+                            for(size_t i = 0; i< questions.size(); i++)
+                                qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
+                            //qa.add_field("Question [2]: " + a[1], nullptr);
+
+                            int c = qa.get_menu_choice();
+                            if (c == 'q')
+                            {
+                                break;
+                            }
+
+                            int idx = c - '1';
+                            if ((idx >= 0) && (idx < questions.size()))
+                            {
+                                a[idx] = get_input("Enter answer [" + std::to_string(idx+1) + "]");
+                            }
+
+                        }
+
+                        std::string r;
+                        for(size_t i = 0; i< questions.size(); i++)
+                        {
+                            r += a[i];
+                            //if (i <  questions.size() - 1) r+=";";
+                        }
+
+
+
                         // ask user
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
 
-                            showMessage(str_message);
-                            std::string r = get_input("Enter key");
+//                            showMessage(str_message);
+//                            std::string r = get_input("Enter key");
                             initial_key = r; // still key_valid = false;
 
                             if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;

@@ -44,6 +44,7 @@
 		<Unit filename="../include/crypto_const.hpp" />
 		<Unit filename="../include/data.hpp" />
 		<Unit filename="../include/encrypt.h" />
+		<Unit filename="../include/netw_msg.hpp" />
 		<Unit filename="../include/random_engine.hpp" />
 		<Unit filename="../include/rng.h" />
 		<Unit filename="../include/terminal.h" />
@@ -57,10 +58,14 @@
 		<Unit filename="../src/crc32a.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
 		<Unit filename="../src/menu_window.cpp" />
+		<Unit filename="../src/netw_msg.cpp" />
 		<Unit filename="../src/vigenere.cpp" />
 		<Unit filename="../src/ysChatServer.cpp" />
 		<Unit filename="../src/ysNodeV4.cpp" />
 		<Unit filename="../src/ysServer.cpp" />
-		<Extensions />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

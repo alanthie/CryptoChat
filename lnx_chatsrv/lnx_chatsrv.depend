@@ -603,3 +603,201 @@
 
 1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h
 
+1731275304 source:/home/server/dev/CryptoChat/src/Base64.cpp
+	"../include/Base64.h"
+	<fstream>
+	<iostream>
+
+1731275304 /home/server/dev/CryptoChat/include/Base64.h
+	<string>
+	<vector>
+
+1731275304 source:/home/server/dev/CryptoChat/src/crc32a.cpp
+	"../include/crc32a.hpp"
+
+1731275304 /home/server/dev/CryptoChat/include/crc32a.hpp
+	<cstdint>
+	<cstddef>
+
+1731354896 source:/home/server/dev/CryptoChat/src/encrypt.cpp
+	<cstdint>
+	"../include/encrypt.h"
+	"../include/Base64.h"
+	"../include/vigenere.hpp"
+	<sstream>
+	<iostream>
+	<string>
+
+1731354896 /home/server/dev/CryptoChat/include/encrypt.h
+	<cstdint>
+	<iostream>
+	<string>
+	"Base64.h"
+	"vigenere.hpp"
+
+1731275304 /home/server/dev/CryptoChat/include/vigenere.hpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+
+1731359378 source:/home/server/dev/CryptoChat/src/menu_window.cpp
+	"../include/terminal.h"
+	"../include/ysClient.h"
+	<stdarg.h>
+
+1731275304 /home/server/dev/CryptoChat/include/terminal.h
+	"terminal_base.h"
+	<iostream>
+	<string>
+	<vector>
+	<thread>
+
+1731275304 /home/server/dev/CryptoChat/include/terminal_base.h
+	<stdexcept>
+	<conio.h>
+	<windows.h>
+	<io.h>
+	<sys/ioctl.h>
+	<termios.h>
+	<unistd.h>
+	<errno.h>
+
+1731354896 /home/server/dev/CryptoChat/include/ysClient.h
+	"ysNodeV4.h"
+	<iostream>
+	<functional>
+	<thread>
+	<mutex>
+	<atomic>
+
+1731367620 /home/server/dev/CryptoChat/include/ysNodeV4.h
+	"encrypt.h"
+	"random_engine.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+	<cstring>
+	<stdexcept>
+	<vector>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<errno.h>
+	"../include/netw_msg.hpp"
+
+1731354896 /home/server/dev/CryptoChat/include/random_engine.hpp
+	<random>
+	"data.hpp"
+	"rng.h"
+	<sys/timeb.h>
+
+1731275304 /home/server/dev/CryptoChat/include/data.hpp
+	"crypto_const.hpp"
+	"Buffer.hpp"
+	<filesystem>
+	<fstream>
+	<stdio.h>
+	<iostream>
+
+1731275304 /home/server/dev/CryptoChat/include/crypto_const.hpp
+	"base_const.hpp"
+	<filesystem>
+	<chrono>
+	<ctime>
+	<sstream>
+	<iomanip>
+	<string>
+	<iostream>
+
+1731275304 /home/server/dev/CryptoChat/include/base_const.hpp
+	<cstddef>
+	<map>
+	<string>
+
+1731275304 /home/server/dev/CryptoChat/include/Buffer.hpp
+	"crypto_const.hpp"
+	<stdint.h>
+	<string.h>
+	<algorithm>
+	<iostream>
+	<fstream>
+	<stdio.h>
+
+1731275304 /home/server/dev/CryptoChat/include/rng.h
+	<cstdint>
+	<random>
+	<thread>
+	<intrin.h>
+	<x86intrin.h>
+	<arm_neon.h>
+	<mmintrin.h>
+	<altivec.h>
+	<spe.h>
+
+1731354896 /home/server/dev/CryptoChat/include/SHA256.h
+	<string>
+	<array>
+	<stdint.h>
+
+1731275304 /home/server/dev/CryptoChat/include/IDEA.hpp
+	<stdio.h>
+	<string.h>
+	<cinttypes>
+
+1731356426 /home/server/dev/CryptoChat/include/netw_msg.hpp
+	<cstring>
+	<stdexcept>
+	<string>
+	"encrypt.h"
+	"random_engine.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+
+1731275304 source:/home/server/dev/CryptoChat/src/SHA256.cpp
+	"../include/SHA256.h"
+	<cstring>
+	<sstream>
+	<iomanip>
+
+1731275304 source:/home/server/dev/CryptoChat/src/vigenere.cpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+	"../include/vigenere.hpp"
+
+1731275304 source:/home/server/dev/CryptoChat/src/ysChatServer.cpp
+	<iostream>
+	<limits>
+	<csignal>
+	<chrono>
+	"../include/ysServer.h"
+
+1731354896 /home/server/dev/CryptoChat/include/ysServer.h
+	"ysNodeV4.h"
+	<vector>
+	<functional>
+	<algorithm>
+	<thread>
+	<mutex>
+
+1731356863 source:/home/server/dev/CryptoChat/src/ysNodeV4.cpp
+	<iostream>
+	"../include/ysNodeV4.h"
+
+1731367563 source:/home/server/dev/CryptoChat/src/ysServer.cpp
+	<iostream>
+	<string>
+	"../include/ysServer.h"
+	"../include/SHA256.h"
+	"../include/crc32a.hpp"
+
+1731356456 source:/home/server/dev/CryptoChat/src/netw_msg.cpp
+	"../include/netw_msg.hpp"
+

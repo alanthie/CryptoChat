@@ -47,6 +47,8 @@ namespace ysSocket {
 		this->bindServer();
 		this->listenServer();
 
+		// TEST ENCRYPTION
+		const int N_SIZE_TEST = 10;
 		{
 			std::string key("key012345679");
 			if (this->check_default_encrypt(key) == false)
@@ -61,17 +63,9 @@ namespace ysSocket {
 			}
 
 			// TEST cryptoAL_vigenere
-			for(int i=0;i<1;i++)
+			for(int i=0;i<N_SIZE_TEST;i++)
 			{
 				std::string bkey = cryptoAL::random::generate_base64_random_string(KEY_SIZE);
-
-				//BASEDIGIT64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+="; // NOT STANDARD
-				//for (int j = 0; j < bkey.size(); j++)
-				//{
-				//	if (bkey[j] == '+') bkey[j] = 'a';
-				//	if (bkey[j] == '=') bkey[j] = 'b';
-				//}
-				//AVAILABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
 				std::string bdat = cryptoAL::random::generate_base64_random_string(KEY_SIZE / 2);
 				std::string benc = cryptoAL_vigenere::encrypt_vigenere(bdat, bkey);
@@ -83,15 +77,15 @@ namespace ysSocket {
 			}
 
 			// TEST IDEA
-			{
-				idea id;
-
-				uint16_t data[4] = { 54,36,454,345 };
-				uint16_t key[8] = { 345,3453,5,3453,5,3556,46,4567 };
-				id.IDEA(data, key, true);
-				id.IDEA(data, key, false);
-			}
-			for(int i=0;i<1;i++)
+//			{
+//				idea id;
+//
+//				uint16_t data[4] = { 54,36,454,345 };
+//				uint16_t key[8] = { 345,3453,5,3453,5,3556,46,4567 };
+//				id.IDEA(data, key, true);
+//				id.IDEA(data, key, false);
+//			}
+			for(int i=0;i<N_SIZE_TEST;i++)
 			{
 				std::string bkey = cryptoAL::random::generate_base64_random_string(KEY_SIZE/8);
 				std::string bdat = cryptoAL::random::generate_base64_random_string(KEY_SIZE / 2);
@@ -137,8 +131,9 @@ namespace ysSocket {
 	void ysServer::set_key_hint()
 	{
 		// ask user...
-		initial_key_hint = "1000th prime number";
-		initial_key = "7919";
+		//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		initial_key_hint = "1th prime number;1th prime number;1000th prime number";
+		initial_key = "227919";
 	}
 
 	void ysServer::createServer() {
@@ -171,69 +166,8 @@ namespace ysSocket {
             else if (r == ENOMEM) serr = "ENOMEM";
             else if (r == ENOTDIR) serr = "ENOTDIR";
             else if (r == EROFS) serr = "ENOTEROFSDIR";
-
 #endif
-		/*
-		RETURN VALUE         top
 
-       On success, zero is returned.  On error, -1 is returned, and
-       errno is set to indicate the error.
-
-ERRORS         top
-
-       EACCES The address is protected, and the user is not the
-              superuser.
-
-       EADDRINUSE
-              The given address is already in use.
-
-       EADDRINUSE
-              (Internet domain sockets) The port number was specified as
-              zero in the socket address structure, but, upon attempting
-              to bind to an ephemeral port, it was determined that all
-              port numbers in the ephemeral port range are currently in
-              use.  See the discussion of
-              /proc/sys/net/ipv4/ip_local_port_range ip(7).
-
-       EBADF  sockfd is not a valid file descriptor.
-
-       EINVAL The socket is already bound to an address.
-
-       EINVAL addrlen is wrong, or addr is not a valid address for this
-              socket's domain.
-
-       ENOTSOCK
-              The file descriptor sockfd does not refer to a socket.
-
-       The following errors are specific to UNIX domain (AF_UNIX)
-       sockets:
-
-       EACCES Search permission is denied on a component of the path
-              prefix.  (See also path_resolution(7).)
-
-       EADDRNOTAVAIL
-              A nonexistent interface was requested or the requested
-              address was not local.
-
-       EFAULT addr points outside the user's accessible address space.
-
-       ELOOP  Too many symbolic links were encountered in resolving
-              addr.
-
-       ENAMETOOLONG
-              addr is too long.
-
-       ENOENT A component in the directory prefix of the socket pathname
-              does not exist.
-
-       ENOMEM Insufficient kernel memory was available.
-
-       ENOTDIR
-              A component of the path prefix is not a directory.
-
-       EROFS  The socket inode would reside on a read-only filesystem.
-
-		*/
 			throw std::runtime_error("Could not bind socket " + serr);
 		}
 	}
@@ -362,7 +296,8 @@ ERRORS         top
                             }
                             else
                             {
-                                std::cout << "ERROR received invalid random_key digest" << idx << " " << s << std::endl;
+                                std::cout << "recv MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
+                                std::cout << "ERROR received invalid random_key digest " << idx << " " << s << std::endl;
                             }
                         }
                         else if (m.type_msg == MSG_CMD_RESP_USERNAME)
@@ -526,7 +461,7 @@ ERRORS         top
 			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_KEY_HINT " << idx << std::endl;
 
 			MSG m;
-			std::string s = "Please, provide key, hint is " + initial_key_hint;
+			std::string s = initial_key_hint;
 			m.make_msg(MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
 			sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
 		}
