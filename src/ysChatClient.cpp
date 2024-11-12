@@ -11,25 +11,25 @@
 #include <csignal>
 #include "../include/ysClient.h"
 
-using namespace std;
+//using namespace std;
 using namespace ysSocket;
 
 ysClient *chat_client = nullptr;
 
 void signalHandler(int);
-void printMessage(const string&);
+void printMessage(const std::string&);
 
 int main(int argc, char** argv) {
 
 	//signal(SIGINT, signalHandler);
 
 	//string server = "localhost";
-	string server = "127.0.0.1";
-	//cout << "Server (127.0.0.1 if local): ";
+	std::string server = "127.0.0.1";
+	//std::cout << "Server (127.0.0.1 if local): ";
 	//std::getline(std::cin, server);
-	//cout << "Port: ";
+	std::cout << "Port: ";
 	int port = 14002;
-	//cin >> port;
+	std::cin >> port;
 
 	try {
 
@@ -41,8 +41,8 @@ int main(int argc, char** argv) {
 
 		delete chat_client;
 
-	} catch (const exception& e) {
-		cerr << e.what() << endl;
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
 	}
 
 	return 0;
@@ -53,19 +53,19 @@ void signalHandler(int code)
     chat_client->input_interrupted.store(true);
 
 	char ch;
-	cout << "Are you sure you want to close socket?(Y/N)";
+	std::cout << "Are you sure you want to close socket?(Y/N)";
 
-    cin >> ch; // Linux BUG mixing of cin and getchar
+    std::cin >> ch; // Linux BUG mixing of cin and getchar
 	if (toupper(ch) == 'Y' && chat_client != nullptr) {
 		delete chat_client;
 		exit(0);
 	}
-	cin.clear();
-	cin.ignore(0x7fffffffffffffff, '\n');
+	std::cin.clear();
+	std::cin.ignore(0x7fffffffffffffff, '\n');
 
     chat_client->input_interrupted.store(false);
 }
 
-void printMessage(const string& t_message) {
+void printMessage(const std::string& t_message) {
 	std::cout << t_message << std::endl;
 }

@@ -91,6 +91,7 @@ namespace ysSocket {
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
+                        challenge_attempt++;
                         std::vector<std::string> questions = split(str_message, ";");
 
 						std::vector< std::string> a;
@@ -99,7 +100,9 @@ namespace ysSocket {
                         while (true)
                         {
                             Menu qa;
-                            qa.set_heading("Challenges (q TO QUIT MENU)");
+                            qa.set_heading(std::string("Challenges (q TO QUIT MENU)")
+                            + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]");
+
                             qa.set_max_len(80);
                             for(size_t i = 0; i< questions.size(); i++)
                                 qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
@@ -151,6 +154,17 @@ namespace ysSocket {
 
                             showMessage(str_message);
                             add_to_history(true, NETW_MSG::MSG_CMD_INFO_KEY_VALID, str_message);
+                        }
+                    }
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_INVALID)
+                    {
+                        {
+                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_INVALID" << std::endl;
+
+                            key_valid = false;
+
+                            showMessage(str_message);
+                            add_to_history(true, NETW_MSG::MSG_CMD_INFO_KEY_INVALID, str_message);
                         }
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY)

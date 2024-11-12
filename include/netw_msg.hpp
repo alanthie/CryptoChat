@@ -9,7 +9,7 @@
 #include "SHA256.h"
 #include "IDEA.hpp"
 
-namespace NETW_MSG 
+namespace NETW_MSG
 {
 
 struct netw_msg
@@ -26,11 +26,12 @@ const uint8_t MSG_FILE = 3;
 const uint8_t MSG_CMD_REQU_KEY_HINT = 4;
 const uint8_t MSG_CMD_RESP_KEY_HINT = 5;
 const uint8_t MSG_CMD_INFO_KEY_VALID = 6;
-const uint8_t MSG_CMD_REQU_ACCEPT_RND_KEY = 7;
-const uint8_t MSG_CMD_RESP_ACCEPT_RND_KEY = 8;
-const uint8_t MSG_CMD_INFO_RND_KEY_VALID = 9;
-const uint8_t MSG_CMD_REQU_USERNAME = 10;
-const uint8_t MSG_CMD_RESP_USERNAME = 11;
+const uint8_t MSG_CMD_INFO_KEY_INVALID = 7;
+const uint8_t MSG_CMD_REQU_ACCEPT_RND_KEY = 10;
+const uint8_t MSG_CMD_RESP_ACCEPT_RND_KEY = 11;
+const uint8_t MSG_CMD_INFO_RND_KEY_VALID = 12;
+const uint8_t MSG_CMD_REQU_USERNAME = 20;
+const uint8_t MSG_CMD_RESP_USERNAME = 21;
 //
 const uint8_t MSG_FILE_FRAGMENT = 128;
 

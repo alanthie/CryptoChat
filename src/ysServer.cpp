@@ -264,6 +264,17 @@ namespace ysSocket {
                             else
                             {
                                 std::cout << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
+
+                                if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << idx << std::endl;
+
+								NETW_MSG::MSG m;
+                                m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_INVALID, "Initial key is INVALID", getDEFAULT_KEY());
+                                sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
+
+                                if (!v_client[idx]->initial_key_validation_done)
+                                {
+                                    this->request_client_initial_key(new_client->getSocketFd());
+                                }
                             }
                         }
                         else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY)

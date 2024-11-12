@@ -39,7 +39,7 @@
 	<stdio.h>
 	<ctype.h>
 
-1731351204 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1731376482 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/terminal.h"
 	"../include/ysClient.h"
 	<stdarg.h>
@@ -61,7 +61,7 @@
 	<unistd.h>
 	<errno.h>
 
-1731343692 /home/allaptop/dev/CryptoChat/include/ysClient.h
+1731376482 /home/allaptop/dev/CryptoChat/include/ysClient.h
 	"ysNodeV4.h"
 	<iostream>
 	<functional>
@@ -69,7 +69,7 @@
 	<mutex>
 	<atomic>
 
-1731342145 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731379450 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"SHA256.h"
@@ -83,6 +83,7 @@
 	<arpa/inet.h>
 	<unistd.h>
 	<errno.h>
+	"../include/netw_msg.hpp"
 
 1731293848 /home/allaptop/dev/CryptoChat/include/random_engine.hpp
 	<random>
@@ -158,7 +159,7 @@
 	<ctype.h>
 	"../include/vigenere.hpp"
 
-1731351153 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
+1731377841 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
 	<iostream>
 	<string>
 	<limits>
@@ -180,7 +181,7 @@
 	<thread>
 	<mutex>
 
-1731341141 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
+1731379309 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
 	<iostream>
 	<string>
 	<conio.h>
@@ -188,11 +189,12 @@
 	<chrono>
 	"../include/ysClient.h"
 	"../include/crc32a.hpp"
+	"../include/Menu.h"
 	<ciso646>
 	<iostream>
 	<string>
 
-1731294165 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731376482 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	"../include/ysNodeV4.h"
 
@@ -403,6 +405,35 @@
 	"../include/lnx_conio.h"
 
 1731359550 /home/server/dev/CryptoChat/include/lnx_conio.h
+	<conio.h>
+	<stdio.h>
+	<unistd.h>
+	<fcntl.h>
+	<termios.h>
+
+1731378237 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+	<cstring>
+	<stdexcept>
+	<string>
+	"encrypt.h"
+	"random_engine.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+
+1731376482 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
+	"../include/netw_msg.hpp"
+
+1731376482 /home/allaptop/dev/CryptoChat/include/Menu.h
+	<iostream>
+	<vector>
+	<functional>
+	<string>
+	<fstream>
+	<sstream>
+	"conio.h"
+	"../include/lnx_conio.h"
+
+1731376482 /home/allaptop/dev/CryptoChat/include/lnx_conio.h
 	<conio.h>
 	<stdio.h>
 	<unistd.h>
