@@ -76,7 +76,7 @@ namespace ysSocket {
 				message_buffer[len] = '\0';
 
 				// Parse message
-				MSG m;
+				NETW_MSG::MSG m;
 				bool r;
 				if (!key_valid)
 					r = m.parse(message_buffer, len, getDEFAULT_KEY());
@@ -89,13 +89,13 @@ namespace ysSocket {
                 {
                     std::string str_message = m.get_data_as_string();
 
-                    if (m.type_msg == MSG_CMD_REQU_KEY_HINT)
+                    if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
-                        static std::vector<std::string> questions = split(str_message, ";");
-//                        for(size_t i = 0; i< questions.size(); i++)
-//                            std::cout << questions[i] << std:: endl;
+                        std::vector<std::string> questions = split(str_message, ";");
 
-                        std::string a[questions.size()] = {};
+						std::vector< std::string> a;
+						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
+
                         while (true)
                         {
                             Menu qa;
@@ -103,7 +103,6 @@ namespace ysSocket {
                             qa.set_max_len(80);
                             for(size_t i = 0; i< questions.size(); i++)
                                 qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
-                            //qa.add_field("Question [2]: " + a[1], nullptr);
 
                             int c = qa.get_menu_choice();
                             if (c == 'q')
@@ -137,12 +136,12 @@ namespace ysSocket {
                             initial_key = r; // still key_valid = false;
 
                             if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
-                            MSG m;
-                            m.make_msg(MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
+							NETW_MSG::MSG m;
+                            m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
                             this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
                         }
                     }
-                    else if (m.type_msg == MSG_CMD_INFO_KEY_VALID)
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
                     {
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
@@ -151,10 +150,10 @@ namespace ysSocket {
                             key_valid = true;
 
                             showMessage(str_message);
-                            add_to_history(true, MSG_CMD_INFO_KEY_VALID, str_message);
+                            add_to_history(true, NETW_MSG::MSG_CMD_INFO_KEY_VALID, str_message);
                         }
                     }
-                    else if (m.type_msg == MSG_CMD_REQU_ACCEPT_RND_KEY)
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY)
                     {
                         pending_random_key = str_message;
                         std::string work = pending_random_key;
@@ -185,11 +184,11 @@ namespace ysSocket {
 
 
                         if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
-                        MSG m;
-                        m.make_msg(MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, rnd_valid ? random_key : initial_key);
+						NETW_MSG::MSG m;
+                        m.make_msg(NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, rnd_valid ? random_key : initial_key);
                         this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
                     }
-                    else if (m.type_msg == MSG_CMD_INFO_RND_KEY_VALID)
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID)
                     {
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
@@ -199,7 +198,7 @@ namespace ysSocket {
                             rnd_valid = true;
                         }
                     }
-                    else if (m.type_msg == MSG_CMD_REQU_USERNAME)
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
                     {
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
@@ -211,18 +210,18 @@ namespace ysSocket {
                             user_valid = true;
 
                             if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
-                            MSG m;
-                            m.make_msg(MSG_CMD_RESP_USERNAME, r, rnd_valid ? random_key : initial_key);
+							NETW_MSG::MSG m;
+                            m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, r, rnd_valid ? random_key : initial_key);
                             this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
                         }
                     }
 
-                    else if (m.type_msg == MSG_TEXT)
+                    else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
                         if (DEBUG_INFO) std::cout << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
 
                         showMessage(str_message);
-                        add_to_history(true, MSG_TEXT, str_message);
+                        add_to_history(true, NETW_MSG::MSG_TEXT, str_message);
                     }
                 }
 
@@ -248,12 +247,12 @@ namespace ysSocket {
 				if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
 				if (message.size() == 0) message = "hello";
 
-				MSG m;
-				m.make_msg(MSG_TEXT, message, getDEFAULT_KEY());
+				NETW_MSG::MSG m;
+				m.make_msg(NETW_MSG::MSG_TEXT, message, getDEFAULT_KEY());
 				this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
 
 				std::string s = m.get_data_as_string();
-				add_to_history(false, MSG_TEXT, s);
+				add_to_history(false, NETW_MSG::MSG_TEXT, s);
 
 				cnt++;
 			}
@@ -279,14 +278,14 @@ namespace ysSocket {
 					else
 						key = random_key;
 
-					MSG m;
-					m.make_msg(MSG_TEXT, message, key);
+					NETW_MSG::MSG m;
+					m.make_msg(NETW_MSG::MSG_TEXT, message, key);
 					if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
 
 					this->sendMessageBuffer(this->m_socketFd, m, key);
 
 					std::string s = m.get_data_as_string();
-					add_to_history(false, MSG_TEXT, s);
+					add_to_history(false, NETW_MSG::MSG_TEXT, s);
 
 					cnt++;
 				}

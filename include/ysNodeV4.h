@@ -26,6 +26,7 @@ static WSAData wsaData;
 #endif
 
 #include "../include/netw_msg.hpp"
+//using namespace NETW_MSG;
 
 
 namespace ysSocket {
@@ -91,7 +92,7 @@ namespace ysSocket {
 		// socket
 		void setSocketInfo();
 		void createSocket();
-		void sendMessageBuffer(const int& t_socketFd, MSG& m, std::string key);
+		void sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key);
 		//void sendMessageBuffer(const int& t_socketFd, uint8_t* t_message, size_t len, std::string key);
 		void closeSocket();
 
@@ -132,7 +133,7 @@ namespace ysSocket {
 		bool new_pending_random_key = false;
 
 		std::string username;
-		std::vector<netw_msg> vhistory;
+		std::vector<NETW_MSG::netw_msg> vhistory;
 
 		virtual ~ysNodeV4();
 	};

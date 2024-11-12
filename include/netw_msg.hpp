@@ -1,4 +1,3 @@
-
 #ifndef NETWMSG_H
 #define NETWMSG_H
 
@@ -9,6 +8,9 @@
 #include "random_engine.hpp"
 #include "SHA256.h"
 #include "IDEA.hpp"
+
+namespace NETW_MSG 
+{
 
 struct netw_msg
 {
@@ -109,5 +111,7 @@ struct MSG
 	static bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next);
 	static bool decode_idea(cryptoAL::cryptodata& data_encrypted, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_decrypted);
 };
+
+}
 
 #endif

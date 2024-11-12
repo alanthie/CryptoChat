@@ -205,11 +205,11 @@ int mainMenu(ysSocket::ysClient* netwclient)
                     else
                         key = ct.netw_client->get_random_key();
 
-                    MSG m;
-                    m.make_msg(MSG_TEXT, message, key);
+                    NETW_MSG::MSG m;
+                    m.make_msg(NETW_MSG::MSG_TEXT, message, key);
                     ct.netw_client->send_message_uffer(ct.netw_client->get_socket(), m, key);
 
-                    ct.netw_client->add_to_history(false, MSG_TEXT, message);
+                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
                 }
 
                 free(e);

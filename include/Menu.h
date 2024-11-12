@@ -69,7 +69,12 @@ class Menu{
         // for any random user input before next iteration of the menu
         bool waitForNextIteration;
         // required by conio.h
+
+#ifdef _WIN32
+
+#else
         Console console;
+#endif
 
         // prints the entirity of the menu in the terminal
         void printMenu();
@@ -379,7 +384,11 @@ int Menu::get_menu_choice()
         __clear();
         print_neutral_menu();
         std::cout << std::string("==>");
+#ifdef _WIN32
+        choice = _getch();
+#else
         choice = console.getch();
+#endif
         return choice;
     }
     return -1;
@@ -397,7 +406,12 @@ void Menu::run_menu(){
         std::cout << "Press " << keybinds[0] << " and " << keybinds[1] << " to move up and down the menu." << std::endl;
         std::cout << "Press " << keybinds[2] << " to select an item." << std::endl;
         printMenu();
+
+#ifdef _WIN32
+        choice = _getch();
+#else
         choice = console.getch();
+#endif
 
         if(choice == keybinds[0]){
             if(pos != names.begin()) pos--;
@@ -415,7 +429,11 @@ void Menu::run_menu(){
 
             __clear();
             pos->second();
-            console.getch();
+#ifdef _WIN32
+            choice = _getch();
+#else
+            choice = console.getch();
+#endif
         }
     }
 

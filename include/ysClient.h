@@ -56,11 +56,11 @@ namespace ysSocket {
 		std::string get_DEFAULT_KEY() { return getDEFAULT_KEY(); }
 		std::string get_initial_key() { return initial_key; }
 		std::string get_random_key() { return random_key; }
-		void send_message_uffer(const int& t_socketFd, MSG& m, std::string key) {
+		void send_message_uffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key) {
 			sendMessageBuffer(t_socketFd, m, key);
 		}
 		int get_socket() { return m_socketFd; }
-		std::vector<netw_msg> get_vhistory()
+		std::vector<NETW_MSG::netw_msg> get_vhistory()
 		{
 			// copy between threads
 			std::lock_guard l(_mutex);// recursive mutex deadlock to watch for

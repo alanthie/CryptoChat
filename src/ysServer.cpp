@@ -97,8 +97,8 @@ namespace ysSocket {
 				// "encode_idea data file must be multiple of 8 bytes idea: "
 				// "encode_idea key must be multiple of 16 bytes: "
 
-				bool r = MSG::encode_idea(datain, bkey.data(), bkey.size(), dataenc);
-				if (r) r = MSG::decode_idea(dataenc, bkey.data(), bkey.size(), dataout);
+				bool r = NETW_MSG::MSG::encode_idea(datain, bkey.data(), bkey.size(), dataenc);
+				if (r) r = NETW_MSG::MSG::decode_idea(dataenc, bkey.data(), bkey.size(), dataout);
 				if (r) if (dataout.buffer.size() != bdat.size()) r = false;
 				if (r) if (memcmp(dataout.buffer.getdata(),bdat.data(), bdat.size())!=0) r = false;
 				if (!r)
@@ -119,8 +119,8 @@ namespace ysSocket {
 
 	bool ysServer::check_default_encrypt(std::string& key)
 	{
-		MSG m, m2, m3;
-		m.make_msg(MSG_TEXT, "Hello Test", key);
+		NETW_MSG::MSG m, m2, m3;
+		m.make_msg(NETW_MSG::MSG_TEXT, "Hello Test", key);
 
 		m2.make_encrypt_msg(m, key);
 		m3.make_decrypt_msg(m2, key);
@@ -190,8 +190,8 @@ namespace ysSocket {
 			// check connection limit
 			if (this->m_nodeSize + 1 > this->m_connectionSize)
 			{
-				MSG  m;
-				m.make_msg(MSG_TEXT, "Server is full.", getDEFAULT_KEY());
+				NETW_MSG::MSG  m;
+				m.make_msg(NETW_MSG::MSG_TEXT, "Server is full.", getDEFAULT_KEY());
 				sendMessageBuffer(temp_socket, m, getDEFAULT_KEY());
 #ifdef _WIN32
 				closesocket(temp_socket);
@@ -221,9 +221,9 @@ namespace ysSocket {
 					size_t idx = get_client_index(new_client->getSocketFd());
 
 					// Parse message
-					MSG m;
+					NETW_MSG::MSG m;
 					bool r;
-					if (message_buffer[0] == MSG_CMD_RESP_KEY_HINT)
+					if (message_buffer[0] == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
 						r = m.parse(message_buffer, len, getDEFAULT_KEY());
 					else if (!v_client[idx]->initial_key_validation_done)
 						r = m.parse(message_buffer, len, getDEFAULT_KEY());
@@ -234,7 +234,7 @@ namespace ysSocket {
 
 					if (r == true)
 					{
-                        if (m.type_msg == MSG_CMD_RESP_KEY_HINT)
+                        if (m.type_msg == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_KEY_HINT" << std::endl;
                             if (DEBUG_INFO) std::cout.flush();
@@ -244,8 +244,8 @@ namespace ysSocket {
                             {
                                 if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_VALID " << idx << std::endl;
 
-                                MSG m;
-                                m.make_msg(MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
+								NETW_MSG::MSG m;
+                                m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
                                 sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
 
                                 v_client[idx]->initial_key = initial_key;
@@ -254,10 +254,10 @@ namespace ysSocket {
                                 if (v_client[idx]->username.size() == 0)
                                 {
                                     if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << idx << std::endl;
-
+									NETW_MSG::
                                     MSG m;
                                     std::string s = "Please, provide your username : ";
-                                    m.make_msg(MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+                                    m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
                                     sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
                                 }
                             }
@@ -266,7 +266,7 @@ namespace ysSocket {
                                 std::cout << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
                             }
                         }
-                        else if (m.type_msg == MSG_CMD_RESP_ACCEPT_RND_KEY)
+                        else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY)
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
                             if (DEBUG_INFO) std::cout.flush();
@@ -283,8 +283,8 @@ namespace ysSocket {
                             {
                                 if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_RND_KEY_VALID " << idx << std::endl;
 
-                                MSG m;
-                                m.make_msg(MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
+								NETW_MSG::MSG m;
+                                m.make_msg(NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
                                     v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 
                                 sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
@@ -300,7 +300,7 @@ namespace ysSocket {
                                 std::cout << "ERROR received invalid random_key digest " << idx << " " << s << std::endl;
                             }
                         }
-                        else if (m.type_msg == MSG_CMD_RESP_USERNAME)
+                        else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_USERNAME)
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_USERNAME" << std::endl;
 
@@ -309,7 +309,7 @@ namespace ysSocket {
                             v_client[idx]->username = user;
                         }
 
-                        else if (m.type_msg == MSG_TEXT)
+                        else if (m.type_msg == NETW_MSG::MSG_TEXT)
                         {
                             std::string username_display;
                             if (v_client[idx]->username.size() > 0) username_display = " (" + v_client[idx]->username + ") ";
@@ -327,9 +327,9 @@ namespace ysSocket {
                             {
                                 if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << idx << std::endl;
 
-                                MSG m;
+								NETW_MSG::MSG m;
                                 std::string s = "Please, provide your username : ";
-                                m.make_msg(MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+                                m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
                                 sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
                             }
                             else if (!v_client[idx]->random_key_validation_done)
@@ -369,8 +369,8 @@ namespace ysSocket {
                                         << "]" << std::endl;
                                 }
 
-                                MSG m;
-                                m.make_msg(MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
+								NETW_MSG::MSG m;
+                                m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
                                     v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 
                                 sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
@@ -403,7 +403,7 @@ namespace ysSocket {
 	void ysServer::sendMessageClients(const std::string& t_message) {
 		for (auto &client : v_client)
 		{
-			MSG  m;
+			NETW_MSG::MSG  m;
 
 			std::string key;
 			if (!client->initial_key_validation_done)
@@ -413,7 +413,7 @@ namespace ysSocket {
 			else
 				key = client->random_key;
 
-			m.make_msg(MSG_TEXT, t_message, key);
+			m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
 			sendMessageBuffer(client->getSocketFd(), m, key);
 		}
 	}
@@ -431,8 +431,8 @@ namespace ysSocket {
 				else
 					key = client->random_key;
 
-				MSG m;
-				m.make_msg(MSG_TEXT, t_message, key);
+				NETW_MSG::MSG m;
+				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
 				sendMessageBuffer(client->getSocketFd(), m, key);
 
 			}
@@ -460,9 +460,9 @@ namespace ysSocket {
 		{
 			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_KEY_HINT " << idx << std::endl;
 
-			MSG m;
+			NETW_MSG::MSG m;
 			std::string s = initial_key_hint;
-			m.make_msg(MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
+			m.make_msg(NETW_MSG::MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
 			sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
 		}
 	}
@@ -489,10 +489,10 @@ namespace ysSocket {
 					+ str_digest
 					+ "]" << std::endl;
 
-			MSG m;
+			NETW_MSG::MSG m;
 			v_client[idx]->pending_random_key = pending_random_key;
 
-			m.make_msg(MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
+			m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
 				v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 
 			sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);

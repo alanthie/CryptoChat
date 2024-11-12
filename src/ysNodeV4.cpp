@@ -79,9 +79,9 @@ namespace ysSocket {
 		this->m_state = STATE::OPEN;
 	}
 
-	void ysNodeV4::sendMessageBuffer(const int& t_socketFd, MSG& m, std::string key)
+	void ysNodeV4::sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)
 	{
-		MSG m2;
+		NETW_MSG::MSG m2;
 		m2.make_encrypt_msg(m, key);
 
 		if (m2.buffer_len >= MESSAGE_SIZE)
