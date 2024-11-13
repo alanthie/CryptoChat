@@ -23,12 +23,13 @@ namespace ysSocket {
 		std::function<void(const std::string& t_message) > m_onMessage = nullptr;
 		void showMessage(const std::string& t_message);
 
-		// thread
+		// One RECV thread per client
 		std::vector<std::thread> v_thread;
 		void joinThread();
-		std::mutex m_mu;
 
-		// client
+		std::mutex m_mu; // showMessage lock
+
+		// N clients
 		int m_nodeSize = 0;
 		std::vector<ysNodeV4*> v_client;
 		void closeClient();
@@ -40,11 +41,13 @@ namespace ysSocket {
 		void listenServer();
 		bool check_default_encrypt(std::string& key);
 		void set_key_hint();
-		void handleRequest();
+		void handle_accept();
 
 		// Message
 		void sendMessageClients(const std::string& t_message);
 		void sendMessageAll(const std::string& t_message, const int& t_socket);
+
+		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
 
 	public:
 		ysServer();

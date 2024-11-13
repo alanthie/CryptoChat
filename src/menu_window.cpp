@@ -47,7 +47,15 @@ struct ClientTerm
     {
         if (m.size() < 5) return false;
         if ((m[0]=='<') && (m[1]=='<') && (m[m.size()-1]=='>') && (m[m.size()-2]=='>'))
-        return true;
+            return true;
+        return false;
+    }
+    bool is_binfile_command(const std::string& m)
+    {
+        if (m.size() < 5) return false;
+        if ((m[0] == '[') && (m[1] == '[') && (m[m.size() - 1] == ']') && (m[m.size() - 2] == ']'))
+            return true;
+        return false;
     }
     std::string file_from_command(const std::string& m)
     {
@@ -89,6 +97,19 @@ struct ClientTerm
         va_end(ap);
     }
 
+    std::string get_printable_string(const std::string& line)
+    {
+        std::string s(line.size(), ' ');
+        char c;
+        for (size_t i=0;i<line.size();i++)
+        {
+            c = line[i];
+            if ((c >= 32) && (c < 127)) s[i] = c;
+            else s[i] = '_';
+        }
+        return s;
+    }
+
     void draw_history(std::string& ab)
     {
         int cnt = 0;
@@ -104,8 +125,16 @@ struct ClientTerm
                 ab.append(std::to_string(i+1));
                 ab.append(" ");
                 ab.append(vh[i].is_receive?"recv ":"send ");
-                ab.append(" : ");
-                ab.append(vlines[j]);
+                ab.append(": ");
+                std::string sl = get_printable_string(vlines[j]);
+                if (vh[i].msg_type == NETW_MSG::MSG_FILE)
+                {
+                    std::string ss = "<< " + sl + ">>" + "[0%]";
+                    ab.append(ss);
+                }
+                else
+                    ab.append(sl);
+
                 ab.append(Term::erase_to_eol());
                 ab.append("\r\n");
             }
@@ -213,7 +242,7 @@ struct ClientTerm
     }
 };
 
-int mainMenu(ysSocket::ysClient* netwclient)
+int main_client_ui(ysSocket::ysClient* netwclient)
 {
     try {
         Terminal term(true, false);
@@ -230,34 +259,88 @@ int mainMenu(ysSocket::ysClient* netwclient)
         // LOOP
         while (on)
         {
-            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/<<filename>>)", NULL);
+            // prompt_msg = Waits for a key press, translates escape codes
+            //int read_key() const
+            //{
+            //    int key;
+            //    while ((key = read_key0()) == 0)
+            //    {
+            //        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            //    }
+            //    return key;
+            //}
+
+            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/<<txt_filename>>/[[bin_filename]])", NULL);
             if (e != NULL)
             {
+                bool is_binfile_send_cmd = false;
                 std::string message = std::string(e, strlen(e));
 
                 if (ct.is_file_command(message))
                 {
                     std::string filename = ct.file_from_command(message);
-                    //std::cout << filename<< std::endl;
                     message = ct.read_file(filename);
-                    //std::cout << message << std::endl;
+                }
+                else if (ct.is_binfile_command(message))
+                {
+                    std::string filename = ct.file_from_command(message);
+                    // check file exist...
+
+                    is_binfile_send_cmd = true;
+                    bool r = ct.netw_client->add_file_to_send(filename);
+                    if (!r)
+                    {
+
+                    }
+                    //message = ct.read_file(filename);
+                    message = filename;
                 }
 
-                if (message.size() > 0)
+                if (is_binfile_send_cmd)
                 {
-                    std::string key;
-                    if (!ct.netw_client->key_valid)
-                        key = ct.netw_client->get_DEFAULT_KEY();
-                    else if (!ct.netw_client->rnd_valid)
-                        key = ct.netw_client->get_initial_key();
-                    else
-                        key = ct.netw_client->get_random_key();
+                    if (message.size() > 0)
+                    {
+                        std::string key;
+                        {
+                            std::lock_guard l(ct.netw_client->_key_mutex);
 
-                    NETW_MSG::MSG m;
-                    m.make_msg(NETW_MSG::MSG_TEXT, message, key);
-                    ct.netw_client->send_message_uffer(ct.netw_client->get_socket(), m, key);
+                            if (!ct.netw_client->key_valid)
+                                key = ct.netw_client->get_DEFAULT_KEY();
+                            else if (!ct.netw_client->rnd_valid)
+                                key = ct.netw_client->get_initial_key();
+                            else
+                                key = ct.netw_client->get_random_key();
+                        }
 
-                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                        NETW_MSG::MSG m;
+                        m.make_msg(NETW_MSG::MSG_FILE, message, key);
+                        ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
+
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message);
+                    }
+                }
+                else
+                {
+                    if (message.size() > 0)
+                    {
+                        std::string key;
+                        {
+                            std::lock_guard l(ct.netw_client->_key_mutex);
+
+                            if (!ct.netw_client->key_valid)
+                                key = ct.netw_client->get_DEFAULT_KEY();
+                            else if (!ct.netw_client->rnd_valid)
+                                key = ct.netw_client->get_initial_key();
+                            else
+                                key = ct.netw_client->get_random_key();
+                        }
+
+                        NETW_MSG::MSG m;
+                        m.make_msg(NETW_MSG::MSG_TEXT, message, key);
+                        ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
+
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                    }
                 }
 
                 free(e);

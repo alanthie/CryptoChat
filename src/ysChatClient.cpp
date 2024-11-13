@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 		chat_client->setOnMessage(printMessage);
 		chat_client->connectServer();
 
-		chat_client->writeMessage();
+		chat_client->client_UI();
 
 		delete chat_client;
 

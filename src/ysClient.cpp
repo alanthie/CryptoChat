@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-extern int mainMenu(ysSocket::ysClient* netw_client);
+extern int main_client_ui(ysSocket::ysClient* netw_client);
 
 namespace ysSocket {
 
@@ -64,30 +64,77 @@ namespace ysSocket {
 		}
 	}
 
-	void ysClient::receiveMessage()
+	// SEND FILE FRAGMENT THREAD
+	void ysClient::send_pending_file_packet_thread()
 	{
-		this->m_thread = std::move(std::thread([=, this]
+		this->m_send_thread = std::move(std::thread([=, this]
+		{
+			int send_status;
+			while (true)
+			{
+				std::string key;
+				{
+					std::lock_guard l(_key_mutex);
+
+					if (!key_valid)	key = get_DEFAULT_KEY();
+					else if (!rnd_valid) key = get_initial_key();
+					else key = get_random_key();
+				}
+
+				int send_status;
+				bool r = send_next_pending_file_packet(this->m_socketFd, key, send_status);
+				if (!r)
+				{
+				}
+				// send TXT msg...
+
+				// sleep ...
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			}
+		}));
+	}
+
+	// RECV THREAD
+	void ysClient::recv_thread()
+	{
+		this->m_recv_thread = std::move(std::thread([=, this]
 		{
 			int len;
-			char message_buffer[MESSAGE_SIZE + 1] = { 0 };
+			char message_buffer[NETW_MSG::MESSAGE_SIZE + 1] = { 0 };
 
-			while ((len = recv(this->m_socketFd, message_buffer, MESSAGE_SIZE, 0)) > 0)
+			// RECV(this->m_socketFd)
+			while ((len = recv(this->m_socketFd, message_buffer, NETW_MSG::MESSAGE_SIZE, 0)) > 0)
 			{
 				message_buffer[len] = '\0';
 
 				// Parse message
 				NETW_MSG::MSG m;
 				bool r;
-				if (!key_valid)
-					r = m.parse(message_buffer, len, getDEFAULT_KEY());
-				else if (!rnd_valid)
-					r = m.parse(message_buffer, len, initial_key);
-				else
-					r = m.parse(message_buffer, len, random_key);
+
+				std::string key;
+				{
+					std::lock_guard l(_key_mutex);
+
+					if (!key_valid)
+						key = getDEFAULT_KEY();
+					else if (!rnd_valid)
+						key = initial_key;
+					else
+						key = random_key;
+
+					if (!key_valid)
+						r = m.parse(message_buffer, len, key);
+					else if (!rnd_valid)
+						r = m.parse(message_buffer, len, key);
+					else
+						r = m.parse(message_buffer, len, key);
+				}
 
                 if (r == true)
                 {
-                    std::string str_message = m.get_data_as_string();
+					std::string str_message;
+					if (m.type_msg != NETW_MSG::MSG_FILE_FRAGMENT)
+						str_message = m.get_data_as_string();
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
@@ -128,15 +175,16 @@ namespace ysSocket {
                             //if (i <  questions.size() - 1) r+=";";
                         }
 
-
-
-                        // ask user
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
 
 //                            showMessage(str_message);
 //                            std::string r = get_input("Enter key");
-                            initial_key = r; // still key_valid = false;
+
+							{
+								std::lock_guard l(_key_mutex);
+								initial_key = r; // still key_valid = false;
+							}
 
                             if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
 							NETW_MSG::MSG m;
@@ -196,11 +244,16 @@ namespace ysSocket {
                             << "]" << std::endl;
                         }
 
+						std::string key;
+						{
+							std::lock_guard l(_key_mutex);
+							key = rnd_valid ? random_key : initial_key;
+						}
 
                         if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
 						NETW_MSG::MSG m;
-                        m.make_msg(NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, rnd_valid ? random_key : initial_key);
-                        this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
+                        m.make_msg(NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, key);
+                        this->sendMessageBuffer(this->m_socketFd, m, key);
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID)
                     {
@@ -208,8 +261,11 @@ namespace ysSocket {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
 
                             // CONFIRMED new rnd key
-                            random_key = pending_random_key;
-                            rnd_valid = true;
+							{
+								std::lock_guard l(_key_mutex);
+								random_key = pending_random_key;
+								rnd_valid = true;
+							}
                         }
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
@@ -225,8 +281,15 @@ namespace ysSocket {
 
                             if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
 							NETW_MSG::MSG m;
-                            m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, r, rnd_valid ? random_key : initial_key);
-                            this->sendMessageBuffer(this->m_socketFd, m, rnd_valid ? random_key : initial_key);
+
+							std::string key;
+							{
+								std::lock_guard l(_key_mutex);
+								key = rnd_valid ? random_key : initial_key;
+							}
+
+                            m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, r, key);
+                            this->sendMessageBuffer(this->m_socketFd, m, key);
                         }
                     }
 
@@ -237,6 +300,38 @@ namespace ysSocket {
                         showMessage(str_message);
                         add_to_history(true, NETW_MSG::MSG_TEXT, str_message);
                     }
+
+					else if (m.type_msg == NETW_MSG::MSG_FILE)
+					{
+						if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << m.get_data_as_string() << std::endl;
+
+						showMessage(str_message);
+						add_to_history(true, NETW_MSG::MSG_FILE, str_message);
+					}
+
+					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
+					{
+						if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
+
+						NETW_MSG::MSG_FILE_FRAGMENT_HEADER mh;
+						bool r = NETW_MSG::MSG::parse_file_fragment_header_from_msg(m, mh);
+						if (r)
+						{
+							r = add_file_to_recv(mh.filename);
+							if (r)
+							{
+								std::lock_guard lck(_map_file_to_recv_mutex);
+								r = map_file_to_recv[mh.filename].add_recv_fragment_data(mh, 
+													m.buffer + 33 + mh.header_size(), 
+													m.buffer_len - (33 + mh.header_size()));
+								if (r)
+								{
+									// update percent...
+									// save if full...
+								}
+							}
+						}
+					}
                 }
 
 				std::memset(message_buffer, '\0', sizeof (message_buffer));
@@ -245,7 +340,7 @@ namespace ysSocket {
 		}));
 	}
 
-	void ysClient::writeMessage()
+	void ysClient::client_UI()
 	{
 		int cnt = 0;
 		std::string message = "";
@@ -273,7 +368,7 @@ namespace ysSocket {
 
 			if (key_valid && rnd_valid && user_valid)
 			{
-				mainMenu(this);
+				main_client_ui(this);
 			}
 			else if (!user_valid)
 			{
@@ -285,12 +380,15 @@ namespace ysSocket {
 					message = get_input("Enter chat msg");
 
 					std::string key;
-					if (!key_valid)
-						key = getDEFAULT_KEY();
-					else if (!rnd_valid)
-						key = initial_key;
-					else
-						key = random_key;
+					{
+						std::lock_guard l(_key_mutex);
+						if (!key_valid)
+							key = getDEFAULT_KEY();
+						else if (!rnd_valid)
+							key = initial_key;
+						else
+							key = random_key;
+					}
 
 					NETW_MSG::MSG m;
 					m.make_msg(NETW_MSG::MSG_TEXT, message, key);
@@ -326,17 +424,23 @@ namespace ysSocket {
 		m_onMessage = t_function;
 	}
 
-	void ysClient::connectServer() {
+	void ysClient::connectServer() 
+	{
 		this->_connectServer();
 		showMessage("Connection successfully....");
-		this->receiveMessage();
-		this->writeMessage();
+
+		this->recv_thread();
+		this->send_pending_file_packet_thread();
+		this->client_UI();
 	}
 
 	void ysClient::closeConnection() {
 		this->closeSocket();
-		if (this->m_thread.joinable()) {
-			this->m_thread.join();
+		if (this->m_recv_thread.joinable()) {
+			this->m_recv_thread.join();
+		}
+		if (this->m_send_thread.joinable()) {
+			this->m_send_thread.join();
 		}
 	}
 

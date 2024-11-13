@@ -76,7 +76,17 @@ namespace NETW_MSG
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-        make_msg(t, s.size(), (uint8_t*)s.data(), digestkey);
+        if (s.size() >= NETW_MSG::MESSAGE_SIZE - 33)
+        {
+            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - 33);
+            make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
+
+            std::cout << "WARNING message truncated" << std::endl;
+        }
+        else
+        {
+            make_msg(t, s.size(), (uint8_t*)s.data(), digestkey);
+        }
         delete[]digestkey;
     }
 

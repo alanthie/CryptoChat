@@ -47,6 +47,22 @@ namespace ysSocket {
 		this->bindServer();
 		this->listenServer();
 
+		// TEST MSG_FILE_FRAGMENT_HEADER
+		//{
+		//	NETW_MSG::MSG_FILE_FRAGMENT_HEADER h;
+		//	h.filename = "C:\\tmp\\f.txt";
+		//	h.total_size = std::to_string(52);
+		//	h.from = std::to_string(0);
+		//	h.to = std::to_string(52-1);
+
+		//	NETW_MSG::MSG_FILE_FRAGMENT_HEADER hh;
+		//	bool r = hh.parse_header(h.make_header());
+
+		//	std::vector<NETW_MSG::MSG_FILE_FRAGMENT_HEADER> vout;
+		//	r = NETW_MSG::MSG_FILE_FRAGMENT_HEADER::make_fragments("C:\\tmp\\smartgit-win-24_1_0.zip", vout);
+		//}
+
+
 		// TEST ENCRYPTION
 		const int N_SIZE_TEST = 10;
 		{
@@ -65,9 +81,9 @@ namespace ysSocket {
 			// TEST cryptoAL_vigenere
 			for(int i=0;i<N_SIZE_TEST;i++)
 			{
-				std::string bkey = cryptoAL::random::generate_base64_random_string(KEY_SIZE);
+				std::string bkey = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
 
-				std::string bdat = cryptoAL::random::generate_base64_random_string(KEY_SIZE / 2);
+				std::string bdat = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE / 2);
 				std::string benc = cryptoAL_vigenere::encrypt_vigenere(bdat, bkey);
 				std::string bdec = cryptoAL_vigenere::decrypt_vigenere(benc, bkey);
 				if (bdat != bdec)
@@ -87,8 +103,8 @@ namespace ysSocket {
 //			}
 			for(int i=0;i<N_SIZE_TEST;i++)
 			{
-				std::string bkey = cryptoAL::random::generate_base64_random_string(KEY_SIZE/8);
-				std::string bdat = cryptoAL::random::generate_base64_random_string(KEY_SIZE / 2);
+				std::string bkey = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE/8);
+				std::string bdat = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE / 2);
 				cryptoAL::cryptodata datain;
 				cryptoAL::cryptodata dataenc;
 				cryptoAL::cryptodata dataout;
@@ -108,13 +124,13 @@ namespace ysSocket {
 			}
 
 			if (USE_BASE64_RND_KEY_GENERATOR == false)
-				pending_random_key = cryptoAL::random::generate_base10_random_string(KEY_SIZE);
+				pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
 			else
-				pending_random_key = cryptoAL::random::generate_base64_random_string(KEY_SIZE);
+				pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
 		}
 
 		this->set_key_hint();
-		this->handleRequest();
+		this->handle_accept();
 	}
 
 	bool ysServer::check_default_encrypt(std::string& key)
@@ -178,13 +194,17 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::handleRequest() {
+	void ysServer::handle_accept() 
+	{
 		showMessage("ysServer is running...");
 		showMessage(std::string(inet_ntoa(this->m_socketInfo.sin_addr)) + ":" + std::to_string(ntohs(this->m_socketInfo.sin_port)));
 
-		while (1) {
+		while (1) 
+		{
 			struct sockaddr_in temp_addr;
 			socklen_t temp_len = sizeof (temp_addr);
+
+			// ACCEPT
 			int temp_socket = accept(this->m_socketFd, reinterpret_cast<sockaddr*> (&temp_addr), &temp_len);
 
 			// check connection limit
@@ -202,7 +222,7 @@ namespace ysSocket {
 			}
 			this->m_nodeSize += 1;
 
-			// create client
+			// NEW CLIENT
 			ysNodeV4 * new_client = new ysNodeV4();
 			new_client->setSocketInfo(temp_addr);
 			new_client->setSocketFd(temp_socket);
@@ -211,12 +231,14 @@ namespace ysSocket {
 			std::string client_ip(inet_ntoa(temp_addr.sin_addr));
 			std::string client_port(std::to_string(ntohs(temp_addr.sin_port)));
 
-			// create thread
+			// One RECV thread per client
 			this->v_thread.push_back(std::thread([ = , this]
 			{
 				int len;
-				char message_buffer[MESSAGE_SIZE+1];
-				while ((len = recv(new_client->getSocketFd(), message_buffer, MESSAGE_SIZE, 0)) > 0)
+				char message_buffer[NETW_MSG::MESSAGE_SIZE+1];
+
+				// RECV(new_client->getSocketFd())
+				while ((len = recv(new_client->getSocketFd(), message_buffer, NETW_MSG::MESSAGE_SIZE, 0)) > 0)
 				{
 					size_t idx = get_client_index(new_client->getSocketFd());
 
@@ -254,8 +276,7 @@ namespace ysSocket {
                                 if (v_client[idx]->username.size() == 0)
                                 {
                                     if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << idx << std::endl;
-									NETW_MSG::
-                                    MSG m;
+									NETW_MSG::MSG m;
                                     std::string s = "Please, provide your username : ";
                                     m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
                                     sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
@@ -320,6 +341,22 @@ namespace ysSocket {
                             v_client[idx]->username = user;
                         }
 
+						// RELAY MSG TO ALL OTHERS
+						else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
+						{
+							if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
+							//std::cout << std::string((char*)m.buffer+33, 40) << std::endl;
+							sendMessageAll(m, new_client->getSocketFd());				
+						}
+						else if (m.type_msg == NETW_MSG::MSG_FILE)
+						{
+							if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << std::endl;
+							std::string username_display;
+							if (v_client[idx]->username.size() > 0) username_display = " (" + v_client[idx]->username + ") ";
+							std::string message(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
+							this->sendMessageAll(message, new_client->getSocketFd());
+						}
+						// RELAY MSG TO ALL OTHERS
                         else if (m.type_msg == NETW_MSG::MSG_TEXT)
                         {
                             std::string username_display;
@@ -328,7 +365,6 @@ namespace ysSocket {
 
                             this->sendMessageAll(message, new_client->getSocketFd());
                             //this->sendMessageClients(message);
-
 
                             if (!v_client[idx]->initial_key_validation_done)
                             {
@@ -389,9 +425,9 @@ namespace ysSocket {
                             else
                             {
                                 if (USE_BASE64_RND_KEY_GENERATOR == false)
-                                    v_client[idx]->pending_random_key = cryptoAL::random::generate_base10_random_string(KEY_SIZE);
+                                    v_client[idx]->pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
                                 else
-                                    v_client[idx]->pending_random_key = cryptoAL::random::generate_base64_random_string(KEY_SIZE);
+                                    v_client[idx]->pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
 
                                 v_client[idx]->new_pending_random_key = true;
                             }
@@ -426,6 +462,26 @@ namespace ysSocket {
 
 			m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
 			sendMessageBuffer(client->getSocketFd(), m, key);
+		}
+	}
+
+	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
+	{
+		for (auto& client : v_client) 
+		{
+			if (client->getSocketFd() != t_socket)
+			{
+				std::string key;
+				if (!client->initial_key_validation_done)
+					key = getDEFAULT_KEY();
+				else if (!client->random_key_validation_done)
+					key = client->initial_key;
+				else
+					key = client->random_key;
+
+				sendMessageBuffer(client->getSocketFd(), m, key);
+
+			}
 		}
 	}
 
