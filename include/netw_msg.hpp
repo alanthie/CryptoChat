@@ -22,12 +22,14 @@ const int MESSAGE_KEYDIGEST_START = 5;
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
 
 
+// For msg history in UI
 struct netw_msg
 {
 	bool is_receive;
 	uint8_t msg_type;
 	std::string msg;
-	std::string filename;
+	std::string filename;	// MSG_FILE
+	bool is_for_display;	// MSG_FILE display or disk saving
 };
 
 const uint8_t MSG_EMPTY = 0;

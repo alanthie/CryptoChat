@@ -26,6 +26,7 @@ namespace cryptochat
                 _server = srv;
                 _port = port;
                 _username = user;
+
             }
 
             std::string _server;

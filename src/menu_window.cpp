@@ -58,9 +58,9 @@ struct ClientTerm
         return {};
     }
 
-    void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename)
+    void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename, bool is_for_display)
     {
-        netw_client->add_to_history(is_receive, msg_type, msg, filename);
+        netw_client->add_to_history(is_receive, msg_type, msg, filename, is_for_display);
     }
 
     void draw_edit_msg(std::string& ab)
@@ -103,6 +103,7 @@ struct ClientTerm
         auto vh = netw_client->get_vhistory(); // get a copy since multi thread ressource
         int idx = ((int)vh.size()) - nrow_history;
         if (idx < 0) idx = 0;
+
         for (int i = idx; i < (int)vh.size(); i++)
         {
             std::vector<std::string> vlines = NETW_MSG::split(vh[i].msg, "\r\n");
@@ -118,13 +119,14 @@ struct ClientTerm
                 {
                     size_t byte_processed;
                     size_t total_size = 1;
+                    bool is_done;
                     float percent = 0;
                     float fbyte_processed;
                     float ftotal_size;
 
                     if (vh[i].is_receive == false)
                     {
-                        bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size);
+                        bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size, is_done);
                         if (r)
                         {
                             fbyte_processed = byte_processed;
@@ -137,7 +139,7 @@ struct ClientTerm
                     }
                     else
                     {
-                        bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size);
+                        bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size, is_done);
                         if (r)
                         {
                             fbyte_processed = byte_processed;
@@ -162,6 +164,73 @@ struct ClientTerm
             cnt++;
         }
 
+        for (int i = idx; i < (int)vh.size(); i++)
+        {
+            if (vh[i].msg_type == NETW_MSG::MSG_FILE)
+            {
+                if (vh[i].is_for_display)
+                {
+                    size_t byte_processed;
+                    size_t total_size = 1;
+                    bool is_done;
+
+                    if (vh[i].is_receive == false)
+                    {
+                        bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size, is_done);
+                        if (r)
+                        {
+                            if (is_done)
+                            {
+                                std::string s = netw_client->get_file_to_send(vh[i].filename);
+                                if (s.size() > 0)
+                                {
+                                    std::vector<std::string> vlines = NETW_MSG::split(s, "\r\n");
+                                    for (size_t j = 0; j < vlines.size(); j++)
+                                    {
+                                        ab.append(std::to_string(i + 1));
+                                        ab.append(" ");
+                                        ab.append(vh[i].is_receive ? "recv " : "send ");
+                                        ab.append(": ");
+                                        std::string sl = get_printable_string(vlines[j]);
+                                        ab.append(sl);
+
+                                        ab.append(Term::erase_to_eol());
+                                        ab.append("\r\n");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size, is_done);
+                        if (r)
+                        {
+                            if (is_done)
+                            {
+                                std::string s = netw_client->get_file_to_recv(vh[i].filename);
+                                if (s.size() > 0)
+                                {
+                                    std::vector<std::string> vlines = NETW_MSG::split(s, "\r\n");
+                                    for (size_t j = 0; j < vlines.size(); j++)
+                                    {
+                                        ab.append(std::to_string(i + 1));
+                                        ab.append(" ");
+                                        ab.append(vh[i].is_receive ? "recv " : "send ");
+                                        ab.append(": ");
+                                        std::string sl = get_printable_string(vlines[j]);
+                                        ab.append(sl);
+
+                                        ab.append(Term::erase_to_eol());
+                                        ab.append("\r\n");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         for (int i = cnt; i < nrow_history + 2; i++)
         {
@@ -294,14 +363,24 @@ int main_client_ui(ysSocket::ysClient* netwclient)
             char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/<<txt_filename>>/[[bin_filename]])", NULL);
             if (e != NULL)
             {
+                bool is_txtfile_send_cmd = false;
                 bool is_binfile_send_cmd = false;
                 std::string message = std::string(e, strlen(e));
 
                 std::string filename;
                 if (ct.is_file_command(message))
                 {
+                    is_txtfile_send_cmd = true;
                     filename = ct.file_from_command(message);
-                    message = ct.read_file(filename);
+                    // check file exist...
+
+                    bool r = ct.netw_client->add_file_to_send(filename);
+                    if (!r)
+                    {
+                    }
+                    message = "[" + filename + ",1]";
+                    
+                    //message = ct.read_file(filename);
                 }
                 else if (ct.is_binfile_command(message))
                 {
@@ -312,12 +391,11 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                     bool r = ct.netw_client->add_file_to_send(filename);
                     if (!r)
                     {
-
                     }
-                    message = filename;
+                    message = "[" + filename + ",0]";
                 }
 
-                if (is_binfile_send_cmd)
+                if (is_binfile_send_cmd || is_txtfile_send_cmd)
                 {
                     if (message.size() > 0)
                     {
@@ -337,7 +415,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                         m.make_msg(NETW_MSG::MSG_FILE, message, key);
                         ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
 
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename);
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, is_txtfile_send_cmd);
                     }
                 }
                 else

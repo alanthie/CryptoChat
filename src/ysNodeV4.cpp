@@ -194,7 +194,7 @@ namespace ysSocket {
 		return true; // already exist
 	}
 
-	bool ysNodeV4::get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size)
+	bool ysNodeV4::get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
 	{
 		std::lock_guard lck(_map_file_to_send_mutex);
 		if (map_file_to_send.contains(filename))
@@ -202,11 +202,12 @@ namespace ysSocket {
 			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
 			byte_processed = binfile.byte_send;
 			total_size = binfile.data_size_in_fragments();
+			is_done = binfile._is_processing_done;
 			return true;
 		}
 		return false;
 	}
-	bool ysNodeV4::get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size)
+	bool ysNodeV4::get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
 	{
 		std::lock_guard lck(_map_file_to_recv_mutex);
 		if (map_file_to_recv.contains(filename))
@@ -215,9 +216,39 @@ namespace ysSocket {
 			byte_processed = binfile.byte_recv;
 			//total_size = binfile.data_size_in_fragments();
 			total_size = binfile.total_size_read_from_fragment;
+			is_done = binfile._is_processing_done;
 			return true;
 		}
 		return false;
+	}
+
+	std::string ysNodeV4::get_file_to_send(const std::string& filename)
+	{
+		std::string r;
+		std::lock_guard lck(_map_file_to_send_mutex);
+		if (map_file_to_send.contains(filename))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
+			if (binfile._file != nullptr)
+			{
+				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());
+			}
+		}
+		return r;
+	}
+	std::string ysNodeV4::get_file_to_recv(const std::string& filename)
+	{
+		std::string r;
+		std::lock_guard lck(_map_file_to_recv_mutex);
+		if (map_file_to_recv.contains(filename))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
+			if (binfile._file != nullptr)
+			{
+				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());
+			}
+		}
+		return r;
 	}
 
 	//bool ysNodeV4::add_msg_to_send(const NETW_MSG::MSG& m)

@@ -369,7 +369,22 @@ namespace ysSocket {
 						if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << m.get_data_as_string() << std::endl;
 
 						showMessage(str_message);
-						add_to_history(true, NETW_MSG::MSG_FILE, str_message, str_message);
+						//parse "[" + filename + ",1]"
+						std::string filename;
+						int for_display = true;
+						if (str_message.size() > 4)
+						{
+							for (size_t p = 1; p < str_message.size(); p++)
+							{
+								if (str_message[p] == ',')
+								{
+									filename = str_message.substr(1, p - 1);
+									if (str_message[p + 1] == '1') for_display = true;
+									else for_display = false;
+								}
+							}
+						}
+						add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, for_display);
 					}
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)

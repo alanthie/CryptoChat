@@ -73,10 +73,10 @@ namespace ysSocket {
 			return vhistory;
 		}
 
-		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {})
+		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {}, bool is_for_display = true)
 		{
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
-			vhistory.push_back({ is_receive, msg_type, msg, filename });
+			vhistory.push_back({ is_receive, msg_type, msg, filename, is_for_display });
 			while (vhistory.size() > HISTORY_SIZE)
 			{
 				vhistory.erase(vhistory.begin());
@@ -91,13 +91,22 @@ namespace ysSocket {
 			return ysNodeV4::add_file_to_recv(filename);
 		}
 
-		bool get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size)
+		bool get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
 		{
-			return ysNodeV4::get_info_file_to_send(filename, byte_processed, total_size);
+			return ysNodeV4::get_info_file_to_send(filename, byte_processed, total_size, is_done);
 		}
-		bool get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size)
+		bool get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
 		{
-			return ysNodeV4::get_info_file_to_recv(filename, byte_processed, total_size);
+			return ysNodeV4::get_info_file_to_recv(filename, byte_processed, total_size, is_done);
+		}
+
+		std::string get_file_to_send(const std::string& filename)
+		{
+			return ysNodeV4::get_file_to_send(filename);
+		}
+		std::string get_file_to_recv(const std::string& filename)
+		{
+			return ysNodeV4::get_file_to_recv(filename);
 		}
 
 		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)
