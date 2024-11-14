@@ -99,35 +99,97 @@ namespace ysSocket {
 	{
 		this->m_recv_thread = std::move(std::thread([=, this]
 		{
+			bool msg_ok = true;
 			int len;
-			char message_buffer[NETW_MSG::MESSAGE_SIZE + 1] = { 0 };
+			size_t byte_recv = 0;
+			uint32_t expected_len = 0;
+			char message_buffer[NETW_MSG::MESSAGE_SIZE + 1];
+			char message_previous_buffer[NETW_MSG::MESSAGE_SIZE + 1];
+
+			// RECV ()
+			while (msg_ok)
+			{
+				if (byte_recv > 0)
+				{
+					std::cout << "RECV - byte_recv: " << byte_recv << std::endl;
+					memcpy(message_buffer, message_previous_buffer, byte_recv);
+				}
+
+				// recv on windows
+				// If no error occurs, recv returns the number of bytes received and the buffer pointed to by the buf parameter will contain this data received.
+				// If the connection has been gracefully closed, the return value is zero.
+				// Otherwise, a value of SOCKET_ERROR is returned, and a specific error code can be retrieved by calling WSAGetLastError.
+
+				while (byte_recv < NETW_MSG::MESSAGE_HEADER)
+				{
+					len = recv(this->m_socketFd, message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
+					if (len > 0)
+					{
+						byte_recv += len;
+						std::cout << "RECV - byte_recv cummulative1: " << byte_recv << std::endl;
+					}
+					else
+					{
+						// closed or error
+						std::cerr << "ERROR - socket error or closed" << std::endl;
+						msg_ok = false;
+						break;
+					}
+				}
+
+				expected_len = NETW_MSG::MSG::byteToUInt4(message_buffer + 1);
+				if (expected_len > NETW_MSG::MESSAGE_SIZE)
+				{
+					std::cerr << "ERROR - MSG has invalid expected len " << expected_len << " vs " << NETW_MSG::MESSAGE_SIZE << std::endl;
+					msg_ok = false;
+					break;
+				}
+				std::cout << "RECV - expected_len = " << expected_len << std::endl;
+
+				while (byte_recv < expected_len)
+				{
+					len = recv(this->m_socketFd, message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
+					if (len > 0)
+					{
+						byte_recv += len;
+						std::cout << "RECV - byte_recv cummulative2: " << byte_recv << std::endl;
+					}
+					else
+					{
+						// closed or error
+						std::cerr << "ERROR - socket error or closed" << std::endl;
+						msg_ok = false;
+						break;
+					}
+				}
+
+				if (msg_ok)
+				{
+					// remaining data for next msg
+					byte_recv = byte_recv - expected_len;
+					if (byte_recv > 0)
+					{
+						memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
+						std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
+					}
+				}
 
 			// RECV(this->m_socketFd)
-			while ((len = recv(this->m_socketFd, message_buffer, NETW_MSG::MESSAGE_SIZE, 0)) > 0)
-			{
-				message_buffer[len] = '\0';
+			//while ((len = recv(this->m_socketFd, message_buffer, NETW_MSG::MESSAGE_SIZE, 0)) > 0)
+			//{
+
+				message_buffer[expected_len] = '\0';
 
 				// Parse message
 				NETW_MSG::MSG m;
 				bool r;
 
-				std::string key;
 				{
 					std::lock_guard l(_key_mutex);
 
-					if (!key_valid)
-						key = getDEFAULT_KEY();
-					else if (!rnd_valid)
-						key = initial_key;
-					else
-						key = random_key;
-
-					if (!key_valid)
-						r = m.parse(message_buffer, len, key);
-					else if (!rnd_valid)
-						r = m.parse(message_buffer, len, key);
-					else
-						r = m.parse(message_buffer, len, key);
+					if (!key_valid)	r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
+					else if (!rnd_valid) r = m.parse(message_buffer, expected_len, initial_key);
+					else r = m.parse(message_buffer, expected_len, random_key, previous_random_key, pending_random_key);
 				}
 
                 if (r == true)
@@ -139,7 +201,7 @@ namespace ysSocket {
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
                         challenge_attempt++;
-                        std::vector<std::string> questions = split(str_message, ";");
+                        std::vector<std::string> questions = NETW_MSG::split(str_message, ";");
 
 						std::vector< std::string> a;
 						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
@@ -263,6 +325,7 @@ namespace ysSocket {
                             // CONFIRMED new rnd key
 							{
 								std::lock_guard l(_key_mutex);
+								previous_random_key = random_key;
 								random_key = pending_random_key;
 								rnd_valid = true;
 							}
@@ -321,13 +384,15 @@ namespace ysSocket {
 							if (r)
 							{
 								std::lock_guard lck(_map_file_to_recv_mutex);
+								size_t idx_fragment;
 								r = map_file_to_recv[mh.filename].add_recv_fragment_data(mh, 
-													m.buffer + 33 + mh.header_size(), 
-													m.buffer_len - (33 + mh.header_size()));
+													m.buffer + NETW_MSG::MESSAGE_HEADER + mh.header_size(),
+													m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()), idx_fragment);
 								if (r)
 								{
-									// update percent...
-									// save if full...
+									auto& binfile = map_file_to_recv[mh.filename];
+									binfile.set_fragment_processed(idx_fragment, m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()) );
+									// save file if fully processed...
 								}
 							}
 						}

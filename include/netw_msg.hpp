@@ -8,14 +8,18 @@
 #include "random_engine.hpp"
 #include "SHA256.h"
 #include "IDEA.hpp"
+#include "../include/string_util.hpp"
+
+constexpr bool DEBUG_INFO = true;
 
 namespace NETW_MSG
 {
+const int MESSAGE_SIZE = 4 * 1024; 
+const int MESSAGE_HEADER = 37;
+const int MESSAGE_KEYDIGEST_START = 5;
 
-const int MESSAGE_SIZE = 4 * 1024; // 4k or better if supported 64k to 8MB, use in recv(), send()
-
-// Make KEY_SIZE a multiple of 128 to support most encryption algos
-const int KEY_SIZE = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
+// Make KEY_SIZE a multiple of 64 to support most encryption algos
+const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
 
 
 struct netw_msg
@@ -23,6 +27,7 @@ struct netw_msg
 	bool is_receive;
 	uint8_t msg_type;
 	std::string msg;
+	std::string filename;
 };
 
 const uint8_t MSG_EMPTY = 0;
@@ -81,7 +86,8 @@ struct MSG_FILE_FRAGMENT_HEADER
 	bool parse_header(const std::string& data)
 	{
 		size_t sz = header_size();
-		if (data.size() < sz) return false;
+		if (data.size() < sz) 
+			return false;
 		size_t pos_file = 1;
 		size_t pos_total_size = 1 + get_pos_delimiter(pos_file, data, ',');
 		size_t pos_from = 1 + get_pos_delimiter(pos_total_size, data, ',');
@@ -114,7 +120,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 		std::string header = h.make_header();
 
 		// Allow for encryption doubling of size....
-		size_t fragment_data_size = ((NETW_MSG::MESSAGE_SIZE/2) - (33 + header.size() + 16));
+		size_t fragment_data_size = ( (NETW_MSG::MESSAGE_SIZE/3) - (MESSAGE_HEADER + header.size()) );
 		size_t number_fragments = 1 + total_size / fragment_data_size;
 
 		size_t data_count = 0;
@@ -188,14 +194,27 @@ struct MSG_BINFILE
 		}
 	}
 
+	size_t data_size_in_fragments()
+	{
+		size_t n = 0;
+		for (size_t i = 0; i < _vfragments.size(); i++)
+		{
+			n += 1 + _vfragments[i].data_to - _vfragments[i].data_from;
+		}
+		return n;
+	}
+
 	bool _is_valid = false;
+	bool _is_processing_done = false;
 	std::string _filename;
 	cryptoAL::cryptodata* _file = nullptr; // allow =()
 	bool _to_send; // recv or send
 	std::vector<MSG_FILE_FRAGMENT_HEADER> _vfragments;
 
+	size_t total_size_read_from_fragment = 0;
+
 	size_t byte_send = 0;
-	size_t bytes_recv = 0;
+	size_t byte_recv = 0;
 
 	bool has_unprocess_fragment()
 	{
@@ -217,30 +236,27 @@ struct MSG_BINFILE
 		return 0;
 	}
 
-	void set_fragment_processed(size_t idx)
+	void set_fragment_processed(size_t idx, size_t sz_data)
 	{
+		if (idx >= _vfragments.size()) 
+			return;
 		_vfragments[idx].is_processed = true;
 		if (_to_send)
 		{
-			//byte_send += 
+			byte_send += sz_data;
+
+			if (byte_send >= data_size_in_fragments())
+				_is_processing_done = true;
+		}
+		else
+		{
+			byte_recv += sz_data;
+			if (byte_recv >= data_size_in_fragments())
+				_is_processing_done = true;
 		}
 	}
 
-	[[maybe_unused]] static long long str_to_ll(const std::string& snum)
-	{
-		long long r = -1;
-		try
-		{
-			r = std::stoll(snum);
-		}
-		catch (...)
-		{
-			r = -1;
-		}
-		return r;
-	}
-
-	bool add_recv_fragment_data(MSG_FILE_FRAGMENT_HEADER& h, uint8_t* data, uint32_t data_len)
+	bool add_recv_fragment_data(MSG_FILE_FRAGMENT_HEADER& h, uint8_t* data, uint32_t data_len, size_t& idx_fragment)
 	{
 		long long total_size = str_to_ll(h.total_size);
 		long long pos_from = str_to_ll(h.from);
@@ -256,7 +272,11 @@ struct MSG_BINFILE
 		if (_file->buffer.size() < total_size)
 			_file->buffer.increase_size(total_size);
 
+		total_size_read_from_fragment = total_size;
+
 		_vfragments.push_back(h);
+		idx_fragment = _vfragments.size() - 1;
+
 		// void write(const char* buffer, uint32_t len, int32_t offset = -1)
 		_file->buffer.write( (char*)data, data_len, (int32_t)pos_from);
 		return true;
@@ -265,12 +285,15 @@ struct MSG_BINFILE
 
 struct MSG
 {
-	uint8_t type_msg = MSG_EMPTY; // buffer[0]
-	// digest of key = buffer[1]...buffer[32]
+	// HEADER + data
+	// type_msg (1 byte) =  buffer[0]
+	// buffer_len (4 bytes) = buffer[1]...buffer[4] 
+	// digest of key (32 bytes) = buffer[5]...buffer[36]
+	// data = buffer[37]...buffer[N]
 
+	uint8_t	type_msg = MSG_EMPTY;
 	uint32_t buffer_len = 0;
 	uint8_t* buffer = nullptr;
-
 
 	size_t size();
 	uint8_t* get_buffer();
@@ -284,20 +307,34 @@ struct MSG
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
-	bool parse(char* message_buffer, size_t len, std::string key);
+	bool parse(char* message_buffer, size_t len, std::string key, std::string previous_key = {}, std::string pending_key = {});
 
 	~MSG();
 
 	static bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next);
 	static bool decode_idea(cryptoAL::cryptodata& data_encrypted, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_decrypted);
 
-	static std::vector<std::string> split(std::string& s, const std::string& delimiter) ;
+	static void uint4ToByte(uint32_t k, char buff[])
+	{
+		//memcpy(buff, &k, 4);
+		buff[0] = (char)(k & 0x000000ff);
+		buff[1] = (char)((k & 0x0000ff00) >> 8);
+		buff[2] = (char)((k & 0x00ff0000) >> 16);
+		buff[3] = (char)((k & 0xff000000) >> 24);
+	}
+	static uint32_t byteToUInt4(char buff[])
+	{
+		return   ((uint32_t)(unsigned char)buff[3] << 24)
+			| ((uint32_t)(unsigned char)buff[2] << 16)
+			| ((uint32_t)(unsigned char)buff[1] << 8)
+			| (uint32_t)(unsigned char)buff[0];
+	}
 
 	static bool parse_file_fragment_header_from_msg(MSG& msgin, MSG_FILE_FRAGMENT_HEADER& header_out)
 	{
 		//"[" + filename + "," + total_size + "," + from + "," + to + "]";
-		if (msgin.buffer_len <= 33) return false;
-		uint8_t* data = msgin.buffer+33;
+		if (msgin.buffer_len <= MESSAGE_HEADER) return false;
+		uint8_t* data = msgin.buffer+ MESSAGE_HEADER;
 		if (data[0]!='[') return false;
 
 		size_t pos_start_filename = 1;
@@ -349,7 +386,7 @@ struct MSG
 		if (pos_end_to == 0) return false;
 
 		size_t header_size = pos_end_to+1;
-		if (header_out.parse_header(std::string(0, header_size)) == false) 
+		if (header_out.parse_header(std::string((char*) & data[0], header_size)) == false)
 			return false;
 
 		return true;
@@ -365,7 +402,7 @@ struct MSG
 			if (binfile._file == nullptr)
 				return false;
 
-			type_msg = MSG_FILE_FRAGMENT;
+			//type_msg = MSG_FILE_FRAGMENT;
 
 			size_t idx = binfile.next_fragment_index_to_process();
 			MSG_FILE_FRAGMENT_HEADER packet = binfile._vfragments[idx];
@@ -385,7 +422,9 @@ struct MSG
 			delete[]digestkey;
 
 			if (mark_fragment_as_process)
-				binfile.set_fragment_processed(idx);
+			{
+				binfile.set_fragment_processed(idx, packet.data_to - packet.data_from + 1);
+			}
 
 			return true;
 		}

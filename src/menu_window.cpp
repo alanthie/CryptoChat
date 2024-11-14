@@ -5,6 +5,7 @@
 #include "../include/terminal.h"
 #include "../include/ysClient.h"
 #include "../include/data.hpp"
+#include "../include/string_util.hpp"
 #include <stdarg.h>
 
 using Term::Terminal;
@@ -28,20 +29,6 @@ struct ClientTerm
     char editmsg[800] = { 0 };
     std::string status_msg;
 
-    static std::vector<std::string> split(std::string& s, const std::string& delimiter)
-    {
-        std::vector<std::string> tokens;
-        size_t pos = 0;
-        std::string token;
-        while ((pos = s.find(delimiter)) != std::string::npos) {
-            token = s.substr(0, pos);
-            tokens.push_back(token);
-            s.erase(0, pos + delimiter.length());
-        }
-        tokens.push_back(s);
-
-        return tokens;
-    }
 
     bool is_file_command(const std::string& m)
     {
@@ -71,9 +58,9 @@ struct ClientTerm
         return {};
     }
 
-    void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg)
+    void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename)
     {
-        netw_client->add_to_history(is_receive, msg_type, msg );
+        netw_client->add_to_history(is_receive, msg_type, msg, filename);
     }
 
     void draw_edit_msg(std::string& ab)
@@ -118,7 +105,7 @@ struct ClientTerm
         if (idx < 0) idx = 0;
         for (int i = idx; i < (int)vh.size(); i++)
         {
-            std::vector<std::string> vlines = ClientTerm::split(vh[i].msg, "\r\n");
+            std::vector<std::string> vlines = NETW_MSG::split(vh[i].msg, "\r\n");
 
 			for (size_t j = 0; j < vlines.size(); j++)
             {
@@ -129,7 +116,41 @@ struct ClientTerm
                 std::string sl = get_printable_string(vlines[j]);
                 if (vh[i].msg_type == NETW_MSG::MSG_FILE)
                 {
-                    std::string ss = "<< " + sl + ">>" + "[0%]";
+                    size_t byte_processed;
+                    size_t total_size = 1;
+                    float percent = 0;
+                    float fbyte_processed;
+                    float ftotal_size;
+
+                    if (vh[i].is_receive == false)
+                    {
+                        bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size);
+                        if (r)
+                        {
+                            fbyte_processed = byte_processed;
+                            ftotal_size = total_size;
+
+                            if (total_size > 0)
+                            if (byte_processed <= total_size)
+                                percent = fbyte_processed/ ftotal_size;
+                        }
+                    }
+                    else
+                    {
+                        bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size);
+                        if (r)
+                        {
+                            fbyte_processed = byte_processed;
+                            ftotal_size = total_size;
+
+                            if (total_size > 0)
+                            if (byte_processed <= total_size)
+                                percent = fbyte_processed / ftotal_size;
+                        }
+                    }
+
+                    int ipercent = 100*percent;
+                    std::string ss = "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%]";
                     ab.append(ss);
                 }
                 else
@@ -276,14 +297,15 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                 bool is_binfile_send_cmd = false;
                 std::string message = std::string(e, strlen(e));
 
+                std::string filename;
                 if (ct.is_file_command(message))
                 {
-                    std::string filename = ct.file_from_command(message);
+                    filename = ct.file_from_command(message);
                     message = ct.read_file(filename);
                 }
                 else if (ct.is_binfile_command(message))
                 {
-                    std::string filename = ct.file_from_command(message);
+                    filename = ct.file_from_command(message);
                     // check file exist...
 
                     is_binfile_send_cmd = true;
@@ -292,7 +314,6 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                     {
 
                     }
-                    //message = ct.read_file(filename);
                     message = filename;
                 }
 
@@ -316,7 +337,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                         m.make_msg(NETW_MSG::MSG_FILE, message, key);
                         ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
 
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message);
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename);
                     }
                 }
                 else

@@ -10,6 +10,7 @@
 #include <limits>
 #include <csignal>
 #include "../include/ysClient.h"
+#include "../include/string_util.hpp"
 
 //using namespace std;
 using namespace ysSocket;
@@ -23,13 +24,16 @@ int main(int argc, char** argv) {
 
 	//signal(SIGINT, signalHandler);
 
-	//string server = "localhost";
+	std::string entry;
 	std::string server = "127.0.0.1";
-	//std::cout << "Server (127.0.0.1 if local): ";
-	//std::getline(std::cin, server);
-	std::cout << "Port: ";
-	int port = 14002;
-	std::cin >> port;
+	std::cout << "Server (Default 127.0.0.1): ";
+	std::getline(std::cin, entry); if (entry.size() > 0) server = entry;
+	std::cout << "Port (Default 14003): ";
+	int port = 14003;
+	std::getline(std::cin, entry); if (entry.size() > 0) port = (int)NETW_MSG::str_to_ll(entry);
+
+	std::cout << "Server : " << server << std::endl;
+	std::cout << "Port : " << port << std::endl;
 
 	try {
 

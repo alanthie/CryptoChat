@@ -88,30 +88,59 @@ namespace ysSocket {
 
 		if (m2.buffer_len >= NETW_MSG::MESSAGE_SIZE)
 		{
-			std::cout << "WARNING - sending too much data in send from sendMessageBuffer\n";
+			std::cerr << "WARNING - sending too much data\n";
+		}
+
+		uint32_t expected_len = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer + 1);
+		if (expected_len != m2.buffer_len)
+		{
+			std::cerr << "ERROR - SEND  (expected_len != m2.buffer_len)" << std::endl;
 		}
 
 		// LOCK
 		std::lock_guard lck(get_send_mutex(t_socketFd));
 		r = send(t_socketFd, (char*)m2.buffer, (int)m2.buffer_len, 0);
 
+		std::cout << "SEND(), expected:" << (int)m2.buffer_len << " r:" << r << std::endl ;
+
 #ifdef _WIN32
 		if (r == SOCKET_ERROR) {
-			std::cout << "ERROR - send failed with error: %d\n", WSAGetLastError();
+			std::cerr << "ERROR - send failed with error: %d\n", WSAGetLastError();
 		}
 		else if (r < m2.buffer_len)
 		{
-			std::cout << "WARNING - bot all data send from sendMessageBuffer\n";
+			std::cerr << "WARNING - NOT all data send\n";
+
+			int bytes_sent = r;
+			while (bytes_sent < m2.buffer_len)
+			{
+				int bytes_s0 = send(t_socketFd, (char*)m2.buffer + bytes_sent, m2.buffer_len - bytes_sent, 0);
+
+				if (bytes_s0 == SOCKET_ERROR) {
+					std::cerr << "ERROR - send failed with error: %d\n", WSAGetLastError();
+					return SOCKET_ERROR;
+				}
+
+				bytes_sent += bytes_s0;
+			}
+			std::cerr << "INFO - All data send\n";
+		}
+		else if (r == m2.buffer_len)
+		{
+		}
+		else if (r > m2.buffer_len)
+		{
+			std::cerr << "WARNING - Excess data send\n";
 		}
 
 #else
 		if (r == -1)
 		{
-			std::cout << "ERROR - send failed with error: " << errno << "\n";
+			std::cerr << "ERROR - send failed with error: " << errno << "\n";
 		}
 		else if (r < (int)m2.buffer_len)
 		{
-			std::cout << "WARNING - not all data send from sendMessageBuffer\n";
+			std::cerr << "WARNING - NOT all data send from sendMessageBuffer\n";
 		}
 #endif
 		return r;
@@ -151,29 +180,56 @@ namespace ysSocket {
 		}
 		return false;
 	}
-
 	bool ysNodeV4::add_file_to_recv(const std::string& filename)
 	{
 		std::lock_guard lck(_map_file_to_recv_mutex);
 		if (!map_file_to_recv.contains(filename))
 		{
 			map_file_to_recv[filename] = NETW_MSG::MSG_BINFILE();
-			map_file_to_recv[filename].init(filename, false);
+
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
+			binfile.init(filename, true);
 			return true;
 		}
 		return false;
 	}
 
-	bool ysNodeV4::add_msg_to_send(const NETW_MSG::MSG& m)
+	bool ysNodeV4::get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size)
 	{
-		queue_msg_to_send.push(m);
-		return true;
+		std::lock_guard lck(_map_file_to_send_mutex);
+		if (map_file_to_send.contains(filename))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
+			byte_processed = binfile.byte_send;
+			total_size = binfile.data_size_in_fragments();
+			return true;
+		}
+		return false;
 	}
-	bool ysNodeV4::add_msg_to_recv(const NETW_MSG::MSG& m)
+	bool ysNodeV4::get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size)
 	{
-		queue_msg_to_recv.push(m);
-		return true;
+		std::lock_guard lck(_map_file_to_recv_mutex);
+		if (map_file_to_recv.contains(filename))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
+			byte_processed = binfile.byte_recv;
+			//total_size = binfile.data_size_in_fragments();
+			total_size = binfile.total_size_read_from_fragment;
+			return true;
+		}
+		return false;
 	}
+
+	//bool ysNodeV4::add_msg_to_send(const NETW_MSG::MSG& m)
+	//{
+	//	queue_msg_to_send.push(m);
+	//	return true;
+	//}
+	//bool ysNodeV4::add_msg_to_recv(const NETW_MSG::MSG& m)
+	//{
+	//	queue_msg_to_recv.push(m);
+	//	return true;
+	//}
 
 	bool ysNodeV4::send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)
 	{

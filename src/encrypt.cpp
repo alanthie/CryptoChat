@@ -6,11 +6,12 @@
 #include "../include/encrypt.h"
 #include "../include/Base64.h"
 #include "../include/vigenere.hpp"
+#include "../include/netw_msg.hpp"
 #include <sstream>
 #include <iostream>
 #include <string>
 
-constexpr bool DEBUG_INFO = false;
+//constexpr bool DEBUG_INFO = false;
 
 template <typename T> std::string makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false) {
     if (!size) {

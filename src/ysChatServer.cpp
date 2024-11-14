@@ -10,6 +10,7 @@
 #include <csignal>
 #include <chrono>
 #include "../include/ysServer.h"
+#include "../include/string_util.hpp"
 
 //using namespace std;
 using namespace ysSocket;
@@ -23,14 +24,17 @@ int main(int argc, char** argv) {
 
 	signal(SIGINT, signalHandler);
 
-	int port = 14002;
-	std::cout << "Port: ";
-	//std::cout << port << std::endl;
-	std::cin >> port;
-	//std::cout << "Connection (1-128): ";
-	int connection_size = 128;
-	//std::cout << connection_size << std::endl;
-	//std::cin >> connection_size;
+	std::string entry;
+	int port = 14003;
+	std::cout << "Port (Default 14003): ";
+	std::getline(std::cin, entry); if (!entry.empty()) port = (int)NETW_MSG::str_to_ll(entry);
+
+	std::cout << "Connection (1-128) (Default 32): ";
+	int connection_size = 32;
+	std::getline(std::cin, entry); if (!entry.empty()) connection_size = (int)NETW_MSG::str_to_ll(entry);
+
+	std::cout << "Port : " << port << std::endl;
+	std::cout << "Connection : " << connection_size << std::endl;
 
 	try {
 		chat_server = new ysServer(port, connection_size);

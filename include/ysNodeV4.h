@@ -36,7 +36,7 @@ static WSAData wsaData;
 
 namespace ysSocket {
 
-	constexpr bool DEBUG_INFO = false;
+	//constexpr bool DEBUG_INFO = false;
 	constexpr int VERSION = 202411;
 
 	//const int MESSAGE_SIZE = 4 * 1024; // 4k or better if supported 64k to 8MB, use in recv(), send()
@@ -53,29 +53,6 @@ namespace ysSocket {
 	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{
 		return std::string("ertyewrtyewrt654tg45y66u57u68itik96807iedhywt21t521t2134t3tvgtt3561365121");
-	}
-
-	[[maybe_unused]] static std::string get_input_string()
-	{
-		std::string r;
-		std::cin >> r;
-		std::cin.ignore(10000, '\n');
-		std::cin.clear();
-		return r;
-	}
-
-	[[maybe_unused]] static long long str_to_ll(const std::string& snum)
-	{
-		long long r = -1;
-		try
-		{
-			r = std::stoll(snum);
-		}
-		catch (...)
-		{
-			r = -1;
-		}
-		return r;
 	}
 
 	enum class STATE {
@@ -132,6 +109,7 @@ namespace ysSocket {
 		std::string initial_key_hint;
 		std::string initial_key;
 
+		std::string previous_random_key;
 		std::string random_key;
 		std::string pending_random_key;
 		bool new_pending_random_key = false;
@@ -145,8 +123,6 @@ namespace ysSocket {
 			return _send_mutex[sock]; // constructs it inside the map if doesn't exist
 		}
 
-		std::queue<NETW_MSG::MSG> queue_msg_to_send;
-		std::queue<NETW_MSG::MSG> queue_msg_to_recv;
 		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_send;
 		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_recv;
 
@@ -157,6 +133,9 @@ namespace ysSocket {
 		bool add_file_to_recv(const std::string& filename);
 		bool add_msg_to_send(const NETW_MSG::MSG& m);
 		bool add_msg_to_recv(const NETW_MSG::MSG& m);
+
+		bool get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size);
+		bool get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size);
 
 		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status);
 

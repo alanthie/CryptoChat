@@ -1,18 +1,9 @@
 #include "../include/netw_msg.hpp"
 
-constexpr bool DEBUG_INFO = false;
+//constexpr bool DEBUG_INFO = false;
 
 namespace NETW_MSG
 {
-    //struct MSG
-    //{
-    //	uint8_t type_msg = MSG_EMPTY; // buffer[0]
-    //	// digest of key = buffer[1]...buffer[32]
-    //
-    //	uint32_t buffer_len = 0;
-    //	uint8_t* buffer = nullptr;
-    //}
-
     size_t MSG::size() { return buffer_len; };
     uint8_t* MSG::get_buffer()
     {
@@ -21,8 +12,8 @@ namespace NETW_MSG
 
     std::string MSG::get_data_as_string()
     {
-        if (buffer_len > 33)
-            return std::string((char*)buffer + 33, buffer_len - 33);
+        if (buffer_len > MESSAGE_HEADER)
+            return std::string((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
         return std::string{};
     }
 
@@ -36,16 +27,22 @@ namespace NETW_MSG
 
     void MSG::make_encrypt_msg(MSG& msgin, std::string& key)
     {
-        std::vector<char> vmsgin(msgin.buffer_len - 33);
-        for (size_t i = 33; i < msgin.buffer_len; i++) vmsgin[i - 33] = msgin.buffer[i];
+        std::vector<char> vmsgin(msgin.buffer_len - MESSAGE_HEADER);
+        for (size_t i = MESSAGE_HEADER; i < msgin.buffer_len; i++) vmsgin[i - MESSAGE_HEADER] = msgin.buffer[i];
         std::string b64_str = Base64::encode(vmsgin);
         std::string s = encrypt_simple_string(b64_str, key);
-        make_msg(msgin.type_msg, s, msgin.buffer + 1);
+
+        SHA256 sha;
+        sha.update((uint8_t*)key.data(), key.size());
+        uint8_t* digestkey = sha.digest();
+
+        make_msg(msgin.type_msg, s, digestkey);
+        delete[] digestkey;
 
         if (DEBUG_INFO)
             std::cout << "Encrypt ["
-            + get_summary_hex((char*)msgin.buffer + 33, msgin.buffer_len - 33) + "]=>["
-            + get_summary_hex((char*)this->buffer + 33, this->buffer_len - 33)
+            + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
+            + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
             + "]" << std::endl;
     }
 
@@ -55,18 +52,19 @@ namespace NETW_MSG
         std::string b64_encoded_str = decrypt_simple_string(s, key);
         std::vector<char> b64_decode_vec = Base64::decode(b64_encoded_str);
 
-        buffer = new uint8_t[33 + b64_decode_vec.size()]{ 0 };
-        buffer_len = 33 + (uint32_t)b64_decode_vec.size();
-        buffer[0] = msgin.type_msg;
+        buffer = new uint8_t[MESSAGE_HEADER + b64_decode_vec.size()]{ 0 };
+        buffer_len = MESSAGE_HEADER + (uint32_t)b64_decode_vec.size();
         type_msg = msgin.type_msg;
-        for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + 33] = b64_decode_vec[i];
-        //memcpy(buffer + 1, digestkey, 32);
-        memcpy(buffer + 1, msgin.buffer + 1, 32);
+
+        buffer[0] = msgin.type_msg;
+        MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
+        memcpy(buffer + MESSAGE_KEYDIGEST_START, msgin.buffer + MESSAGE_KEYDIGEST_START, 32);
+        for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
 
         if (DEBUG_INFO)
             std::cout << "Decrypt ["
-            + get_summary_hex((char*)msgin.buffer + 33, msgin.buffer_len - 33) + "]=>["
-            + get_summary_hex((char*)this->buffer + 33, this->buffer_len - 33)
+            + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
+            + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
             << std::endl;
     }
 
@@ -76,12 +74,12 @@ namespace NETW_MSG
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-        if (s.size() >= NETW_MSG::MESSAGE_SIZE - 33)
+        if (s.size() >= NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER)
         {
-            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - 33);
+            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER);
             make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
 
-            std::cout << "WARNING message truncated" << std::endl;
+            std::cerr << "WARNING message truncated" << std::endl;
         }
         else
         {
@@ -98,12 +96,13 @@ namespace NETW_MSG
         }
 
         type_msg = t;
-        buffer_len = len_data + 33;
+        buffer_len = len_data + MESSAGE_HEADER;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
-        memcpy(buffer + 1, digestkey, 32);
-        memcpy(buffer + 33, data, len_data);
+        MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
+        memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
+        memcpy(buffer + MESSAGE_HEADER, data, len_data);
     }
 
     void MSG::make_msg(uint8_t* buffer_in, size_t len)
@@ -129,9 +128,9 @@ namespace NETW_MSG
         make_msg(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey);
     }
 
-    bool MSG::parse(char* message_buffer, size_t len, std::string key)
+    bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)
     {
-        if (len < 33)
+        if (len < MESSAGE_HEADER)
         {
             type_msg = MSG_EMPTY;
             std::cerr << "WARNING MSG_EMPTY msg_len = " << len << std::endl;
@@ -144,20 +143,93 @@ namespace NETW_MSG
             return false;
         }
 
+        if (len == MESSAGE_SIZE)
+        {
+            std::cerr << "WARNING MSG(truncated), size = MESSAGE_SIZE" << std::endl;
+        }
+
+        uint32_t expected_len = MSG::byteToUInt4(message_buffer + 1);
+        if (expected_len != len)
+        {
+            std::cerr << "WARNING parsing - len msg is unexpected " << len << " vs " << expected_len << std::endl;
+            return false;
+        }
+
         SHA256 sha;
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-        if (memcmp(message_buffer + 1, digestkey, 32) != 0)
+        if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkey, 32) != 0)
         {
+            delete[]digestkey;
             std::cerr << "WARNING INVALID key digest in MSG::parse() " << std::endl;
-        }
-        delete[]digestkey;
 
-        MSG m;
-        m.make_msg((uint8_t*)message_buffer, len);
-        this->make_decrypt_msg(m, key);
-        return true;
+            if (!pending_key.empty())
+            {
+                SHA256 shapending;
+                shapending.update((uint8_t*)pending_key.data(), pending_key.size());
+                uint8_t* digestkeypending = shapending.digest();
+
+                if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkeypending, 32) != 0)
+                {
+                    std::cerr << "WARNING pending key not working" << std::endl;
+                    delete[]digestkeypending;
+                }
+                else
+                {
+                    delete[]digestkeypending;
+                    std::cerr << "INFO using pending key" << std::endl;
+
+                    MSG m;
+                    m.make_msg((uint8_t*)message_buffer, len);
+                    this->make_decrypt_msg(m, pending_key);
+                    return true;
+
+                }
+            }
+            else
+            {
+                std::cerr << "WARNING no pending key" << std::endl;
+            }
+
+            if (!previous_key.empty())
+            {
+                SHA256 shaprevious;
+                shaprevious.update((uint8_t*)previous_key.data(), previous_key.size());
+                uint8_t* digestkeyprevious = shaprevious.digest();
+
+                if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkeyprevious, 32) != 0)
+                {
+                    std::cerr << "WARNING previous key not working" << std::endl;
+                    delete[]digestkeyprevious;
+                }
+                else
+                {
+                    delete[]digestkeyprevious;
+                    std::cerr << "INFO using previous key" << std::endl;
+
+                    MSG m;
+                    m.make_msg((uint8_t*)message_buffer, len);
+                    this->make_decrypt_msg(m, previous_key);
+                    return true;
+                }
+            }
+            else
+            {
+                std::cerr << "WARNING no previous key" << std::endl;
+            }
+
+            return false;
+        }
+        else
+        {
+            delete[]digestkey;
+
+            MSG m;
+            m.make_msg((uint8_t*)message_buffer, len);
+            this->make_decrypt_msg(m, key);
+            return true;
+        }
     }
 
     MSG::~MSG()
@@ -388,17 +460,4 @@ namespace NETW_MSG
         return r;
     }
 
-    std::vector<std::string> MSG::split(std::string& s, const std::string& delimiter) {
-        std::vector<std::string> tokens;
-        size_t pos = 0;
-        std::string token;
-        while ((pos = s.find(delimiter)) != std::string::npos) {
-            token = s.substr(0, pos);
-            tokens.push_back(token);
-            s.erase(0, pos + delimiter.length());
-        }
-        tokens.push_back(s);
-
-        return tokens;
-    }
 }

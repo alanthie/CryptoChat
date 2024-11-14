@@ -44,6 +44,7 @@
     <ClInclude Include="..\include\random_engine.hpp" />
     <ClInclude Include="..\include\rng.h" />
     <ClInclude Include="..\include\SHA256.h" />
+    <ClInclude Include="..\include\string_util.hpp" />
     <ClInclude Include="..\include\terminal.h" />
     <ClInclude Include="..\include\terminal_base.h" />
     <ClInclude Include="..\include\vigenere.hpp" />
