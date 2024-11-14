@@ -369,7 +369,7 @@ namespace ysSocket {
 						if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << m.get_data_as_string() << std::endl;
 
 						showMessage(str_message);
-						add_to_history(true, NETW_MSG::MSG_FILE, str_message);
+						add_to_history(true, NETW_MSG::MSG_FILE, str_message, str_message);
 					}
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)

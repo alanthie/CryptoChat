@@ -10,7 +10,7 @@
 #include "IDEA.hpp"
 #include "../include/string_util.hpp"
 
-constexpr bool DEBUG_INFO = true;
+constexpr bool DEBUG_INFO = false;
 
 namespace NETW_MSG
 {
@@ -190,7 +190,7 @@ struct MSG_BINFILE
 		}
 		else
 		{
-
+			_is_valid = true;
 		}
 	}
 
@@ -244,14 +244,13 @@ struct MSG_BINFILE
 		if (_to_send)
 		{
 			byte_send += sz_data;
-
 			if (byte_send >= data_size_in_fragments())
 				_is_processing_done = true;
 		}
 		else
 		{
 			byte_recv += sz_data;
-			if (byte_recv >= data_size_in_fragments())
+			if (byte_recv >= total_size_read_from_fragment)
 				_is_processing_done = true;
 		}
 	}

@@ -178,7 +178,7 @@ namespace ysSocket {
 			binfile.init(filename, true);
 			return true;
 		}
-		return false;
+		return true; // already exist
 	}
 	bool ysNodeV4::add_file_to_recv(const std::string& filename)
 	{
@@ -188,10 +188,10 @@ namespace ysSocket {
 			map_file_to_recv[filename] = NETW_MSG::MSG_BINFILE();
 
 			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
-			binfile.init(filename, true);
+			binfile.init(filename, false);
 			return true;
 		}
-		return false;
+		return true; // already exist
 	}
 
 	bool ysNodeV4::get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size)

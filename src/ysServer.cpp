@@ -413,36 +413,21 @@ namespace ysSocket {
 								v_client[idx]->username = user;
 							}
 
-							// RELAY MSG TO ALL OTHERS
+							// RELAY
 							else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
 							{
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
 								if (DEBUG_INFO) std::cout << std::string((char*)m.buffer + NETW_MSG::MESSAGE_HEADER, 40) << std::endl;
 
-								//std::string key;
-								//if (!v_client[idx]->initial_key_validation_done)
-								//	key = getDEFAULT_KEY();
-								//else
-								//	key = v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key;
-
-								//SHA256 sha;
-								//sha.update((uint8_t*)v_client[idx]->pending_random_key.data(), v_client[idx]->pending_random_key.size());
-								//uint8_t* digestkey = sha.digest();
-
-								//NETW_MSG::MSG m2;
-								//m2.make_msg(m.type_msg, m.buffer_len - NETW_MSG::MESSAGE_HEADER, m.buffer + NETW_MSG::MESSAGE_HEADER, digestkey);
 								sendMessageAll(m, v_client[idx]->getSocketFd());
-								//delete[]digestkey;
 							}
+							// RELAY
 							else if (m.type_msg == NETW_MSG::MSG_FILE)
 							{
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << std::endl;
-								std::string username_display;
-								if (v_client[idx]->username.size() > 0) username_display = " (" + v_client[idx]->username + ") ";
-								std::string message(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
-								this->sendMessageAll(message, new_client->getSocketFd());
+								std::string s = m.get_data_as_string(); // filename
+								sendMessageAll(m, v_client[idx]->getSocketFd());
 							}
-							// RELAY MSG TO ALL OTHERS
 							else if (m.type_msg == NETW_MSG::MSG_TEXT)
 							{
 								std::string username_display;
@@ -552,6 +537,7 @@ namespace ysSocket {
 		}
 	}
 
+	// Relay message m
 	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
 	{
 		for (auto& client : v_client) 
@@ -572,6 +558,7 @@ namespace ysSocket {
 		}
 	}
 
+	// NETW_MSG::MSG_TEXT
 	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket)
 	{
 		for (auto &client : v_client) {
