@@ -38,7 +38,13 @@
 		<Unit filename="../include/IDEA.hpp" />
 		<Unit filename="../include/Menu.h" />
 		<Unit filename="../include/SHA256.h" />
+		<Unit filename="../include/argparse.hpp" />
 		<Unit filename="../include/base_const.hpp" />
+		<Unit filename="../include/c_plus_plus_serializer.h" />
+		<Unit filename="../include/cfg_cli.hpp" />
+		<Unit filename="../include/cfg_srv.hpp" />
+		<Unit filename="../include/chat_cli.hpp" />
+		<Unit filename="../include/chat_srv.hpp" />
 		<Unit filename="../include/crc32a.hpp" />
 		<Unit filename="../include/crypto_const.hpp" />
 		<Unit filename="../include/data.hpp" />
@@ -63,9 +69,6 @@
 		<Unit filename="../src/ysChatClient.cpp" />
 		<Unit filename="../src/ysClient.cpp" />
 		<Unit filename="../src/ysNodeV4.cpp" />
-		<Extensions>
-			<code_completion />
-			<debugger />
-		</Extensions>
+		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
