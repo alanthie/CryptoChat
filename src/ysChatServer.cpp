@@ -10,60 +10,88 @@
 #include <csignal>
 #include <chrono>
 #include "../include/ysServer.h"
+#include "../include/chat_srv.hpp"
+#include "../include/cfg_srv.hpp"
 #include "../include/string_util.hpp"
+#include "../include/argparse.hpp"
+#include "../include/crypto_parsing.hpp"
 
-//using namespace std;
-using namespace ysSocket;
+const std::string CHATSRV_VERSION = "0.1";
+cryptochat::srv::chat_srv* global_srv = nullptr;
 
-ysServer *chat_server = nullptr;
+int main(int argc, char** argv) 
+{
+	std::string FULLVERSION = CHATSRV_VERSION + "_" + cryptoAL::parsing::get_current_date();
 
-void signalHandler(int);
-void printMessage(const std::string&);
+	// Argument parser
+	try
+	{
+		argparse::ArgumentParser program("chatsrv", FULLVERSION);
 
-int main(int argc, char** argv) {
+		argparse::ArgumentParser run_command("run");
+		{
+			run_command.add_description("Run chat server");
 
-	signal(SIGINT, signalHandler);
+			run_command.add_argument("-cfg", "--cfg")
+				.default_value(std::string(""))
+				.help("specify a config file.");
+		}
 
-	std::string entry;
-	int port = 14003;
-	std::cout << "Port (Default 14003): ";
-	std::getline(std::cin, entry); if (!entry.empty()) port = (int)NETW_MSG::str_to_ll(entry);
+		// Add the subcommands to the main parser
+		program.add_subparser(run_command);
 
-	std::cout << "Connection (1-128) (Default 32): ";
-	int connection_size = 32;
-	std::getline(std::cin, entry); if (!entry.empty()) connection_size = (int)NETW_MSG::str_to_ll(entry);
+		// Parse the arguments
+		try 
+		{
+			program.parse_args(argc, argv);
+		}
+		catch (const std::runtime_error& err)
+		{
+			std::cerr << err.what() << std::endl;
+			std::cerr << program;
+			return -1;
+		}
 
-	std::cout << "Port : " << port << std::endl;
-	std::cout << "Connection : " << connection_size << std::endl;
+		if (program.is_subcommand_used("run"))
+		{
+			auto& cmd = run_command;
+			auto cfg = cmd.get<std::string>("--cfg");
 
-	try {
-		chat_server = new ysServer(port, connection_size);
-		chat_server->setOnMessage(printMessage);
-		chat_server->runServer();
+			global_srv = new cryptochat::srv::chat_srv(cfg);
+			return global_srv->run();
+		}
 
-		delete chat_server;
+		// No subcommands were given
+		{
+			std::cerr << program << std::endl;
+		}
 
-	} catch (const std::exception& e) {
-		std::cerr << e.what() << std::endl;
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+		return 0;
 	}
-
-	std::this_thread::sleep_for(std::chrono::seconds(5));
+	catch (std::invalid_argument const& ex)
+	{
+		std::cerr << "CHATSRV FAILED - invalid_argument thrown " << ex.what() << '\n';
+	}
+	catch (std::logic_error const& ex)
+	{
+		std::cerr << "CHATSRV FAILED - logic_error thrown " << ex.what() << '\n';
+	}
+	catch (std::range_error const& ex)
+	{
+		std::cerr << "CHATSRV FAILED - range_error thrown " << ex.what() << '\n';
+	}
+	catch (std::runtime_error const& ex)
+	{
+		std::cerr << "CHATSRV FAILED - runtime_error thrown " << ex.what() << '\n';
+	}
+	catch (std::exception const& ex)
+	{
+		std::cerr << "CHATSRV FAILED - std exception thrown " << ex.what() << '\n';
+	}
+	catch (...)
+	{
+		std::cerr << "CHATSRV FAILED - exception thrown" << std::endl;
+	}
 	return 0;
-}
-
-void signalHandler(int code) {
-	char ch;
-	std::cout << "Are you sure you want to close socket?(Y/N)";
-	std::cin >> ch;
-	if (toupper(ch) == 'Y' && chat_server != nullptr) {
-		delete chat_server;
-		exit(0);
-	}
-	std::cin.clear();
-	//cin.ignore(numeric_limits<streamsize>::max(), '\n');
-	std::cin.ignore(0x7fffffffffffffff, '\n');
-}
-
-void printMessage(const std::string& t_message) {
-	std::cout << t_message << std::endl;
 }

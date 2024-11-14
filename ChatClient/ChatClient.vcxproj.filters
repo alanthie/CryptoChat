@@ -104,5 +104,20 @@
     <ClInclude Include="..\include\string_util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\argparse.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cfg_cli.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\crypto_parsing.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\crypto_strutil.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\chat_cli.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

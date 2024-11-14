@@ -11,65 +11,89 @@
 #include <csignal>
 #include "../include/ysClient.h"
 #include "../include/string_util.hpp"
+#include "../include/chat_cli.hpp"
+#include "../include/cfg_cli.hpp"
+#include "../include/string_util.hpp"
+#include "../include/argparse.hpp"
+#include "../include/crypto_parsing.hpp"
 
-//using namespace std;
-using namespace ysSocket;
+const std::string CLI_VERSION = "0.1";
+cryptochat::cli::chat_cli* global_cli = nullptr;
 
-ysClient *chat_client = nullptr;
+int main(int argc, char** argv)
+{
+	std::string FULLVERSION = CLI_VERSION + "_" + cryptoAL::parsing::get_current_date();
 
-void signalHandler(int);
-void printMessage(const std::string&);
+	// Argument parser
+	try
+	{
+		argparse::ArgumentParser program("chatcli", FULLVERSION);
 
-int main(int argc, char** argv) {
+		argparse::ArgumentParser run_command("run");
+		{
+			run_command.add_description("Run chat client");
 
-	//signal(SIGINT, signalHandler);
+			run_command.add_argument("-cfg", "--cfg")
+				.default_value(std::string(""))
+				.help("specify a config file.");
+		}
 
-	std::string entry;
-	std::string server = "127.0.0.1";
-	std::cout << "Server (Default 127.0.0.1): ";
-	std::getline(std::cin, entry); if (entry.size() > 0) server = entry;
-	std::cout << "Port (Default 14003): ";
-	int port = 14003;
-	std::getline(std::cin, entry); if (entry.size() > 0) port = (int)NETW_MSG::str_to_ll(entry);
+		// Add the subcommands to the main parser
+		program.add_subparser(run_command);
 
-	std::cout << "Server : " << server << std::endl;
-	std::cout << "Port : " << port << std::endl;
+		// Parse the arguments
+		try
+		{
+			program.parse_args(argc, argv);
+		}
+		catch (const std::runtime_error& err)
+		{
+			std::cerr << err.what() << std::endl;
+			std::cerr << program;
+			return -1;
+		}
 
-	try {
+		if (program.is_subcommand_used("run"))
+		{
+			auto& cmd = run_command;
+			auto cfg = cmd.get<std::string>("--cfg");
 
-		chat_client = new ysClient(server, port);
-		chat_client->setOnMessage(printMessage);
-		chat_client->connectServer();
+			global_cli = new cryptochat::cli::chat_cli(cfg);
+			return global_cli->run();
+		}
 
-		chat_client->client_UI();
+		// No subcommands were given
+		{
+			std::cerr << program << std::endl;
+		}
 
-		delete chat_client;
-
-	} catch (const std::exception& e) {
-		std::cerr << e.what() << std::endl;
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+		return 0;
 	}
-
+	catch (std::invalid_argument const& ex)
+	{
+		std::cerr << "CHATCLI FAILED - invalid_argument thrown " << ex.what() << '\n';
+	}
+	catch (std::logic_error const& ex)
+	{
+		std::cerr << "CHATCLI FAILED - logic_error thrown " << ex.what() << '\n';
+	}
+	catch (std::range_error const& ex)
+	{
+		std::cerr << "CHATCLI FAILED - range_error thrown " << ex.what() << '\n';
+	}
+	catch (std::runtime_error const& ex)
+	{
+		std::cerr << "CHATCLI FAILED - runtime_error thrown " << ex.what() << '\n';
+	}
+	catch (std::exception const& ex)
+	{
+		std::cerr << "CHATCLI FAILED - std exception thrown " << ex.what() << '\n';
+	}
+	catch (...)
+	{
+		std::cerr << "CHATCLI FAILED - exception thrown" << std::endl;
+	}
 	return 0;
 }
 
-void signalHandler(int code)
-{
-    chat_client->input_interrupted.store(true);
-
-	char ch;
-	std::cout << "Are you sure you want to close socket?(Y/N)";
-
-    std::cin >> ch; // Linux BUG mixing of cin and getchar
-	if (toupper(ch) == 'Y' && chat_client != nullptr) {
-		delete chat_client;
-		exit(0);
-	}
-	std::cin.clear();
-	std::cin.ignore(0x7fffffffffffffff, '\n');
-
-    chat_client->input_interrupted.store(false);
-}
-
-void printMessage(const std::string& t_message) {
-	std::cout << t_message << std::endl;
-}

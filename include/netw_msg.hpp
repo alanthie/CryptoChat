@@ -269,7 +269,7 @@ struct MSG_BINFILE
 		if (pos_from + data_len > total_size) return false;
 
 		if (_file->buffer.size() < total_size)
-			_file->buffer.increase_size(total_size);
+			_file->buffer.increase_size((uint32_t)total_size);
 
 		total_size_read_from_fragment = total_size;
 
@@ -413,8 +413,8 @@ struct MSG
 			uint8_t* digestkey = sha.digest();
 
 			cryptoAL::cryptodata data_temp;
-			data_temp.buffer.write(header_fragm.data(), header_fragm.size());
-			data_temp.buffer.write(binfile._file->buffer.getdata()+packet.data_from, (packet.data_to - packet.data_from + 1));
+			data_temp.buffer.write(header_fragm.data(), (uint32_t)header_fragm.size());
+			data_temp.buffer.write(binfile._file->buffer.getdata()+packet.data_from, (uint32_t)(packet.data_to - packet.data_from + 1));
 
 			//void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 			make_msg(MSG_FILE_FRAGMENT, data_temp.buffer.size(), (uint8_t*)data_temp.buffer.getdata(), digestkey);
