@@ -6,6 +6,7 @@
 #define YSCLIENT_H
 
 #include "ysNodeV4.h"
+#include "cfg_cli.hpp"
 #include <iostream>
 #include <functional>
 #include <thread>
@@ -45,10 +46,14 @@ namespace ysSocket {
 		bool user_valid = false;
 		std::atomic<bool> input_interrupted = false;
 
+        cryptochat::cfg::cfg_cli    _cfg_cli;
+        const std::string&          _cfgfile;
+
 	public:
-		ysClient();
-		ysClient(const int& t_port);
-		ysClient(const std::string& t_serverName, const int& t_port);
+//		ysClient();
+		ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
+//		ysClient(const int& t_port);
+//		ysClient(const std::string& t_serverName, const int& t_port);
 
 		void setOnMessage(const std::function<void(const std::string&) >& t_function);
 
@@ -59,7 +64,7 @@ namespace ysSocket {
 		std::string get_initial_key() { return initial_key; }
 		std::string get_random_key()  { return random_key; }
 
-		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key) 
+		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)
 		{
 			return sendMessageBuffer(t_socketFd, m, key);
 		}
@@ -113,9 +118,6 @@ namespace ysSocket {
 		{
 			return ysNodeV4::send_next_pending_file_packet(t_socketFd, key, send_status);
 		}
-
-		// todo...
-		//bool send_next_pending_msg_in_queue(const int& t_socketFd, const std::string& key, int& send_status)
 
 		virtual ~ysClient();
 	};

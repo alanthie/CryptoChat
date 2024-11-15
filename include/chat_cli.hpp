@@ -29,66 +29,12 @@ namespace cryptochat
 
 			bool read_cfg(bool create_if_not_exist)
 			{
-				bool ret = false;
-				bool has_cfg_file = false;
-
-				if (_cfg_file.size() == 0)
-				{
-				}
-				else if (file_util::fileexists(_cfg_file) == false)
-				{
-					std::cerr << "WARNING cfg file not found " << _cfg_file << std::endl;
-					if (create_if_not_exist)
-					{
-						_cfg.make_default();
-						std::ofstream outfile(_cfg_file, std::ios::binary);
-						outfile << bits(_cfg);
-						has_cfg_file = true;
-					}
-				}
-				else
-				{
-					has_cfg_file = true;
-				}
-
-				if (has_cfg_file)
-				{
-					// READ _cfg
-					try
-					{
-						std::ifstream in(_cfg_file);
-						in >> bits(_cfg);
-						ret = true;
-					}
-					catch (...)
-					{
-						ret = false;
-					}
-				}
-				return ret;
+                return _cfg.read_cfg(_cfg_file, create_if_not_exist);
 			}
 
 			bool save_cfg()
 			{
-				bool ret = false;
-				bool has_cfg_file = false;
-
-				if (_cfg_file.size() == 0)
-				{
-					return false;
-				}
-
-				try
-				{
-					std::ofstream outfile(_cfg_file, std::ios::binary);
-					outfile << bits(_cfg);
-					return true;
-				}
-				catch (...)
-				{
-				}
-				return false;
-
+                return _cfg.save_cfg(_cfg_file);
 			}
 
 			int run()
@@ -126,8 +72,7 @@ namespace cryptochat
 				}
 
 				try {
-
-					_chat_cli = new ysSocket::ysClient(_cfg._server, _cfg._port);
+					_chat_cli = new ysSocket::ysClient(_cfg, _cfg_file);
 					_chat_cli->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_cli->connectServer();
 					_chat_cli->client_UI();
@@ -144,7 +89,7 @@ namespace cryptochat
 
 			std::string					_cfg_file;
 			cryptochat::cfg::cfg_cli	_cfg;
-			ysSocket::ysClient* _chat_cli = nullptr;
+			ysSocket::ysClient*         _chat_cli = nullptr;
 
 			static void signalHandler(int code)
 			{

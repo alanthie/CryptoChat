@@ -333,27 +333,30 @@ namespace ysSocket {
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
                     {
-                        {
-                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
+                        if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
 
+                        if (_cfg_cli._username.size() == 0)
+                        {
                             showMessage(str_message);
                             std::string r = get_input("Enter username");
+                            if (r.size() == 0) r = "user_xyz";
+                            _cfg_cli._username = r;
 
-                            if (r.size() == 0) r = "anonymous";
-                            user_valid = true;
-
-                            if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
-							NETW_MSG::MSG m;
-
-							std::string key;
-							{
-								std::lock_guard l(_key_mutex);
-								key = rnd_valid ? random_key : initial_key;
-							}
-
-                            m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, r, key);
-                            this->sendMessageBuffer(this->m_socketFd, m, key);
+                            _cfg_cli.save_cfg(_cfgfile);
                         }
+                        user_valid = true;
+
+                        if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
+                        NETW_MSG::MSG m;
+
+                        std::string key;
+                        {
+                            std::lock_guard l(_key_mutex);
+                            key = rnd_valid ? random_key : initial_key;
+                        }
+
+                        m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, _cfg_cli._username, key);
+                        this->sendMessageBuffer(this->m_socketFd, m, key);
                     }
 
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
@@ -400,7 +403,7 @@ namespace ysSocket {
 							{
 								std::lock_guard lck(_map_file_to_recv_mutex);
 								size_t idx_fragment;
-								r = map_file_to_recv[mh.filename].add_recv_fragment_data(mh, 
+								r = map_file_to_recv[mh.filename].add_recv_fragment_data(mh,
 													m.buffer + NETW_MSG::MESSAGE_HEADER + mh.header_size(),
 													m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()), idx_fragment);
 								if (r)
@@ -485,26 +488,35 @@ namespace ysSocket {
 		}
 	}
 
-	ysClient::ysClient() :
-	ysNodeV4() {
+//	ysClient::ysClient() : ysNodeV4() {
+//		setDefault();
+//	}
+
+	ysClient::ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile) :
+        ysNodeV4(cfg._port),
+        m_serverName(cfg._server),
+        _cfg_cli(cfg),
+        _cfgfile(cfgfile)
+	{
 		setDefault();
 	}
 
-	ysClient::ysClient(const int& t_port) :
-	ysNodeV4(t_port) {
-		setDefault();
-	}
+//	ysClient::ysClient(const int& t_port) : ysNodeV4(t_port) {
+//		setDefault();
+//	}
 
-	ysClient::ysClient(const std::string& t_serverName, const int& t_port) :
-	ysNodeV4(t_port), m_serverName(t_serverName) {
-		setDefault();
-	}
+//	ysClient::ysClient(const std::string& t_serverName, const int& t_port)
+//        :   ysNodeV4(t_port),
+//            m_serverName(t_serverName)
+//    {
+//		setDefault();
+//	}
 
 	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {
 		m_onMessage = t_function;
 	}
 
-	void ysClient::connectServer() 
+	void ysClient::connectServer()
 	{
 		this->_connectServer();
 		showMessage("Connection successfully....");

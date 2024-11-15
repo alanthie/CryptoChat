@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <limits.h>
 
 #undef DEBUG_C_PLUS_PLUS_SERIALIZER
 
