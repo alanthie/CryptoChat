@@ -25,17 +25,28 @@ namespace ysSocket {
 		}
 	}
 
-	ysServer::ysServer() : ysNodeV4() {
+	//ysServer::ysServer() : ysNodeV4() {
+	//	setDefault();
+	//}
+
+	//ysServer::ysServer(const int& t_port) : ysNodeV4(t_port) {
+	//	setDefault();
+	//}
+
+	//ysServer::ysServer(const int& t_port, const int& t_connectionSize) : 
+	//	ysNodeV4(t_port), m_connectionSize(t_connectionSize) 
+	//{
+	//	setDefault();
+	//}
+
+	ysServer::ysServer(cryptochat::cfg::cfg_srv cfg) :
+		ysNodeV4(cfg._port),
+		//m_connectionSize(cfg._number_connection),
+		_cfg(cfg)
+	{
 		setDefault();
 	}
 
-	ysServer::ysServer(const int& t_port) : ysNodeV4(t_port) {
-		setDefault();
-	}
-
-	ysServer::ysServer(const int& t_port, const int& t_connectionSize) : ysNodeV4(t_port), m_connectionSize(t_connectionSize) {
-		setDefault();
-	}
 
 	void ysServer::setOnMessage(const std::function<void(const std::string&)>& t_function) {
 		m_onMessage = t_function;
@@ -154,10 +165,21 @@ namespace ysSocket {
 	//
 	void ysServer::set_key_hint()
 	{
-		// ask user...
-		//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		initial_key_hint = "1th prime number;1th prime number;1000th prime number";
-		initial_key = "227919";
+		if (_cfg._map_challenges.size() > 0)
+		{
+			// pick one at random...
+			auto iter = _cfg._map_challenges.begin();
+			initial_key_hint = iter->first;
+			initial_key = iter->second;
+		}
+		else
+		{
+			// ask user... 
+			//cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			initial_key_hint = "1th prime number;1th prime number;1000th prime number";
+			initial_key = "227919";
+		}
+		std::cout << "INFO initial challenge set to : " << initial_key_hint << std::endl;
 	}
 
 	void ysServer::createServer() {
@@ -197,7 +219,7 @@ namespace ysSocket {
 	}
 
 	void ysServer::listenServer() {
-		if (listen(this->m_socketFd, this->m_connectionSize) == -1) {
+		if (listen(this->m_socketFd, this->_cfg._number_connection) == -1) {
 			throw std::runtime_error("Could not open socket for listening");
 		}
 	}
@@ -216,7 +238,7 @@ namespace ysSocket {
 			int temp_socket = accept(this->m_socketFd, reinterpret_cast<sockaddr*> (&temp_addr), &temp_len);
 
 			// check connection limit
-			if (this->m_nodeSize + 1 > this->m_connectionSize)
+			if (this->m_nodeSize + 1 > this->_cfg._number_connection)
 			{
 				NETW_MSG::MSG  m;
 				m.make_msg(NETW_MSG::MSG_TEXT, "Server is full.", getDEFAULT_KEY());
@@ -352,6 +374,16 @@ namespace ysSocket {
 										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 										sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
 									}
+
+									if (v_client[idx]->hostname.size() == 0)
+									{
+										//if (DEBUG_INFO) 
+											std::cout << "send MSG_CMD_REQU_HOSTNAME " << idx << std::endl;
+										NETW_MSG::MSG m;
+										std::string s = "Please, provide your hostname : ";
+										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+										sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+									}
 								}
 								else
 								{
@@ -409,8 +441,27 @@ namespace ysSocket {
 								if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_USERNAME" << std::endl;
 
 								std::string user = m.get_data_as_string();
-								if (user.size() == 0) user = std::to_string(idx + 1);
+								if (user.size() == 0) user = "user_" + std::to_string(idx + 1);
 								v_client[idx]->username = user;
+								std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+							}
+							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_HOSTNAME)
+							{
+								//if (DEBUG_INFO) 
+									std::cout << "recv MSG_CMD_RESP_HOSTNAME" << std::endl;
+
+								std::string host = m.get_data_as_string();
+								if (host.size() != 0)
+								{
+									v_client[idx]->hostname = host;
+									std::cout << "INFO client[" << idx << "] hostname:" << v_client[idx]->hostname << std::endl;
+
+									if (v_client[idx]->username == NETW_MSG::DEFAULT_USERNAME)
+									{
+										v_client[idx]->username = "user_" + std::to_string(idx) + "_" + v_client[idx]->hostname;
+										std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+									}
+								}
 							}
 
 							// RELAY

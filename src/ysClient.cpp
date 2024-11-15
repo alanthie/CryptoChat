@@ -17,6 +17,7 @@
 #include "../include/ysClient.h"
 #include "../include/crc32a.hpp"
 #include "../include/Menu.h"
+#include "../include/chat_cli.hpp" // std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal
 
 #include <ciso646>
 #include <iostream>
@@ -38,6 +39,12 @@ namespace ysSocket {
 		std::cin.clear();
 
 		return message;
+	}
+
+	bool ysClient::is_got_chat_cli_signal()
+	{
+		if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1) return true;
+		return false;
 	}
 
 	void ysClient::setDefault() {
@@ -72,6 +79,12 @@ namespace ysSocket {
 			int send_status;
 			while (true)
 			{
+				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
+				{
+					std::cerr << " Terminating thread send_pending_file_packet_thread " << std::endl;
+					break;
+				}
+
 				std::string key;
 				{
 					std::lock_guard l(_key_mutex);
@@ -112,6 +125,12 @@ namespace ysSocket {
 			// RECV ()
 			while (msg_ok)
 			{
+				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
+				{
+					std::cerr << " Terminating thread recv_thread " << std::endl;
+					break;
+				}
+
 				if (byte_recv > 0)
 				{
 					std::cout << "RECV - byte_recv: " << byte_recv << std::endl;
@@ -125,6 +144,13 @@ namespace ysSocket {
 
 				while (byte_recv < NETW_MSG::MESSAGE_HEADER)
 				{
+					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
+					{
+						std::cerr << " Terminating thread recv_thread " << std::endl;
+						msg_ok = false;
+						break;
+					}
+
 					len = recv(this->m_socketFd, message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
 					if (len > 0)
 					{
@@ -151,6 +177,13 @@ namespace ysSocket {
 
 				while (byte_recv < expected_len)
 				{
+					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
+					{
+						std::cerr << " Terminating thread recv_thread " << std::endl;
+						msg_ok = false;
+						break;
+					}
+
 					len = recv(this->m_socketFd, message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
 					if (len > 0)
 					{
@@ -175,6 +208,11 @@ namespace ysSocket {
 						memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
 						std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
 					}
+				}
+
+				if (!msg_ok)
+				{
+					break;
 				}
 
 				message_buffer[expected_len] = '\0';
@@ -357,7 +395,33 @@ namespace ysSocket {
                         m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, _cfg_cli._username, key);
                         this->sendMessageBuffer(this->m_socketFd, m, key);
                     }
+					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
+					{
+						//if (DEBUG_INFO) 
+						std::cout << "recv MSG_CMD_REQU_HOSTNAME" << std::endl;
 
+						char host[80] = { 0 };
+						if (gethostname(host, 80) == 0)
+						{
+							std::string h = std::string(host);
+
+							std::cout << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl;
+							NETW_MSG::MSG m;
+
+							std::string key;
+							{
+								std::lock_guard l(_key_mutex);
+								key = rnd_valid ? random_key : initial_key;
+							}
+
+							m.make_msg(NETW_MSG::MSG_CMD_RESP_HOSTNAME, h, key);
+							this->sendMessageBuffer(this->m_socketFd, m, key);
+						}
+						else
+						{
+							std::cerr << "WARNING gethostname failed" << std::endl;
+						}
+					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
                         if (DEBUG_INFO) std::cout << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
@@ -432,6 +496,12 @@ namespace ysSocket {
 
 		while (this->m_state == STATE::OPEN)
 		{
+			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
+			{
+				std::cerr << " Terminating thread client_UI " << std::endl;
+				break;
+			}
+
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 
 			if (cnt == 0)

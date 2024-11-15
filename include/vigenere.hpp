@@ -18,5 +18,6 @@ namespace cryptoAL_vigenere
     std::string encrypt_vigenere(std::string& msg, std::string& key);
     std::string decrypt_vigenere(std::string& encryptedMsg, std::string& newKey);
 
+    bool is_string_ok(const std::string& s);
 };
 #endif // vigenere_HPP

@@ -372,7 +372,7 @@ int Menu::get_menu_choice()
     {
         __clear();
         print_neutral_menu();
-        std::cout << std::string("==>");
+        std::cout << std::string("Enter menu choice ==>");
 #ifdef _WIN32
         choice = _getch();
 #else

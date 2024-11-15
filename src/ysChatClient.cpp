@@ -18,7 +18,9 @@
 #include "../include/crypto_parsing.hpp"
 
 const std::string CLI_VERSION = "0.1";
-cryptochat::cli::chat_cli* global_cli = nullptr;
+
+static cryptochat::cli::chat_cli* global_cli = nullptr;
+std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal = 0;
 
 int main(int argc, char** argv)
 {

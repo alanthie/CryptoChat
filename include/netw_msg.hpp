@@ -21,6 +21,7 @@ const int MESSAGE_KEYDIGEST_START = 5;
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
 
+const std::string DEFAULT_USERNAME = "user";
 
 // For msg history in UI
 struct netw_msg
@@ -46,6 +47,8 @@ const uint8_t MSG_CMD_RESP_ACCEPT_RND_KEY = 11;
 const uint8_t MSG_CMD_INFO_RND_KEY_VALID = 12;
 const uint8_t MSG_CMD_REQU_USERNAME = 20;
 const uint8_t MSG_CMD_RESP_USERNAME = 21;
+const uint8_t MSG_CMD_REQU_HOSTNAME = 22;
+const uint8_t MSG_CMD_RESP_HOSTNAME = 23;
 
 const uint8_t MSG_FILE_FRAGMENT = 31;
 //

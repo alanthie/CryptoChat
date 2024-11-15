@@ -31,6 +31,7 @@ namespace ysSocket {
 		// thread
 		std::thread m_recv_thread; // RECV thread
 		std::thread m_send_thread; // SEND thread to handle all send...
+		// client_UI thread is a loop in main thread
 
 		void _connectServer();
 
@@ -127,6 +128,8 @@ namespace ysSocket {
         {
             return ysNodeV4::ui_dirty;
         }
+
+		static bool is_got_chat_cli_signal();
 
 		virtual ~ysClient();
 	};

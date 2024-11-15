@@ -35,7 +35,7 @@ namespace ysSocket {
 		void closeClient();
 
 		// server
-		int m_connectionSize = 128;
+		//int m_connectionSize = 128;
 		void createServer();
 		void bindServer();
 		void listenServer();
@@ -50,9 +50,10 @@ namespace ysSocket {
 		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
 
 	public:
-		ysServer();
-		ysServer(const int& t_port);
-		ysServer(const int& t_port, const int& t_connectionSize);
+		//ysServer();
+		//ysServer(const int& t_port);
+		//ysServer(const int& t_port, const int& t_connectionSize);
+		ysServer(cryptochat::cfg::cfg_srv cfg);
 
 		void setOnMessage(const std::function<void(const std::string&) >& t_function);
 
@@ -63,7 +64,7 @@ namespace ysSocket {
 		void request_client_initial_key(const int& t_socket);
 		void request_accept_rnd_key(const int& t_socket);
 
-
+		cryptochat::cfg::cfg_srv _cfg;
 		virtual ~ysServer();
 	};
 

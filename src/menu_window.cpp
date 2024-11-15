@@ -17,6 +17,7 @@ using Term::Key;
 
 struct ClientTerm
 {
+    const int MAX_EXTRA_LINE_TO_DISPLAY = 7;
     ysSocket::ysClient* netw_client = nullptr;
 
     int nrows;
@@ -125,7 +126,7 @@ struct ClientTerm
                                 std::string s = netw_client->get_file_to_send(vh[i].filename);
                                 if (s.size() > 0)
                                 {
-                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\r\n");
+                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\n");
                                 }
                             }
                         }
@@ -140,7 +141,7 @@ struct ClientTerm
                                 std::string s = netw_client->get_file_to_recv(vh[i].filename);
                                 if (s.size() > 0)
                                 {
-                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\r\n");
+                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\n");
                                 }
                             }
                         }
@@ -153,7 +154,10 @@ struct ClientTerm
         for (int i = 0; i < (int)vh.size(); i++)
         {
             n_rows++;
-            n_rows+= vh[i].vmsg_extra.size();
+            if (vh[i].vmsg_extra.size() > MAX_EXTRA_LINE_TO_DISPLAY)
+                n_rows += MAX_EXTRA_LINE_TO_DISPLAY;
+            else
+                n_rows+= vh[i].vmsg_extra.size();
         }
 
         int n_row_idx = -1;
@@ -172,7 +176,12 @@ struct ClientTerm
                     ab.append(" ");
                     ab.append(vh[i].is_receive?"recv ":"send ");
                     ab.append(": ");
-                    std::string sl = get_printable_string(vlines[j]);
+
+                    std::string sl;
+                    if (vh[i].msg_type != NETW_MSG::MSG_FILE)
+                        sl = get_printable_string(vlines[j]);
+                    else
+                        sl = vh[i].filename;
 
                     if (vh[i].msg_type == NETW_MSG::MSG_FILE)
                     {
@@ -212,6 +221,7 @@ struct ClientTerm
 
                         int ipercent = 100*percent;
                         std::string ss = "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%]";
+                        ss += " Number of lines=" + std::to_string(vh[i].vmsg_extra.size());
                         ab.append(ss); // ncols ...
                     }
                     else
@@ -224,20 +234,40 @@ struct ClientTerm
 
                 for (size_t j = 0; j < vh[i].vmsg_extra.size(); j++)
                 {
-					n_row_idx++;
-					if (n_row_idx > n_rows - nrows + 3)
-					{
-						ab.append(std::to_string(i + 1));
-						ab.append(" ");
-						ab.append(vh[i].is_receive ? "< " : "> ");
-						ab.append(": ");
-						std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
-						ab.append(sl); // ncols ...
+                    if (j < MAX_EXTRA_LINE_TO_DISPLAY - 1)
+                    {                        
+                        n_row_idx++;
+                        if (n_row_idx > n_rows - nrows + 3)
+                        {
+                            ab.append(std::to_string(i + 1));
+                            ab.append(" ");
+                            ab.append(vh[i].is_receive ? "< " : "> ");
+                            ab.append(": ");
+                            std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
+                            ab.append(sl); // ncols ...
 
-						ab.append(Term::erase_to_eol());
-						ab.append("\r\n");
-						cnt++;
-					}
+                            ab.append(Term::erase_to_eol());
+                            ab.append("\r\n");
+                            cnt++;
+                        }
+                    }
+                    else if (j == MAX_EXTRA_LINE_TO_DISPLAY - 1)
+                    {
+                        n_row_idx++;
+                        if (n_row_idx > n_rows - nrows + 3)
+                        {
+                            ab.append(std::to_string(i + 1));
+                            ab.append(" ");
+                            ab.append(vh[i].is_receive ? "< " : "> ");
+                            ab.append(": ");
+                            std::string sl = "..................";
+                            ab.append(sl); // ncols ...
+
+                            ab.append(Term::erase_to_eol());
+                            ab.append("\r\n");
+                            cnt++;
+                        }
+                    }
                 }
             }
         }
@@ -276,6 +306,15 @@ struct ClientTerm
         ab.append(Term::cursor_off());
         ab.append(Term::move_cursor(1, 1));
 
+        // ...
+        status_msg = "[username=" + netw_client->_cfg_cli._username +"]";
+        char host[80];
+        if (gethostname(host, 80) == 0)
+        {
+            status_msg += "[hostname=" + std::string(host) + "]";
+        }
+
+
         draw_history(ab);
         draw_edit_msg(ab);
         draw_status_msg(ab);
@@ -301,15 +340,23 @@ struct ClientTerm
         while (1)
         {
             {
+                int c;
+
                 set_edit_msg(prompt, buf);
                 refresh_screen(term);
                 netw_client->set_ui_dirty(false);
 
-				// TO TEST......
-				int c;
 				bool key_read = false;
 				while (key_read == false)
 				{
+                    if (netw_client->is_got_chat_cli_signal())
+                    {
+                        std::cerr << " Terminating prompt_msg loop " << std::endl;
+                        set_edit_msg("");
+                        free(buf);
+                        return NULL;
+                    }
+
 					c = term.try_read_key(key_read) ;
 					if (key_read == false)
 					{
@@ -328,8 +375,8 @@ struct ClientTerm
 						break;
                     }
 				}
+                //c = term.read_key();
 
-                //int c = term.read_key();
                 if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
                     if (buflen != 0) buf[--buflen] = '\0';
@@ -384,6 +431,12 @@ int main_client_ui(ysSocket::ysClient* netwclient)
         // LOOP
         while (on)
         {
+            if (netwclient->is_got_chat_cli_signal())
+            {
+                std::cerr << " Terminating thread client_UI " << std::endl;
+                break;
+            }
+
             // prompt_msg = Waits for a key press, translates escape codes
             //int read_key() const
             //{

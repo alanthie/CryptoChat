@@ -39,6 +39,7 @@ namespace cryptochat
 
 			int run()
 			{
+				got_chat_cli_signal = 0;
 				signal(SIGINT, signalHandler);
 
 				bool ok = read_cfg(true);
@@ -76,6 +77,8 @@ namespace cryptochat
 					_chat_cli->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_cli->connectServer();
 					_chat_cli->client_UI();
+
+					// The destructor of ysSocket::ysClient call closeConnection that join with the client threads
 					delete _chat_cli;
 
 				}
@@ -83,6 +86,7 @@ namespace cryptochat
 					std::cerr << e.what() << std::endl;
 				}
 
+				// EXITING
 				std::this_thread::sleep_for(std::chrono::seconds(5));
 				return 0;
 			}
@@ -91,18 +95,18 @@ namespace cryptochat
 			cryptochat::cfg::cfg_cli	_cfg;
 			ysSocket::ysClient*         _chat_cli = nullptr;
 
+			static std::atomic<int> got_chat_cli_signal;
+
 			static void signalHandler(int code)
 			{
 				char ch;
-				std::cout << "Are you sure you want to close socket?(Y/N)";
+				std::cout << "Are you sure you want to close socket? (y/n)";
 				std::cin >> ch;
-				if (toupper(ch) == 'Y') {
-					//if (global_cli != nullptr)
-					//	delete global_cli;
-					exit(0);
+				if (toupper(ch) == 'Y') 
+				{
+					got_chat_cli_signal = 1;
 				}
 				std::cin.clear();
-				//cin.ignore(numeric_limits<streamsize>::max(), '\n');
 				std::cin.ignore(0x7fffffffffffffff, '\n');
 			}
 		};

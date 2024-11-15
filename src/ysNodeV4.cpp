@@ -15,12 +15,13 @@ namespace ysSocket {
 		this->m_socketInfo.sin_port = htons(this->m_port);
 	}
 
-	ysNodeV4::ysNodeV4() {
+	ysNodeV4::ysNodeV4() 
+	{
 		setSocketInfo();
 	}
 
-	ysNodeV4::ysNodeV4(const int& t_port) :
-	m_port(t_port) {
+	ysNodeV4::ysNodeV4(const int& t_port) : m_port(t_port) 
+	{
 		setSocketInfo();
 	}
 

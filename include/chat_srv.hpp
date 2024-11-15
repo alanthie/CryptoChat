@@ -99,29 +99,24 @@ namespace cryptochat
 				bool ok = read_cfg(true);
 				if (ok)
 				{
-					std::cout << "Port : " << _cfg._port << std::endl;
-					std::cout << "Connection : " << _cfg._number_connection << std::endl;
+					_cfg.print();
 				}
 				else
 				{
-					std::string entry;
-					_cfg._port = 14003;
-					std::cout << "Port (Default 14003): ";
-					std::getline(std::cin, entry); if (!entry.empty()) _cfg._port = (int)NETW_MSG::str_to_ll(entry);
-
-					std::cout << "Connection (1-128) (Default 32): ";
-					_cfg._number_connection = 32;
-					std::getline(std::cin, entry); if (!entry.empty()) _cfg._number_connection = (int)NETW_MSG::str_to_ll(entry);
-
-					std::cout << "Port : " << _cfg._port << std::endl;
-					std::cout << "Connection : " << _cfg._number_connection << std::endl;
+					_cfg.read();
+					_cfg.print();
 
 					bool r = save_cfg();
+					if (r == false)
+					{
+						std::cerr << "ERROR - Unable to save config" << std::endl;
+					}
 				}
 
 				try
 				{
-					_chat_server = new ysSocket::ysServer(_cfg._port, _cfg._number_connection);
+					//_chat_server = new ysSocket::ysServer(_cfg._port, _cfg._number_connection);
+					_chat_server = new ysSocket::ysServer(_cfg);
 					_chat_server->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_server->runServer();
 					delete _chat_server;

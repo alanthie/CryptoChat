@@ -20,7 +20,7 @@ namespace cryptochat
             {
                 _server = "127.0.0.1";
                 _port = 14003;
-                _username  = "user";
+                _username  = NETW_MSG::DEFAULT_USERNAME;
             }
 
             cfg_cli(const std::string& srv, int port, int number_connection, const std::string& user)
@@ -91,7 +91,7 @@ namespace cryptochat
 			}
 
             std::string _server;
-            int  _port;
+            int			_port;
             std::string _username;
             std::map<std::string, std::string> map_challenges;
 

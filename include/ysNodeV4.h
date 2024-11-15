@@ -7,6 +7,7 @@
 #include "encrypt.h"
 #include "random_engine.hpp"
 #include "../include/netw_msg.hpp"
+#include "../include/cfg_srv.hpp"
 #include "SHA256.h"
 #include "IDEA.hpp"
 #include <cstring>
@@ -41,14 +42,14 @@ namespace ysSocket {
 
 	//const int MESSAGE_SIZE = 4 * 1024; // 4k or better if supported 64k to 8MB, use in recv(), send()
 
-	//// Make KEY_SIZE a multiple of 128 to support most encryption algos
+	// Make KEY_SIZE a multiple of 128 to support most encryption algos
 	//const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
 
 	// History size
 	const int HISTORY_SIZE = 20;
 
 	const bool USE_BASE64_RND_KEY_GENERATOR = true;
-	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // vigenere BUG
+	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere BUG
 
 	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{
@@ -115,6 +116,7 @@ namespace ysSocket {
 		bool new_pending_random_key = false;
 
 		std::string username;
+		std::string hostname;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 
 		std::map<int, std::mutex> _send_mutex; //...only one per socket... no map needed
