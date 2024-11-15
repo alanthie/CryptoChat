@@ -305,7 +305,31 @@ struct ClientTerm
                 refresh_screen(term);
                 netw_client->set_ui_dirty(false);
 
-                int c = term.read_key();
+				// TO TEST......
+				int c;
+				bool key_read = false;
+				while (key_read == false)
+				{
+					c = term.try_read_key(key_read) ;
+					if (key_read == false)
+					{
+						if (netw_client->get_ui_dirty())
+						{
+							refresh_screen(term);
+							netw_client->set_ui_dirty(false);
+						}
+						else
+						{
+							std::this_thread::sleep_for(std::chrono::milliseconds(10));
+						}
+					}
+					else
+					{
+						break;
+                    }
+				}
+
+                //int c = term.read_key();
                 if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
                     if (buflen != 0) buf[--buflen] = '\0';

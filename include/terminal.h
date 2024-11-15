@@ -219,6 +219,18 @@ public:
         }
         return key;
     }
+	
+	int try_read_key(bool& key_read) const
+    {
+        int key;
+        while ((key = read_key0()) == 0)
+        {
+			key_read = false;
+            return 0;
+        }
+		key_read = true;
+        return key;
+    }
 
     // If there was a key press, returns the translated key from escape codes,
     // otherwise returns 0. If the escape code is not supported, returns a

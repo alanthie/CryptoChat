@@ -123,6 +123,10 @@ namespace ysSocket {
         {
             ysNodeV4::ui_dirty = v;
         }
+        bool get_ui_dirty()
+        {
+            return ysNodeV4::ui_dirty;
+        }
 
 		virtual ~ysClient();
 	};
