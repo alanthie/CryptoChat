@@ -303,6 +303,7 @@ struct ClientTerm
             {
                 set_edit_msg(prompt, buf);
                 refresh_screen(term);
+                netw_client->set_ui_dirty(false);
 
                 int c = term.read_key();
                 if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
@@ -426,6 +427,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                         ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
 
                         ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, is_txtfile_send_cmd);
+                        ct.netw_client->set_ui_dirty();
                     }
                 }
                 else
@@ -449,6 +451,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                         ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
 
                         ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                        ct.netw_client->set_ui_dirty();
                     }
                 }
 

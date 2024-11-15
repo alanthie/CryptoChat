@@ -28,18 +28,13 @@ int main(int argc, char** argv)
 	try
 	{
 		argparse::ArgumentParser program("chatcli", FULLVERSION);
-
-		argparse::ArgumentParser run_command("run");
 		{
-			run_command.add_description("Run chat client");
+			program.add_description("Run chat client");
 
-			run_command.add_argument("-cfg", "--cfg")
+			program.add_argument("-cfg", "--cfg")
 				.default_value(std::string(""))
 				.help("specify a config file.");
 		}
-
-		// Add the subcommands to the main parser
-		program.add_subparser(run_command);
 
 		// Parse the arguments
 		try
@@ -53,22 +48,11 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
-		if (program.is_subcommand_used("run"))
-		{
-			auto& cmd = run_command;
-			auto cfg = cmd.get<std::string>("--cfg");
+        auto& cmd = program;
+        auto cfg = cmd.get<std::string>("--cfg");
 
-			global_cli = new cryptochat::cli::chat_cli(cfg);
-			return global_cli->run();
-		}
-
-		// No subcommands were given
-		{
-			std::cerr << program << std::endl;
-		}
-
-		std::this_thread::sleep_for(std::chrono::seconds(5));
-		return 0;
+        global_cli = new cryptochat::cli::chat_cli(cfg);
+        return global_cli->run();
 	}
 	catch (std::invalid_argument const& ex)
 	{

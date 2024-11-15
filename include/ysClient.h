@@ -119,6 +119,11 @@ namespace ysSocket {
 			return ysNodeV4::send_next_pending_file_packet(t_socketFd, key, send_status);
 		}
 
+        void set_ui_dirty(bool v = true)
+        {
+            ysNodeV4::ui_dirty = v;
+        }
+
 		virtual ~ysClient();
 	};
 

@@ -86,6 +86,9 @@ namespace ysSocket {
 				if (!r)
 				{
 				}
+				else{
+                    ui_dirty = true;
+				}
 				// send TXT msg...
 
 				// sleep ...
@@ -173,10 +176,6 @@ namespace ysSocket {
 						std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
 					}
 				}
-
-			// RECV(this->m_socketFd)
-			//while ((len = recv(this->m_socketFd, message_buffer, NETW_MSG::MESSAGE_SIZE, 0)) > 0)
-			//{
 
 				message_buffer[expected_len] = '\0';
 
@@ -365,6 +364,7 @@ namespace ysSocket {
 
                         showMessage(str_message);
                         add_to_history(true, NETW_MSG::MSG_TEXT, str_message);
+                        ui_dirty = true;
                     }
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE)
@@ -388,6 +388,7 @@ namespace ysSocket {
 							}
 						}
 						add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, for_display);
+						ui_dirty = true;
 					}
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
@@ -411,6 +412,7 @@ namespace ysSocket {
 									auto& binfile = map_file_to_recv[mh.filename];
 									binfile.set_fragment_processed(idx_fragment, m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()) );
 									// save file if fully processed...
+									ui_dirty = true;
 								}
 							}
 						}
@@ -445,6 +447,7 @@ namespace ysSocket {
 
 				std::string s = m.get_data_as_string();
 				add_to_history(false, NETW_MSG::MSG_TEXT, s);
+				ui_dirty = true;
 
 				cnt++;
 			}
@@ -481,6 +484,7 @@ namespace ysSocket {
 
 					std::string s = m.get_data_as_string();
 					add_to_history(false, NETW_MSG::MSG_TEXT, s);
+					ui_dirty = true;
 
 					cnt++;
 				}

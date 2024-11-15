@@ -129,6 +129,8 @@ namespace ysSocket {
 		std::mutex _map_file_to_send_mutex;
 		std::mutex _map_file_to_recv_mutex;
 
+		std::atomic<bool> ui_dirty = true;
+
 		bool add_file_to_send(const std::string& filename);
 		bool add_file_to_recv(const std::string& filename);
 		bool add_msg_to_send(const NETW_MSG::MSG& m);

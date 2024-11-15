@@ -176,6 +176,8 @@ namespace ysSocket {
 
 			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
 			binfile.init(filename, true);
+
+			ui_dirty = true;
 			return true;
 		}
 		return true; // already exist
@@ -189,6 +191,8 @@ namespace ysSocket {
 
 			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
 			binfile.init(filename, false);
+
+			ui_dirty = true;
 			return true;
 		}
 		return true; // already exist
@@ -251,17 +255,6 @@ namespace ysSocket {
 		return r;
 	}
 
-	//bool ysNodeV4::add_msg_to_send(const NETW_MSG::MSG& m)
-	//{
-	//	queue_msg_to_send.push(m);
-	//	return true;
-	//}
-	//bool ysNodeV4::add_msg_to_recv(const NETW_MSG::MSG& m)
-	//{
-	//	queue_msg_to_recv.push(m);
-	//	return true;
-	//}
-
 	bool ysNodeV4::send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)
 	{
 		send_status = 0;
@@ -293,6 +286,7 @@ namespace ysSocket {
 			{
 				send_status = sendMessageBuffer(t_socketFd, m, key);
 				msg_sent = true;
+				ui_dirty = true;
 			}
 		}
 

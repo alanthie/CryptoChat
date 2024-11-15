@@ -43,7 +43,7 @@
 	<array>
 	<stdint.h>
 
-1731627714 source:/home/allaptop/dev/CryptoChat/src/ysChatServer.cpp
+1731642007 source:/home/allaptop/dev/CryptoChat/src/ysChatServer.cpp
 	<iostream>
 	<limits>
 	<csignal>
@@ -63,7 +63,7 @@
 	<thread>
 	<mutex>
 
-1731627714 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731642567 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -579,12 +579,12 @@
 	<iostream>
 	<string>
 
-1731627715 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731642699 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	<mutex>
 	"../include/ysNodeV4.h"
 
-1731627714 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1731643666 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/terminal.h"
 	"../include/ysClient.h"
 	"../include/data.hpp"
@@ -608,8 +608,9 @@
 	<unistd.h>
 	<errno.h>
 
-1731627714 /home/allaptop/dev/CryptoChat/include/ysClient.h
+1731643418 /home/allaptop/dev/CryptoChat/include/ysClient.h
 	"ysNodeV4.h"
+	"cfg_cli.hpp"
 	<iostream>
 	<functional>
 	<thread>
@@ -915,4 +916,15 @@
 	<sstream>
 	<stdexcept>
 	<algorithm>
+
+1731634408 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
+	<string>
+	<map>
+	"../include/c_plus_plus_serializer.h"
+	"../include/file_util.hpp"
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h
+	"syslimits.h"
+
+1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h
 

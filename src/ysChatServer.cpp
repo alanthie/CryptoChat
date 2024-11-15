@@ -19,7 +19,7 @@
 const std::string CHATSRV_VERSION = "0.1";
 cryptochat::srv::chat_srv* global_srv = nullptr;
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
 	std::string FULLVERSION = CHATSRV_VERSION + "_" + cryptoAL::parsing::get_current_date();
 
@@ -27,21 +27,29 @@ int main(int argc, char** argv)
 	try
 	{
 		argparse::ArgumentParser program("chatsrv", FULLVERSION);
-
-		argparse::ArgumentParser run_command("run");
 		{
-			run_command.add_description("Run chat server");
+			program.add_description("Run chat server");
 
-			run_command.add_argument("-cfg", "--cfg")
+			program.add_argument("-cfg", "--cfg")
 				.default_value(std::string(""))
 				.help("specify a config file.");
 		}
 
+
+//		argparse::ArgumentParser run_command("run");
+//		{
+//			run_command.add_description("Run chat server");
+//
+//			run_command.add_argument("-cfg", "--cfg")
+//				.default_value(std::string(""))
+//				.help("specify a config file.");
+//		}
+
 		// Add the subcommands to the main parser
-		program.add_subparser(run_command);
+		//program.add_subparser(run_command);
 
 		// Parse the arguments
-		try 
+		try
 		{
 			program.parse_args(argc, argv);
 		}
@@ -52,22 +60,23 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
-		if (program.is_subcommand_used("run"))
 		{
-			auto& cmd = run_command;
+			auto& cmd = program;
 			auto cfg = cmd.get<std::string>("--cfg");
 
 			global_srv = new cryptochat::srv::chat_srv(cfg);
 			return global_srv->run();
 		}
 
-		// No subcommands were given
-		{
-			std::cerr << program << std::endl;
-		}
+//		if (program.is_subcommand_used("run"))
+//		{
+//			auto& cmd = run_command;
+//			auto cfg = cmd.get<std::string>("--cfg");
+//
+//			global_srv = new cryptochat::srv::chat_srv(cfg);
+//			return global_srv->run();
+//		}
 
-		std::this_thread::sleep_for(std::chrono::seconds(5));
-		return 0;
 	}
 	catch (std::invalid_argument const& ex)
 	{
