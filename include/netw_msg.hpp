@@ -14,7 +14,7 @@ constexpr bool DEBUG_INFO = false;
 
 namespace NETW_MSG
 {
-const int MESSAGE_SIZE = 4 * 1024; 
+const int MESSAGE_SIZE = 4 * 1024;
 const int MESSAGE_HEADER = 37;
 const int MESSAGE_KEYDIGEST_START = 5;
 
@@ -27,9 +27,10 @@ struct netw_msg
 {
 	bool is_receive;
 	uint8_t msg_type;
-	std::string msg;
+	std::string msg;        // ONE LINE
 	std::string filename;	// MSG_FILE
 	bool is_for_display;	// MSG_FILE display or disk saving
+	std::vector<std::string> vmsg_extra;   // From MSG_FILE (for display)
 };
 
 const uint8_t MSG_EMPTY = 0;
@@ -88,7 +89,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 	bool parse_header(const std::string& data)
 	{
 		size_t sz = header_size();
-		if (data.size() < sz) 
+		if (data.size() < sz)
 			return false;
 		size_t pos_file = 1;
 		size_t pos_total_size = 1 + get_pos_delimiter(pos_file, data, ',');
@@ -113,7 +114,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 			return r;
 
 		size_t total_size = file.buffer.size();
-		
+
 		MSG_FILE_FRAGMENT_HEADER h;
 		h.filename = filename;
 		h.total_size = std::to_string(total_size);
@@ -240,7 +241,7 @@ struct MSG_BINFILE
 
 	void set_fragment_processed(size_t idx, size_t sz_data)
 	{
-		if (idx >= _vfragments.size()) 
+		if (idx >= _vfragments.size())
 			return;
 		_vfragments[idx].is_processed = true;
 		if (_to_send)
@@ -288,7 +289,7 @@ struct MSG
 {
 	// HEADER + data
 	// type_msg (1 byte) =  buffer[0]
-	// buffer_len (4 bytes) = buffer[1]...buffer[4] 
+	// buffer_len (4 bytes) = buffer[1]...buffer[4]
 	// digest of key (32 bytes) = buffer[5]...buffer[36]
 	// data = buffer[37]...buffer[N]
 

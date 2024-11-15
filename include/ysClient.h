@@ -81,7 +81,7 @@ namespace ysSocket {
 		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {}, bool is_for_display = true)
 		{
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
-			vhistory.push_back({ is_receive, msg_type, msg, filename, is_for_display });
+			vhistory.push_back({ is_receive, msg_type, msg, filename, is_for_display, {} });
 			while (vhistory.size() > HISTORY_SIZE)
 			{
 				vhistory.erase(vhistory.begin());
