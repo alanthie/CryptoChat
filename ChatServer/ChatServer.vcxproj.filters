@@ -110,5 +110,8 @@
     <ClInclude Include="..\include\includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\chat_srv.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

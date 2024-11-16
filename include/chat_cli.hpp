@@ -27,6 +27,14 @@ namespace cryptochat
 			{
 			}
 
+			~chat_cli()
+			{
+				std::cout << "deleting chat_cli" << std::endl;
+				if (_chat_cli != nullptr)
+					delete _chat_cli;
+			}
+
+
 			bool read_cfg(bool create_if_not_exist)
 			{
                 return _cfg.read_cfg(_cfg_file, create_if_not_exist);
@@ -40,7 +48,6 @@ namespace cryptochat
 			int run()
 			{
 				got_chat_cli_signal = 0;
-				signal(SIGINT, signalHandler);
 
 				bool ok = read_cfg(true);
 				if (ok)
@@ -87,7 +94,7 @@ namespace cryptochat
 				}
 
 				// EXITING
-				std::this_thread::sleep_for(std::chrono::seconds(5));
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 				return 0;
 			}
 
@@ -96,20 +103,6 @@ namespace cryptochat
 			ysSocket::ysClient*         _chat_cli = nullptr;
 
 			static std::atomic<int> got_chat_cli_signal;
-
-			static void signalHandler(int code)
-			{
-				//char ch;
-				//std::cout << "Are you sure you want to close socket? (y/n)";
-				// cin is lock by terminal readkey...
-				//std::cin >> ch;
-				//if (toupper(ch) == 'Y')
-				{
-					got_chat_cli_signal = 1;
-				}
-				//std::cin.clear();
-				//std::cin.ignore(0x7fffffffffffffff, '\n');
-			}
 		};
 
 	}

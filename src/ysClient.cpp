@@ -81,7 +81,7 @@ namespace ysSocket {
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::cerr << " Terminating thread send_pending_file_packet_thread " << std::endl;
+					std::cerr << " Exiting thread send_pending_file_packet_thread " << std::endl;
 					break;
 				}
 
@@ -127,7 +127,7 @@ namespace ysSocket {
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::cerr << " Terminating thread recv_thread " << std::endl;
+					std::cerr << " Exiting thread recv_thread " << std::endl;
 					break;
 				}
 
@@ -146,7 +146,7 @@ namespace ysSocket {
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::cerr << " Terminating thread recv_thread " << std::endl;
+						std::cerr << " Exiting thread recv_thread " << std::endl;
 						msg_ok = false;
 						break;
 					}
@@ -173,13 +173,12 @@ namespace ysSocket {
 					msg_ok = false;
 					break;
 				}
-				//std::cout << "RECV - expected_len = " << expected_len << std::endl;
 
 				while (byte_recv < expected_len)
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::cerr << " Terminating thread recv_thread " << std::endl;
+						std::cerr << " Exiting thread recv_thread " << std::endl;
 						msg_ok = false;
 						break;
 					}
@@ -276,9 +275,6 @@ namespace ysSocket {
 
                         {
                             if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
-
-//                            showMessage(str_message);
-//                            std::string r = get_input("Enter key");
 
 							{
 								std::lock_guard l(_key_mutex);
@@ -498,7 +494,7 @@ namespace ysSocket {
 		{
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
-				std::cerr << " Terminating thread client_UI " << std::endl;
+				std::cerr << " Exiting thread client_UI " << std::endl;
 				break;
 			}
 
@@ -562,10 +558,6 @@ namespace ysSocket {
 		}
 	}
 
-//	ysClient::ysClient() : ysNodeV4() {
-//		setDefault();
-//	}
-
 	ysClient::ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile) :
         ysNodeV4(cfg._port),
         m_serverName(cfg._server),
@@ -574,17 +566,6 @@ namespace ysSocket {
 	{
 		setDefault();
 	}
-
-//	ysClient::ysClient(const int& t_port) : ysNodeV4(t_port) {
-//		setDefault();
-//	}
-
-//	ysClient::ysClient(const std::string& t_serverName, const int& t_port)
-//        :   ysNodeV4(t_port),
-//            m_serverName(t_serverName)
-//    {
-//		setDefault();
-//	}
 
 	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {
 		m_onMessage = t_function;

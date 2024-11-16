@@ -17,7 +17,35 @@
 #include "../include/crypto_parsing.hpp"
 
 const std::string CHATSRV_VERSION = "0.1";
-cryptochat::srv::chat_srv* global_srv = nullptr;
+
+class main_global
+{
+public:
+	static cryptochat::srv::chat_srv* global_srv;
+};
+cryptochat::srv::chat_srv*  main_global::global_srv = nullptr;
+
+static void signalHandler(int code)
+{
+	char ch;
+	std::cout << "Are you sure you want to close server? (y/n)";
+	std::cin >> ch;
+	if (toupper(ch) == 'Y') 
+	{
+		if (main_global::global_srv != nullptr)
+		try
+		{
+			delete main_global::global_srv;
+		}
+		catch (...)
+		{
+		}
+  		exit(0);
+	}
+	std::cin.clear();
+	std::cin.ignore(0x7fffffffffffffff, '\n');
+}
+
 
 int main(int argc, char** argv)
 {
@@ -26,6 +54,8 @@ int main(int argc, char** argv)
 	// Argument parser
 	try
 	{
+		signal(SIGINT, signalHandler);
+
 		argparse::ArgumentParser program("chatsrv", FULLVERSION);
 		{
 			program.add_description("Run chat server");
@@ -34,19 +64,6 @@ int main(int argc, char** argv)
 				.default_value(std::string(""))
 				.help("specify a config file.");
 		}
-
-
-//		argparse::ArgumentParser run_command("run");
-//		{
-//			run_command.add_description("Run chat server");
-//
-//			run_command.add_argument("-cfg", "--cfg")
-//				.default_value(std::string(""))
-//				.help("specify a config file.");
-//		}
-
-		// Add the subcommands to the main parser
-		//program.add_subparser(run_command);
 
 		// Parse the arguments
 		try
@@ -64,18 +81,9 @@ int main(int argc, char** argv)
 			auto& cmd = program;
 			auto cfg = cmd.get<std::string>("--cfg");
 
-			global_srv = new cryptochat::srv::chat_srv(cfg);
-			return global_srv->run();
+			main_global::global_srv = new cryptochat::srv::chat_srv(cfg);
+			return main_global::global_srv->run();
 		}
-
-//		if (program.is_subcommand_used("run"))
-//		{
-//			auto& cmd = run_command;
-//			auto cfg = cmd.get<std::string>("--cfg");
-//
-//			global_srv = new cryptochat::srv::chat_srv(cfg);
-//			return global_srv->run();
-//		}
 
 	}
 	catch (std::invalid_argument const& ex)

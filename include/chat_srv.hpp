@@ -20,12 +20,17 @@ namespace cryptochat
 {
 	namespace srv
 	{
-
 		class chat_srv
 		{
 		public:
 			chat_srv(const std::string& cfgfile) : _cfg_file(cfgfile)
 			{
+			}
+			~chat_srv()
+			{
+				std::cout << "deleting chat_srv" << std::endl;
+				if (_chat_server!=nullptr)
+					delete _chat_server;
 			}
 
 			bool read_cfg(bool create_if_not_exist)
@@ -91,7 +96,7 @@ namespace cryptochat
 
 			int run()
 			{
-				signal(SIGINT, signalHandler);
+				//signal(SIGINT, signalHandler);
 
 				bool ok = read_cfg(true);
 				if (ok)
@@ -131,20 +136,6 @@ namespace cryptochat
 			cryptochat::cfg::cfg_srv _cfg;
 			ysSocket::ysServer* _chat_server = nullptr;
 
-			static void signalHandler(int code)
-			{
-				char ch;
-				std::cout << "Are you sure you want to close socket?(Y/N)";
-				std::cin >> ch;
-				if (toupper(ch) == 'Y') {
-					//if (global_srv != nullptr)
-					//	delete global_srv;
-					exit(0);
-				}
-				std::cin.clear();
-				//cin.ignore(numeric_limits<streamsize>::max(), '\n');
-				std::cin.ignore(0x7fffffffffffffff, '\n');
-			}
 		};
 
 	}
