@@ -32,7 +32,7 @@ namespace NETW_MSG
 		return r;
 	}
 
-	std::vector<std::string> static split(std::string& s, const std::string& delimiter)
+	[[maybe_unused]] static std::vector<std::string> split(std::string& s, const std::string& delimiter)
 	{
 		std::vector<std::string> tokens;
 		size_t pos = 0;

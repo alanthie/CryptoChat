@@ -32,7 +32,7 @@
 	"Base64.h"
 	"vigenere.hpp"
 
-1731284755 /home/allaptop/dev/CryptoChat/include/vigenere.hpp
+1731724409 /home/allaptop/dev/CryptoChat/include/vigenere.hpp
 	<stdio.h>
 	<string.h>
 	<string>
@@ -40,7 +40,7 @@
 	<stdio.h>
 	<ctype.h>
 
-1731645493 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1731724409 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/terminal.h"
 	"../include/ysClient.h"
 	"../include/data.hpp"
@@ -64,7 +64,7 @@
 	<unistd.h>
 	<errno.h>
 
-1731645302 /home/allaptop/dev/CryptoChat/include/ysClient.h
+1731724409 /home/allaptop/dev/CryptoChat/include/ysClient.h
 	"ysNodeV4.h"
 	"cfg_cli.hpp"
 	<iostream>
@@ -73,10 +73,11 @@
 	<mutex>
 	<atomic>
 
-1731642567 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731724409 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
+	"../include/cfg_srv.hpp"
 	"SHA256.h"
 	"IDEA.hpp"
 	<cstring>
@@ -158,7 +159,7 @@
 	<sstream>
 	<iomanip>
 
-1731284755 source:/home/allaptop/dev/CryptoChat/src/vigenere.cpp
+1731724409 source:/home/allaptop/dev/CryptoChat/src/vigenere.cpp
 	<stdio.h>
 	<string.h>
 	<string>
@@ -167,7 +168,7 @@
 	<ctype.h>
 	"../include/vigenere.hpp"
 
-1731641954 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
+1731724409 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
 	<iostream>
 	<string>
 	<limits>
@@ -195,7 +196,7 @@
 	<thread>
 	<mutex>
 
-1731642903 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
+1731724409 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
 	<iostream>
 	<string>
 	<conio.h>
@@ -204,11 +205,12 @@
 	"../include/ysClient.h"
 	"../include/crc32a.hpp"
 	"../include/Menu.h"
+	"../include/chat_cli.hpp"
 	<ciso646>
 	<iostream>
 	<string>
 
-1731642699 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731724409 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	<mutex>
 	"../include/ysNodeV4.h"
@@ -426,7 +428,7 @@
 	<fcntl.h>
 	<termios.h>
 
-1731638544 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+1731724409 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
@@ -439,7 +441,7 @@
 1731561046 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
 	"../include/netw_msg.hpp"
 
-1731561046 /home/allaptop/dev/CryptoChat/include/Menu.h
+1731724409 /home/allaptop/dev/CryptoChat/include/Menu.h
 	<iostream>
 	<vector>
 	<functional>
@@ -457,13 +459,13 @@
 	<fcntl.h>
 	<termios.h>
 
-1731561046 /home/allaptop/dev/CryptoChat/include/string_util.hpp
+1731726275 /home/allaptop/dev/CryptoChat/include/string_util.hpp
 	<cstring>
 	<iostream>
 	<string>
 	<vector>
 
-1731634790 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
+1731724409 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
 	<iostream>
 	<limits>
 	<csignal>
@@ -474,7 +476,7 @@
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1731634408 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
+1731724409 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
 	<string>
 	<map>
 	"../include/c_plus_plus_serializer.h"
@@ -546,4 +548,8 @@
 	<sstream>
 	<stdexcept>
 	<algorithm>
+
+1731724409 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
+	"../include/c_plus_plus_serializer.h"
+	"../include/vigenere.hpp"
 

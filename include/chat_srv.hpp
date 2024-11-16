@@ -71,9 +71,6 @@ namespace cryptochat
 
 			bool save_cfg()
 			{
-				bool ret = false;
-				bool has_cfg_file = false;
-
 				if (_cfg_file.size() == 0)
 				{
 					return false;

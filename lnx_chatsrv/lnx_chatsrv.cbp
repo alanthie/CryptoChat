@@ -37,15 +37,12 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="../include/Base64.h" />
-		<Unit filename="../include/Buffer.hpp" />
 		<Unit filename="../include/IDEA.hpp" />
 		<Unit filename="../include/SHA256.h" />
 		<Unit filename="../include/argparse.hpp" />
 		<Unit filename="../include/base_const.hpp" />
 		<Unit filename="../include/c_plus_plus_serializer.h" />
-		<Unit filename="../include/cfg_cli.hpp" />
 		<Unit filename="../include/cfg_srv.hpp" />
-		<Unit filename="../include/chat_cli.hpp" />
 		<Unit filename="../include/chat_srv.hpp" />
 		<Unit filename="../include/crc32a.hpp" />
 		<Unit filename="../include/crypto_const.hpp" />
@@ -64,7 +61,6 @@
 		<Unit filename="../src/SHA256.cpp" />
 		<Unit filename="../src/crc32a.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
-		<Unit filename="../src/menu_window.cpp" />
 		<Unit filename="../src/netw_msg.cpp" />
 		<Unit filename="../src/vigenere.cpp" />
 		<Unit filename="../src/ysChatServer.cpp" />
