@@ -45,6 +45,7 @@
     <ClInclude Include="..\include\file_util.hpp" />
     <ClInclude Include="..\include\IDEA.hpp" />
     <ClInclude Include="..\include\includes.h" />
+    <ClInclude Include="..\include\main_global.hpp" />
     <ClInclude Include="..\include\netw_msg.hpp" />
     <ClInclude Include="..\include\random_engine.hpp" />
     <ClInclude Include="..\include\rng.h" />

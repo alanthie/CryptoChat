@@ -1,6 +1,5 @@
 #include "../include/netw_msg.hpp"
-
-//constexpr bool DEBUG_INFO = false;
+#include "../include/main_global.hpp"
 
 namespace NETW_MSG
 {
@@ -40,10 +39,14 @@ namespace NETW_MSG
         delete[] digestkey;
 
         if (DEBUG_INFO)
-            std::cout << "Encrypt ["
-            + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
-            + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
-            + "]" << std::endl;
+        {
+            std::stringstream ss;
+            ss << "Encrypt ["
+                + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
+                + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
+                + "]" << std::endl;
+            main_global::log(ss.str());
+        }
     }
 
     void MSG::make_decrypt_msg(MSG& msgin, std::string& key)
@@ -62,10 +65,14 @@ namespace NETW_MSG
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
 
         if (DEBUG_INFO)
-            std::cout << "Decrypt ["
-            + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
-            + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
-            << std::endl;
+        {
+            std::stringstream ss;
+            ss << "Decrypt ["
+                + get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
+                + get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
+                << std::endl;
+            main_global::log(ss.str());
+        }
     }
 
     void MSG::make_msg(uint8_t t, const std::string& s, const std::string& key)
@@ -79,7 +86,9 @@ namespace NETW_MSG
             std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER);
             make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
 
-            std::cerr << "WARNING message truncated" << std::endl;
+            std::stringstream ss;
+            ss << "WARNING message truncated" << std::endl;
+            main_global::log(ss.str());
         }
         else
         {
@@ -133,25 +142,33 @@ namespace NETW_MSG
         if (len < MESSAGE_HEADER)
         {
             type_msg = MSG_EMPTY;
-            std::cerr << "WARNING MSG_EMPTY msg_len = " << len << std::endl;
+            std::stringstream ss;
+            ss << "WARNING MSG_EMPTY msg_len = " << len << std::endl;
+            main_global::log(ss.str());
             return false;
         }
 
         if (key.size() == 0)
         {
-            std::cerr << "WARNING KEY EMPTY " << std::endl;
+            std::stringstream ss;
+            ss << "WARNING KEY EMPTY " << std::endl;
+            main_global::log(ss.str());
             return false;
         }
 
         if (len == MESSAGE_SIZE)
         {
-            std::cerr << "WARNING MSG(truncated), size = MESSAGE_SIZE" << std::endl;
+            std::stringstream ss;
+            ss  << "WARNING MSG(truncated), size = MESSAGE_SIZE" << std::endl;
+            main_global::log(ss.str());
         }
 
         uint32_t expected_len = MSG::byteToUInt4(message_buffer + 1);
         if (expected_len != len)
         {
-            std::cerr << "WARNING parsing - len msg is unexpected " << len << " vs " << expected_len << std::endl;
+            std::stringstream ss;
+            ss << "WARNING parsing - len msg is unexpected " << len << " vs " << expected_len << std::endl;
+            main_global::log(ss.str());
             return false;
         }
 
@@ -162,7 +179,9 @@ namespace NETW_MSG
         if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkey, 32) != 0)
         {
             delete[]digestkey;
-            std::cerr << "WARNING INVALID key digest in MSG::parse() " << std::endl;
+            std::stringstream ss;
+            ss << "WARNING INVALID key digest in MSG::parse() " << std::endl;
+            main_global::log(ss.str());
 
             if (!pending_key.empty())
             {
@@ -172,13 +191,17 @@ namespace NETW_MSG
 
                 if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkeypending, 32) != 0)
                 {
-                    std::cerr << "WARNING pending key not working" << std::endl;
+                    std::stringstream ss;
+                    ss << "WARNING pending key not working" << std::endl;
+                    main_global::log(ss.str());
                     delete[]digestkeypending;
                 }
                 else
                 {
                     delete[]digestkeypending;
-                    std::cerr << "INFO using pending key" << std::endl;
+                    std::stringstream ss;
+                    ss << "INFO using pending key" << std::endl;
+                    main_global::log(ss.str());
 
                     MSG m;
                     m.make_msg((uint8_t*)message_buffer, len);
@@ -189,7 +212,9 @@ namespace NETW_MSG
             }
             else
             {
-                std::cerr << "WARNING no pending key" << std::endl;
+                std::stringstream ss;
+                ss << "WARNING no pending key" << std::endl;
+                main_global::log(ss.str());;
             }
 
             if (!previous_key.empty())
@@ -200,13 +225,17 @@ namespace NETW_MSG
 
                 if (memcmp(message_buffer + MESSAGE_KEYDIGEST_START, digestkeyprevious, 32) != 0)
                 {
-                    std::cerr << "WARNING previous key not working" << std::endl;
+                    std::stringstream ss;
+                    ss << "WARNING previous key not working" << std::endl;
+                    main_global::log(ss.str());
                     delete[]digestkeyprevious;
                 }
                 else
                 {
                     delete[]digestkeyprevious;
-                    std::cerr << "INFO using previous key" << std::endl;
+                    std::stringstream ss;
+                    ss << "INFO using previous key" << std::endl;
+                    main_global::log(ss.str());
 
                     MSG m;
                     m.make_msg((uint8_t*)message_buffer, len);
@@ -216,7 +245,9 @@ namespace NETW_MSG
             }
             else
             {
-                std::cerr << "WARNING no previous key" << std::endl;
+                std::stringstream ss;
+                ss << "WARNING no previous key" << std::endl;
+                main_global::log(ss.str());
             }
 
             return false;
@@ -246,25 +277,33 @@ namespace NETW_MSG
         if (data_temp.buffer.size() % 8 != 0)
         {
             r = false;
-            std::cerr << "ERROR " << "encode_idea data file must be multiple of 8 bytes idea: " << data_temp.buffer.size() << std::endl;
+            std::stringstream ss;
+            ss << "ERROR " << "encode_idea data file must be multiple of 8 bytes idea: " << data_temp.buffer.size() << std::endl;
+            main_global::log(ss.str());
             return r;
         }
         if (data_temp.buffer.size() == 0)
         {
             r = false;
-            std::cerr << "ERROR " << "encode_idea data file is empty " << std::endl;
+            std::stringstream ss;
+            ss << "ERROR " << "encode_idea data file is empty " << std::endl;
+            main_global::log(ss.str());
             return r;
         }
 
         if (key_size % 16 != 0)
         {
             r = false;
-            std::cerr << "ERROR " << "encode_idea key must be multiple of 16 bytes: " << key_size << std::endl;
+            std::stringstream ss;
+            ss << "ERROR " << "encode_idea key must be multiple of 16 bytes: " << key_size << std::endl;
+            main_global::log(ss.str());
             return r;
         }
         if (key_size == 0)
         {
-            std::cerr << "ERROR encode_idea - key_size = 0 " << std::endl;
+            std::stringstream ss;
+            ss << "ERROR encode_idea - key_size = 0 " << std::endl;
+            main_global::log(ss.str());
             return false;
         }
 
@@ -354,23 +393,31 @@ namespace NETW_MSG
         if (key_size % 16 != 0)
         {
             r = false;
-            std::cerr << "ERROR " << "decode_idea key must be multiple of 16 bytes " << key_size << std::endl;
+            std::stringstream ss;
+            ss << "ERROR " << "decode_idea key must be multiple of 16 bytes " << key_size << std::endl;
+            main_global::log(ss.str());
             return r;
         }
         if (data_encrypted.buffer.size() % 8 != 0)
         {
             r = false;
-            std::cerr << "ERROR " << "decode_idea data must be multiple of 8 bytes " << data_encrypted.buffer.size() << std::endl;
+            std::stringstream ss;
+            ss << "ERROR " << "decode_idea data must be multiple of 8 bytes " << data_encrypted.buffer.size() << std::endl;
+            main_global::log(ss.str());
             return r;
         }
         if (key_size == 0)
         {
-            std::cerr << "ERROR decode_sidea - key_size = 0 " << "" << std::endl;
+            std::stringstream ss;
+            ss << "ERROR decode_sidea - key_size = 0 " << "" << std::endl;
+            main_global::log(ss.str());
             return false;
         }
         if (data_encrypted.buffer.size() == 0)
         {
-            std::cerr << "ERROR decode_sidea - data file is empty " << std::endl;
+            std::stringstream ss;
+            ss << "ERROR decode_sidea - data file is empty " << std::endl;
+            main_global::log(ss.str());
             return false;
         }
 

@@ -2,16 +2,16 @@
 #define _INCLUDES_encrypt_H
 
 #include <cstdint>
+#include <sstream>
+#include <iostream>
+#include <string>
 
 #include "../include/encrypt.h"
 #include "../include/Base64.h"
 #include "../include/vigenere.hpp"
 #include "../include/netw_msg.hpp"
-#include <sstream>
-#include <iostream>
-#include <string>
+//#include "../include/main_global.hpp"
 
-//constexpr bool DEBUG_INFO = false;
 
 template <typename T> std::string makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false) {
     if (!size) {
@@ -59,11 +59,15 @@ std::string encrypt_simple_string(std::string& msg, std::string& key)
     //std::string b64_str = Base64::encode(msg2b);
     //std::string vigenere_msg2 = cryptoAL_vigenere::encrypt_vigenere(b64_str, key);
 
-    if (DEBUG_INFO)
-        std::cout << "Encrypt simple ["
-            + get_summary_hex((char*)msg.data(), msg.size()) + "]=>["
-            + get_summary_hex((char*)vigenere_msg.data(), vigenere_msg.size())
-            + "]" << std::endl;
+    //if (DEBUG_INFO)
+    //{
+    //    std::stringstream ss;
+    //    ss << "Encrypt simple ["
+    //        + get_summary_hex((char*)msg.data(), msg.size()) + "]=>["
+    //        + get_summary_hex((char*)vigenere_msg.data(), vigenere_msg.size())
+    //        + "]" << std::endl;
+    //    main_global::log(ss.str());
+    //}
 
     return vigenere_msg;
 }
@@ -176,12 +180,15 @@ std::string decrypt_simple_string(std::string& encrypted_msg, std::string& key)
 
     //if (DEBUG_INFO) std::cout << "Decrypt simple [" + encrypted_msg + "]=>[" + s + "]" << std::endl;
 
-    if (DEBUG_INFO)
-        std::cout << "Decrypt simple ["
-        + get_summary_hex((char*)encrypted_msg.data(), encrypted_msg.size()) + "]=>["
-        + get_summary_hex((char*)s.data(), s.size())
-        + "]" << std::endl;
-
+    //if (DEBUG_INFO)
+    //{
+    //    std::stringstream ss;
+    //    ss << "Decrypt simple ["
+    //        + get_summary_hex((char*)encrypted_msg.data(), encrypted_msg.size()) + "]=>["
+    //        + get_summary_hex((char*)s.data(), s.size())
+    //        + "]" << std::endl;
+    //    main_global::log(ss.str());
+    //}
     return s;
 }
 

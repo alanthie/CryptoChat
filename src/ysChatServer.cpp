@@ -15,15 +15,20 @@
 #include "../include/string_util.hpp"
 #include "../include/argparse.hpp"
 #include "../include/crypto_parsing.hpp"
+#include "../include/main_global.hpp"
 
 const std::string CHATSRV_VERSION = "0.1";
 
-class main_global
+std::stringstream	main_global::log_ss;
+std::mutex			main_global::log_mutex;
+bool				main_global::log_is_dirty = true;
+
+class main_global_srv
 {
 public:
 	static cryptochat::srv::chat_srv* global_srv;
 };
-cryptochat::srv::chat_srv*  main_global::global_srv = nullptr;
+cryptochat::srv::chat_srv* main_global_srv::global_srv = nullptr;
 
 static void signalHandler(int code)
 {
@@ -32,10 +37,10 @@ static void signalHandler(int code)
 	std::cin >> ch;
 	if (toupper(ch) == 'Y') 
 	{
-		if (main_global::global_srv != nullptr)
+		if (main_global_srv::global_srv != nullptr)
 		try
 		{
-			delete main_global::global_srv;
+			delete main_global_srv::global_srv;
 		}
 		catch (...)
 		{
@@ -81,8 +86,8 @@ int main(int argc, char** argv)
 			auto& cmd = program;
 			auto cfg = cmd.get<std::string>("--cfg");
 
-			main_global::global_srv = new cryptochat::srv::chat_srv(cfg);
-			return main_global::global_srv->run();
+			main_global_srv::global_srv = new cryptochat::srv::chat_srv(cfg);
+			return main_global_srv::global_srv->run();
 		}
 
 	}

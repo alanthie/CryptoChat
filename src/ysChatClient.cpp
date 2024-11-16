@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <limits>
 #include <csignal>
 #include "../include/ysClient.h"
@@ -16,17 +17,17 @@
 #include "../include/string_util.hpp"
 #include "../include/argparse.hpp"
 #include "../include/crypto_parsing.hpp"
+#include "../include/main_global.hpp"
 
 const std::string CLI_VERSION = "0.1";
 
 std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal = 0;
 
-class main_global
-{
-public:
-	static cryptochat::cli::chat_cli* global_cli;
-};
 cryptochat::cli::chat_cli* main_global::global_cli = nullptr;
+
+std::stringstream	main_global::main_global::log_ss;
+std::mutex			main_global::log_mutex;
+bool				main_global::log_is_dirty = true;
 
 static void signalHandler(int code)
 {
@@ -94,27 +95,39 @@ int main(int argc, char** argv)
 	}
 	catch (std::invalid_argument const& ex)
 	{
-		std::cerr << "CHATCLI FAILED - invalid_argument thrown " << ex.what() << '\n';
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - invalid_argument thrown " << ex.what() << '\n';
+		main_global::log(ss.str());
 	}
 	catch (std::logic_error const& ex)
 	{
-		std::cerr << "CHATCLI FAILED - logic_error thrown " << ex.what() << '\n';
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - logic_error thrown " << ex.what() << '\n';
+		main_global::log(ss.str());
 	}
 	catch (std::range_error const& ex)
 	{
-		std::cerr << "CHATCLI FAILED - range_error thrown " << ex.what() << '\n';
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - range_error thrown " << ex.what() << '\n';
+		main_global::log(ss.str());
 	}
 	catch (std::runtime_error const& ex)
 	{
-		std::cerr << "CHATCLI FAILED - runtime_error thrown " << ex.what() << '\n';
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - runtime_error thrown " << ex.what() << '\n';
+		main_global::log(ss.str());
 	}
 	catch (std::exception const& ex)
 	{
-		std::cerr << "CHATCLI FAILED - std exception thrown " << ex.what() << '\n';
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - std exception thrown " << ex.what() << '\n';
+		main_global::log(ss.str());
 	}
 	catch (...)
 	{
-		std::cerr << "CHATCLI FAILED - exception thrown" << std::endl;
+		std::stringstream ss;
+		ss << "CHATCLI FAILED - exception thrown" << std::endl;
+		main_global::log(ss.str());
 	}
 	return 0;
 }

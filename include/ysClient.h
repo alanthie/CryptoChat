@@ -31,7 +31,7 @@ namespace ysSocket {
 		// thread
 		std::thread m_recv_thread; // RECV thread
 		std::thread m_send_thread; // SEND thread to handle all send...
-		// client_UI thread is a loop in main thread
+		// client_UI is a loop in main thread
 
 		void _connectServer();
 
@@ -51,10 +51,7 @@ namespace ysSocket {
         const std::string&          _cfgfile;
 
 	public:
-//		ysClient();
 		ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
-//		ysClient(const int& t_port);
-//		ysClient(const std::string& t_serverName, const int& t_port);
 
 		void setOnMessage(const std::function<void(const std::string&) >& t_function);
 

@@ -18,6 +18,7 @@
 #include "../include/crc32a.hpp"
 #include "../include/Menu.h"
 #include "../include/chat_cli.hpp" // std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal
+#include "../include/main_global.hpp"
 
 #include <ciso646>
 #include <iostream>
@@ -65,7 +66,8 @@ namespace ysSocket {
 		{
 #ifdef _WIN32
 			int r = WSAGetLastError();
-			std::cout << "WSAGetLastError() = " << r;
+			std::stringstream ss; ss << "WSAGetLastError() = " << r;
+			main_global::log(ss.str());
 #endif
 			throw std::runtime_error("could not connect to server");
 		}
@@ -81,7 +83,8 @@ namespace ysSocket {
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::cerr << " Exiting thread send_pending_file_packet_thread " << std::endl;
+					std::stringstream ss; ss << " Exiting thread send_pending_file_packet_thread " << std::endl;
+					main_global::log(ss.str());
 					break;
 				}
 
@@ -127,7 +130,8 @@ namespace ysSocket {
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::cerr << " Exiting thread recv_thread " << std::endl;
+					std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
+					main_global::log(ss.str());
 					break;
 				}
 
@@ -146,7 +150,8 @@ namespace ysSocket {
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::cerr << " Exiting thread recv_thread " << std::endl;
+						std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -155,12 +160,13 @@ namespace ysSocket {
 					if (len > 0)
 					{
 						byte_recv += len;
-						//std::cout << "RECV - byte_recv cummulative1: " << byte_recv << std::endl;
+						//std::cout << "RECV - byte_recv cumulative1: " << byte_recv << std::endl;
 					}
 					else
 					{
 						// closed or error
-						std::cerr << "ERROR - socket error or closed" << std::endl;
+						std::stringstream ss; ss << "ERROR - socket error or closed" << std::endl;
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -169,7 +175,8 @@ namespace ysSocket {
 				expected_len = NETW_MSG::MSG::byteToUInt4(message_buffer + 1);
 				if (expected_len > NETW_MSG::MESSAGE_SIZE)
 				{
-					std::cerr << "ERROR - MSG has invalid expected len " << expected_len << " vs " << NETW_MSG::MESSAGE_SIZE << std::endl;
+					std::stringstream ss; ss << "ERROR - MSG has invalid expected len " << expected_len << " vs " << NETW_MSG::MESSAGE_SIZE << std::endl;
+					main_global::log(ss.str());
 					msg_ok = false;
 					break;
 				}
@@ -178,7 +185,8 @@ namespace ysSocket {
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::cerr << " Exiting thread recv_thread " << std::endl;
+						std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -192,7 +200,8 @@ namespace ysSocket {
 					else
 					{
 						// closed or error
-						std::cerr << "ERROR - socket error or closed" << std::endl;
+						std::stringstream ss; ss << "ERROR - socket error or closed" << std::endl;
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -274,14 +283,18 @@ namespace ysSocket {
                         }
 
                         {
-                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
+							if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl; main_global::log(ss.str());
+							}
 
 							{
 								std::lock_guard l(_key_mutex);
 								initial_key = r; // still key_valid = false;
 							}
 
-                            if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+							if (DEBUG_INFO) {
+								std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+								main_global::log(ss.str());
+							}
 							NETW_MSG::MSG m;
                             m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
                             this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
@@ -290,7 +303,10 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
                     {
                         {
-                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
+							if (DEBUG_INFO) {
+								std::stringstream ss; ss << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
+								main_global::log(ss.str());
+							}
 
                             // CONFIRMED new key
                             key_valid = true;
@@ -302,7 +318,8 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_INVALID)
                     {
                         {
-                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_KEY_INVALID" << std::endl;
+							if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_INFO_KEY_INVALID" << std::endl; main_global::log(ss.str());
+							}
 
                             key_valid = false;
 
@@ -321,22 +338,26 @@ namespace ysSocket {
                         std::string str_digest = sha.toString(digestkey);
                         delete[]digestkey;
 
-                        if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
-                        if (DEBUG_INFO)
+						if (DEBUG_INFO)
                         {
-                            std::cout << "Random key recv ["
+							std::stringstream ss; 
+							ss << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
+
+							ss << "Random key recv ["
                                 + get_summary_hex((char*)work.data(), work.size())
                                 + "]" << std::endl;
 
-                            std::cout << "Random key digest recv ["
+							 ss << "Random key digest recv ["
                                 + str_digest
                                 + "]" << std::endl;
 
                             CRC32 chk;
                             chk.update((char*)work.data(), work.size());
-                            std::cout << "Random key CRC32 recv ["
+							ss << "Random key CRC32 recv ["
                             << chk.get_hash()
                             << "]" << std::endl;
+
+							main_global::log(ss.str());
                         }
 
 						std::string key;
@@ -345,7 +366,8 @@ namespace ysSocket {
 							key = rnd_valid ? random_key : initial_key;
 						}
 
-                        if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl; main_global::log(ss.str());
+						}
 						NETW_MSG::MSG m;
                         m.make_msg(NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, key);
                         this->sendMessageBuffer(this->m_socketFd, m, key);
@@ -353,7 +375,8 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID)
                     {
                         {
-                            if (DEBUG_INFO) std::cout << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
+							if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl; main_global::log(ss.str());
+							}
 
                             // CONFIRMED new rnd key
 							{
@@ -366,7 +389,8 @@ namespace ysSocket {
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
                     {
-                        if (DEBUG_INFO) std::cout << "recv MSG_CMD_REQU_USERNAME" << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_REQU_USERNAME" << std::endl; main_global::log(ss.str());
+						}
 
                         if (_cfg_cli._username.size() == 0)
                         {
@@ -379,7 +403,8 @@ namespace ysSocket {
                         }
                         user_valid = true;
 
-                        if (DEBUG_INFO) std::cout << "send MSG_CMD_RESP_USERNAME" << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "send MSG_CMD_RESP_USERNAME" << std::endl; main_global::log(ss.str());
+						}
                         NETW_MSG::MSG m;
 
                         std::string key;
@@ -393,15 +418,16 @@ namespace ysSocket {
                     }
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
 					{
-						//if (DEBUG_INFO) 
-						//std::cout << "recv MSG_CMD_REQU_HOSTNAME" << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_REQU_HOSTNAME" << std::endl; main_global::log(ss.str());
+						}
 
 						char host[80] = { 0 };
 						if (gethostname(host, 80) == 0)
 						{
 							std::string h = std::string(host);
 
-							//std::cout << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl;
+							if (DEBUG_INFO) { std::stringstream ss; ss << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl; main_global::log(ss.str());
+							}
 							NETW_MSG::MSG m;
 
 							std::string key;
@@ -415,12 +441,14 @@ namespace ysSocket {
 						}
 						else
 						{
-							std::cerr << "WARNING gethostname failed" << std::endl;
+							std::stringstream ss; ss << "WARNING gethostname failed" << std::endl;
+							main_global::log(ss.str());
 						}
 					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
-                        if (DEBUG_INFO) std::cout << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl; main_global::log(ss.str());
+						}
 
                         showMessage(str_message);
                         add_to_history(true, NETW_MSG::MSG_TEXT, str_message);
@@ -429,7 +457,8 @@ namespace ysSocket {
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE)
 					{
-						if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << m.get_data_as_string() << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_FILE : " << m.get_data_as_string() << std::endl; main_global::log(ss.str());
+						}
 
 						showMessage(str_message);
 						//parse "[" + filename + ",1]"
@@ -453,7 +482,8 @@ namespace ysSocket {
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
 					{
-						if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
+						if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_FILE_FRAGMENT : " << std::endl; main_global::log(ss.str());
+						}
 
 						NETW_MSG::MSG_FILE_FRAGMENT_HEADER mh;
 						bool r = NETW_MSG::MSG::parse_file_fragment_header_from_msg(m, mh);
@@ -494,7 +524,8 @@ namespace ysSocket {
 		{
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
-				std::cerr << " Exiting thread client_UI " << std::endl;
+				std::stringstream ss; ss << " Exiting thread client_UI " << std::endl;
+				main_global::log(ss.str());
 				break;
 			}
 
@@ -504,7 +535,8 @@ namespace ysSocket {
 			{
 				//message = get_input("Send first msg to server to receive instructions");
 
-				if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
+				if (DEBUG_INFO) { std::stringstream ss; ss << "send MSG_TEXT" << std::endl; main_global::log(ss.str());
+				}
 				if (message.size() == 0) message = "hello";
 
 				NETW_MSG::MSG m;
@@ -544,7 +576,8 @@ namespace ysSocket {
 
 					NETW_MSG::MSG m;
 					m.make_msg(NETW_MSG::MSG_TEXT, message, key);
-					if (DEBUG_INFO) std::cout << "send MSG_TEXT" << std::endl;
+					if (DEBUG_INFO) { std::stringstream ss; ss << "send MSG_TEXT" << std::endl; main_global::log(ss.str());
+					}
 
 					this->sendMessageBuffer(this->m_socketFd, m, key);
 
