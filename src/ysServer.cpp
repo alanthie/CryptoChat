@@ -377,7 +377,7 @@ namespace ysSocket {
 
 									if (v_client[idx]->hostname.size() == 0)
 									{
-										//if (DEBUG_INFO) 
+										if (DEBUG_INFO) 
 											std::cout << "send MSG_CMD_REQU_HOSTNAME " << idx << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your hostname : ";
@@ -387,7 +387,7 @@ namespace ysSocket {
 								}
 								else
 								{
-									std::cout << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
+									std::cerr << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
 
 									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << idx << std::endl;
 
@@ -447,7 +447,7 @@ namespace ysSocket {
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_HOSTNAME)
 							{
-								//if (DEBUG_INFO) 
+								if (DEBUG_INFO) 
 									std::cout << "recv MSG_CMD_RESP_HOSTNAME" << std::endl;
 
 								std::string host = m.get_data_as_string();

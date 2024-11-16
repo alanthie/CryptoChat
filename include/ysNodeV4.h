@@ -45,8 +45,8 @@ namespace ysSocket {
 	// Make KEY_SIZE a multiple of 128 to support most encryption algos
 	//const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
 
-	// History size
-	const int HISTORY_SIZE = 20;
+	// UI history size
+	const int HISTORY_SIZE = 2000;
 
 	const bool USE_BASE64_RND_KEY_GENERATOR = true;
 	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere BUG
@@ -117,6 +117,7 @@ namespace ysSocket {
 
 		std::string username;
 		std::string hostname;
+		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 
 		std::map<int, std::mutex> _send_mutex; //...only one per socket... no map needed

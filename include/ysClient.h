@@ -72,10 +72,11 @@ namespace ysSocket {
 
 		int get_socket() { return m_socketFd; }
 
-		std::vector<NETW_MSG::netw_msg> get_vhistory()
+		std::vector<NETW_MSG::netw_msg> get_vhistory(size_t& histo_cnt)
 		{
 			// copy between threads
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
+			histo_cnt = history_cnt;
 			return vhistory;
 		}
 
@@ -83,6 +84,7 @@ namespace ysSocket {
 		{
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
 			vhistory.push_back({ is_receive, msg_type, msg, filename, is_for_display, {} });
+			history_cnt++;
 			while (vhistory.size() > HISTORY_SIZE)
 			{
 				vhistory.erase(vhistory.begin());

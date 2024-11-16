@@ -133,7 +133,7 @@ namespace ysSocket {
 
 				if (byte_recv > 0)
 				{
-					std::cout << "RECV - byte_recv: " << byte_recv << std::endl;
+					//std::cout << "RECV - byte_recv: " << byte_recv << std::endl;
 					memcpy(message_buffer, message_previous_buffer, byte_recv);
 				}
 
@@ -155,7 +155,7 @@ namespace ysSocket {
 					if (len > 0)
 					{
 						byte_recv += len;
-						std::cout << "RECV - byte_recv cummulative1: " << byte_recv << std::endl;
+						//std::cout << "RECV - byte_recv cummulative1: " << byte_recv << std::endl;
 					}
 					else
 					{
@@ -173,7 +173,7 @@ namespace ysSocket {
 					msg_ok = false;
 					break;
 				}
-				std::cout << "RECV - expected_len = " << expected_len << std::endl;
+				//std::cout << "RECV - expected_len = " << expected_len << std::endl;
 
 				while (byte_recv < expected_len)
 				{
@@ -188,7 +188,7 @@ namespace ysSocket {
 					if (len > 0)
 					{
 						byte_recv += len;
-						std::cout << "RECV - byte_recv cummulative2: " << byte_recv << std::endl;
+						//std::cout << "RECV - byte_recv cumulative2: " << byte_recv << std::endl;
 					}
 					else
 					{
@@ -206,7 +206,7 @@ namespace ysSocket {
 					if (byte_recv > 0)
 					{
 						memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
-						std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
+						//std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
 					}
 				}
 
@@ -398,14 +398,14 @@ namespace ysSocket {
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
 					{
 						//if (DEBUG_INFO) 
-						std::cout << "recv MSG_CMD_REQU_HOSTNAME" << std::endl;
+						//std::cout << "recv MSG_CMD_REQU_HOSTNAME" << std::endl;
 
 						char host[80] = { 0 };
 						if (gethostname(host, 80) == 0)
 						{
 							std::string h = std::string(host);
 
-							std::cout << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl;
+							//std::cout << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl;
 							NETW_MSG::MSG m;
 
 							std::string key;

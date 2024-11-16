@@ -17,19 +17,23 @@ using Term::Key;
 
 struct ClientTerm
 {
-    const int MAX_EXTRA_LINE_TO_DISPLAY = 7;
+    const int MAX_EXTRA_LINE_TO_DISPLAY = 40;
     ysSocket::ysClient* netw_client = nullptr;
 
+    // Updated by term.get_term_size(rows, cols);
     int nrows;
     int ncols;
 
-    int nrow_history;
-    int nrow_edit;
-    int nrow_status;
+    // first row to display in vallrows
+    int first_row = 0;  // allow PageUP, PageDOWN ArrowUP, ArrowDOWN
+    std::vector<std::string> vallrows;
 
     char editmsg[800] = { 0 };
     std::string status_msg;
 
+    ClientTerm(int r, int c) : nrows(r), ncols(c)
+    {
+    }
 
     bool is_file_command(const std::string& m)
     {
@@ -98,111 +102,73 @@ struct ClientTerm
         return s;
     }
 
-    void draw_history(std::string& ab)
+    void process_move_keys(int c, const Terminal& term)
     {
-        int cnt = 0;
-        auto vh = netw_client->get_vhistory(); // get a copy since multi thread ressource
-//        int idx = ((int)vh.size()) - nrow_history;
-//        if (idx < 0) idx = 0;
-
-        // fill vh[i].vmsg_extra
-        for (int i = 0; i < (int)vh.size(); i++)
+        if (c == Key::PAGE_UP || c == Key::PAGE_DOWN || c == Key::ARROW_UP || c == Key::ARROW_DOWN)
         {
-            if (vh[i].msg_type == NETW_MSG::MSG_FILE)
+            if (vallrows.size() > (nrows - 4))
             {
-                if (vh[i].is_for_display)
+                if (c == Key::PAGE_UP)
                 {
-                    size_t byte_processed;
-                    size_t total_size = 1;
-                    bool is_done;
-
-                    if (vh[i].is_receive == false)
-                    {
-                        bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size, is_done);
-                        if (r)
-                        {
-                            if (is_done && vh[i].vmsg_extra.size() == 0)
-                            {
-                                std::string s = netw_client->get_file_to_send(vh[i].filename);
-                                if (s.size() > 0)
-                                {
-                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\n");
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size, is_done);
-                        if (r)
-                        {
-                            if (is_done)
-                            {
-                                std::string s = netw_client->get_file_to_recv(vh[i].filename);
-                                if (s.size() > 0)
-                                {
-                                    vh[i].vmsg_extra  = NETW_MSG::split(s, "\n");
-                                }
-                            }
-                        }
-                    }
+                    first_row = first_row - (nrows - 4);
+                    if (first_row < 0) first_row = 0;
+                    refresh_screen(term, false);
+                }
+                else if (c == Key::PAGE_DOWN)
+                {
+                    first_row = first_row + (nrows - 4);
+                    if (first_row > vallrows.size() - (nrows - 4)) 
+                        first_row = vallrows.size() - (nrows - 4);
+                    refresh_screen(term, false);
+                }
+                else if (c == Key::ARROW_UP)
+                {
+                    first_row = first_row - 1;
+                    if (first_row < 0) first_row = 0;
+                    refresh_screen(term, false);
+                }
+                else if (c == Key::ARROW_DOWN)
+                {
+                    first_row = first_row + 1;
+                    if (first_row > vallrows.size() - (nrows - 4))
+                        first_row = vallrows.size() - (nrows - 4);
+                    refresh_screen(term, false);
                 }
             }
         }
+    }
 
-        int n_rows = 0;
-        for (int i = 0; i < (int)vh.size(); i++)
+    void draw_history(std::string& ab, bool is_dirty = true)
+    {
+        if (is_dirty)
         {
-            n_rows++;
-            if (vh[i].vmsg_extra.size() > MAX_EXTRA_LINE_TO_DISPLAY)
-                n_rows += MAX_EXTRA_LINE_TO_DISPLAY;
-            else
-                n_rows+= vh[i].vmsg_extra.size();
-        }
+            size_t histo_cnt;
+            auto vh = netw_client->get_vhistory(histo_cnt); // get a copy since multi thread ressource
 
-        int n_row_idx = -1;
-        for (int i = 0; i < (int)vh.size(); i++)
-        {
-            n_row_idx++;
-            if (n_row_idx > n_rows - nrows + 3)
+            // fill vh[i].vmsg_extra
+            for (int i = 0; i < (int)vh.size(); i++)
             {
-                std::vector<std::string> vlines = NETW_MSG::split(vh[i].msg, "\r\n");
-
-                // only consider first line...
-                //for (size_t j = 0; j < vlines.size(); j++)
-                for (size_t j = 0; j < 1; j++)
+                if (vh[i].msg_type == NETW_MSG::MSG_FILE)
                 {
-                    ab.append(std::to_string(i+1));
-                    ab.append(" ");
-                    ab.append(vh[i].is_receive?"recv ":"send ");
-                    ab.append(": ");
-
-                    std::string sl;
-                    if (vh[i].msg_type != NETW_MSG::MSG_FILE)
-                        sl = get_printable_string(vlines[j]);
-                    else
-                        sl = vh[i].filename;
-
-                    if (vh[i].msg_type == NETW_MSG::MSG_FILE)
+                    if (vh[i].is_for_display && vh[i].vmsg_extra.size() == 0)
                     {
                         size_t byte_processed;
                         size_t total_size = 1;
                         bool is_done;
-                        float percent = 0;
-                        float fbyte_processed;
-                        float ftotal_size;
 
                         if (vh[i].is_receive == false)
                         {
                             bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size, is_done);
                             if (r)
                             {
-                                fbyte_processed = byte_processed;
-                                ftotal_size = total_size;
-
-                                if (total_size > 0)
-                                if (byte_processed <= total_size)
-                                    percent = fbyte_processed/ ftotal_size;
+                                if (is_done && vh[i].vmsg_extra.size() == 0)
+                                {
+                                    std::string s = netw_client->get_file_to_send(vh[i].filename);
+                                    if (s.size() > 0)
+                                    {
+                                        vh[i].vmsg_extra = NETW_MSG::split(s, "\n");
+                                    }
+                                }
                             }
                         }
                         else
@@ -210,69 +176,143 @@ struct ClientTerm
                             bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size, is_done);
                             if (r)
                             {
-                                fbyte_processed = byte_processed;
-                                ftotal_size = total_size;
-
-                                if (total_size > 0)
-                                if (byte_processed <= total_size)
-                                    percent = fbyte_processed / ftotal_size;
+                                if (is_done && vh[i].vmsg_extra.size() == 0)
+                                {
+                                    std::string s = netw_client->get_file_to_recv(vh[i].filename);
+                                    if (s.size() > 0)
+                                    {
+                                        vh[i].vmsg_extra = NETW_MSG::split(s, "\n");
+                                    }
+                                }
                             }
                         }
-
-                        int ipercent = 100*percent;
-                        std::string ss = "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%]";
-                        ss += " Number of lines=" + std::to_string(vh[i].vmsg_extra.size());
-                        ab.append(ss); // ncols ...
                     }
-                    else
-                        ab.append(sl); // ncols ...
-
-                    ab.append(Term::erase_to_eol());
-                    ab.append("\r\n");
-                    cnt++;
                 }
+            }
 
-                for (size_t j = 0; j < vh[i].vmsg_extra.size(); j++)
+            vallrows.clear();
+            for (int i = 0; i < (int)vh.size(); i++)
+            {
+                std::string work;
                 {
-                    if (j < MAX_EXTRA_LINE_TO_DISPLAY - 1)
-                    {                        
-                        n_row_idx++;
-                        if (n_row_idx > n_rows - nrows + 3)
-                        {
-                            ab.append(std::to_string(i + 1));
-                            ab.append(" ");
-                            ab.append(vh[i].is_receive ? "< " : "> ");
-                            ab.append(": ");
-                            std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
-                            ab.append(sl); // ncols ...
+                    std::vector<std::string> vlines = NETW_MSG::split(vh[i].msg, "\r\n");
 
-                            ab.append(Term::erase_to_eol());
-                            ab.append("\r\n");
-                            cnt++;
-                        }
-                    }
-                    else if (j == MAX_EXTRA_LINE_TO_DISPLAY - 1)
+                    // only consider first line...
+                    for (size_t j = 0; j < 1; j++)
                     {
-                        n_row_idx++;
-                        if (n_row_idx > n_rows - nrows + 3)
-                        {
-                            ab.append(std::to_string(i + 1));
-                            ab.append(" ");
-                            ab.append(vh[i].is_receive ? "< " : "> ");
-                            ab.append(": ");
-                            std::string sl = "..................";
-                            ab.append(sl); // ncols ...
+                        work.append(std::to_string(histo_cnt - vh.size() + i + 1));
+                        work.append(" ");
+                        work.append(vh[i].is_receive ? "recv " : "send ");
+                        work.append(": ");
 
-                            ab.append(Term::erase_to_eol());
-                            ab.append("\r\n");
-                            cnt++;
+                        std::string sl;
+                        if (vh[i].msg_type != NETW_MSG::MSG_FILE)
+                            sl = get_printable_string(vlines[j]);
+                        else
+                            sl = vh[i].filename;
+
+                        if (vh[i].msg_type == NETW_MSG::MSG_FILE)
+                        {
+                            size_t byte_processed;
+                            size_t total_size = 1;
+                            bool is_done;
+                            float percent = 0;
+                            float fbyte_processed;
+                            float ftotal_size;
+
+                            if (vh[i].is_receive == false)
+                            {
+                                bool r = netw_client->get_info_file_to_send(vh[i].filename, byte_processed, total_size, is_done);
+                                if (r)
+                                {
+                                    fbyte_processed = byte_processed;
+                                    ftotal_size = total_size;
+
+                                    if (total_size > 0)
+                                        if (byte_processed <= total_size)
+                                            percent = fbyte_processed / ftotal_size;
+                                }
+                            }
+                            else
+                            {
+                                bool r = netw_client->get_info_file_to_recv(vh[i].filename, byte_processed, total_size, is_done);
+                                if (r)
+                                {
+                                    fbyte_processed = byte_processed;
+                                    ftotal_size = total_size;
+
+                                    if (total_size > 0)
+                                        if (byte_processed <= total_size)
+                                            percent = fbyte_processed / ftotal_size;
+                                }
+                            }
+
+                            int ipercent = (int)(100 * percent);
+                            std::string ss = "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%] size=" + std::to_string(total_size) + "";
+                            ss += " Lines=" + std::to_string(vh[i].vmsg_extra.size());
+                            work.append(ss); // ncols ...
+                        }
+                        else
+                            work.append(sl); // ncols ...
+                    }
+                    vallrows.push_back(work);
+
+                    for (size_t j = 0; j < vh[i].vmsg_extra.size(); j++)
+                    {
+                        work.clear();
+                        if (j < MAX_EXTRA_LINE_TO_DISPLAY - 1)
+                        {
+                            {
+                                work.append(std::to_string(histo_cnt - vh.size() + i + 1));
+                                work.append(" ");
+                                work.append(vh[i].is_receive ? "< " : "> ");
+                                work.append(": ");
+                                std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
+                                work.append(sl); // ncols ...
+                                vallrows.push_back(work);
+                            }
+                        }
+                        else if (j == MAX_EXTRA_LINE_TO_DISPLAY - 1)
+                        {
+                            {
+                                work.append(std::to_string(histo_cnt - vh.size() + i + 1));
+                                work.append(" ");
+                                work.append(vh[i].is_receive ? "< " : "> ");
+                                work.append(": ");
+                                std::string sl = "..................";
+                                work.append(sl); // ncols ...
+                                vallrows.push_back(work);
+                            }
                         }
                     }
                 }
             }
         }
 
-        for (int i = cnt; i < nrow_history + 2; i++)
+        // shows nrows - 4 at most
+        // first row is at n_rows - nrows + 4
+        int cnt = 0;
+        int n_total_rows = vallrows.size();
+
+        if (is_dirty)
+        {
+            first_row = n_total_rows - (nrows - 4);
+            if (first_row < 0) first_row = 0;
+        }
+
+        int n_row_idx = -1;
+        for (int i = first_row; i < (int)vallrows.size(); i++)
+        {
+            ab.append(vallrows[i]);
+            ab.append(Term::erase_to_eol());
+            ab.append("\r\n");
+            cnt++;
+
+            if (cnt >= nrows - 4)
+                break;
+        }
+
+        for (int i = cnt; i < nrows - 4; i++)
         {
             ab.append(" ");
             ab.append(Term::erase_to_eol());
@@ -293,12 +333,16 @@ struct ClientTerm
         ab.append("\r\n");
     }
 
-    void refresh_screen(const Terminal& term)
+    void refresh_screen(const Terminal& term,  bool is_dirty = true)
     {
         int rows, cols;
         term.get_term_size(rows, cols);
         Term::Window win(1, 1, cols, rows);
         win.clear();
+
+        // update
+        nrows = rows;;
+        ncols = cols;
 
         std::string ab;
         ab.reserve(16 * 1024);
@@ -313,20 +357,15 @@ struct ClientTerm
         {
             status_msg += "[hostname=" + std::string(host) + "]";
         }
+        status_msg += "[rows=" + std::to_string(nrows) + "]";
+        status_msg += "[cols=" + std::to_string(ncols) + "]";
 
 
-        draw_history(ab);
+        draw_history(ab, is_dirty);
         draw_edit_msg(ab);
         draw_status_msg(ab);
 
         term.write(ab);
-    }
-
-    ClientTerm(int r, int c) : nrows(r), ncols(c)
-    {
-        //int nrow_edit = 2;
-        //int nrow_status = 1;
-        nrow_history = nrows - 6;
     }
 
     char* prompt_msg(const Terminal& term, const char* prompt, void (*callback)(char*, int))
@@ -343,7 +382,7 @@ struct ClientTerm
                 int c;
 
                 set_edit_msg(prompt, buf);
-                refresh_screen(term);
+                refresh_screen(term, netw_client->get_ui_dirty());
                 netw_client->set_ui_dirty(false);
 
 				bool key_read = false;
@@ -362,7 +401,7 @@ struct ClientTerm
 					{
 						if (netw_client->get_ui_dirty())
 						{
-							refresh_screen(term);
+							refresh_screen(term, true);
 							netw_client->set_ui_dirty(false);
 						}
 						else
@@ -397,7 +436,7 @@ struct ClientTerm
                         return buf;
                     }
                 }
-                else if (!myiscntrl(c) && c >= 32 && c < 127 )// printable char
+                else if (!myiscntrl(c) && c >= 32 && c < 127)// printable char
                 {
                     if (buflen == bufsize - 1)
                     {
@@ -407,6 +446,8 @@ struct ClientTerm
                     buf[buflen++] = c;
                     buf[buflen] = '\0';
                 }
+                else
+                    process_move_keys(c, term);
             }
 
             //if (callback) callback(buf, c);
@@ -448,7 +489,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
             //    return key;
             //}
 
-            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/<<txt_filename>>/[[bin_filename]])", NULL);
+            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
             if (e != NULL)
             {
                 bool is_txtfile_send_cmd = false;
@@ -467,8 +508,6 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                     {
                     }
                     message = "[" + filename + ",1]";
-
-                    //message = ct.read_file(filename);
                 }
                 else if (ct.is_binfile_command(message))
                 {

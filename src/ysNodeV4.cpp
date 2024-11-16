@@ -102,7 +102,7 @@ namespace ysSocket {
 		std::lock_guard lck(get_send_mutex(t_socketFd));
 		r = send(t_socketFd, (char*)m2.buffer, (int)m2.buffer_len, 0);
 
-		std::cout << "SEND(), expected:" << (int)m2.buffer_len << " r:" << r << std::endl ;
+		//std::cout << "SEND(), expected:" << (int)m2.buffer_len << " r:" << r << std::endl ;
 
 #ifdef _WIN32
 		if (r == SOCKET_ERROR) {
