@@ -26,10 +26,14 @@ struct ClientTerm
 
     // first row to display in vallrows
     int first_row = 0;  // allow PageUP, PageDOWN ArrowUP, ArrowDOWN
-    std::vector<std::string> vallrows;
+    std::vector<std::string> vallrows;      // chat view
+    std::vector<std::string> vfilerows;     // file view
+    std::vector<std::string> vlogrows;      // log view
 
     char editmsg[800] = { 0 };
     std::string status_msg;
+
+    int _mode = 0; // 0 = chat view, 1 = file view, 2 - log view
 
     ClientTerm(int r, int c) : nrows(r), ncols(c)
     {
@@ -117,7 +121,7 @@ struct ClientTerm
                 else if (c == Key::PAGE_DOWN)
                 {
                     first_row = first_row + (nrows - 4);
-                    if (first_row > vallrows.size() - (nrows - 4)) 
+                    if (first_row > vallrows.size() - (nrows - 4))
                         first_row = vallrows.size() - (nrows - 4);
                     refresh_screen(term, false);
                 }
@@ -140,7 +144,29 @@ struct ClientTerm
 
     void draw_history(std::string& ab, bool is_dirty = true)
     {
-        if (is_dirty)
+        // TESTING view change
+        if (_mode==1)
+        {
+            for (int i = 0; i < nrows - 4; i++)
+            {
+                ab.append(std::to_string(i));
+                ab.append(Term::erase_to_eol());
+                ab.append("\r\n");
+            }
+            return;
+        }
+        else if (_mode==2)
+        {
+            for (int i = 0; i < nrows - 4; i++)
+            {
+                ab.append(std::to_string(i*i));
+                ab.append(Term::erase_to_eol());
+                ab.append("\r\n");
+            }
+            return;
+        }
+
+        else if (is_dirty && _mode==0)
         {
             size_t histo_cnt;
             auto vh = netw_client->get_vhistory(histo_cnt); // get a copy since multi thread ressource
@@ -300,7 +326,7 @@ struct ClientTerm
             if (first_row < 0) first_row = 0;
         }
 
-        int n_row_idx = -1;
+        //int n_row_idx = -1;
         for (int i = first_row; i < (int)vallrows.size(); i++)
         {
             ab.append(vallrows[i]);
@@ -416,14 +442,22 @@ struct ClientTerm
 				}
                 //c = term.read_key();
 
-                if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
+                if (c == Key::F1)
+                {
+                    _mode++;
+                    if (_mode > 2) _mode = 0;
+
+                    set_edit_msg("");
+                    free(buf);
+                    return NULL;
+                }
+                else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
                     if (buflen != 0) buf[--buflen] = '\0';
                 }
                 else if (c == Key::ESC)
                 {
                     set_edit_msg("");
-                    //if (callback) callback(buf, c);
                     free(buf);
                     return NULL;
                 }
@@ -432,7 +466,6 @@ struct ClientTerm
                     if (buflen != 0)
                     {
                         set_edit_msg("");
-                        //if (callback) callback(buf, c);
                         return buf;
                     }
                 }
@@ -449,8 +482,94 @@ struct ClientTerm
                 else
                     process_move_keys(c, term);
             }
+        }
+    }
 
-            //if (callback) callback(buf, c);
+    void process_prompt(const Terminal& term, char* e)
+    {
+        ClientTerm& ct =*this;
+        if (e != NULL && _mode==0)
+        {
+            bool is_txtfile_send_cmd = false;
+            bool is_binfile_send_cmd = false;
+            std::string message = std::string(e, strlen(e));
+
+            std::string filename;
+            if (ct.is_file_command(message))
+            {
+                is_txtfile_send_cmd = true;
+                filename = ct.file_from_command(message);
+                // check file exist...
+
+                bool r = ct.netw_client->add_file_to_send(filename);
+                if (!r)
+                {
+                }
+                message = "[" + filename + ",1]";
+            }
+            else if (ct.is_binfile_command(message))
+            {
+                filename = ct.file_from_command(message);
+                // check file exist...
+
+                is_binfile_send_cmd = true;
+                bool r = ct.netw_client->add_file_to_send(filename);
+                if (!r)
+                {
+                }
+                message = "[" + filename + ",0]";
+            }
+
+            if (is_binfile_send_cmd || is_txtfile_send_cmd)
+            {
+                if (message.size() > 0)
+                {
+                    std::string key;
+                    {
+                        std::lock_guard l(ct.netw_client->_key_mutex);
+
+                        if (!ct.netw_client->key_valid)
+                            key = ct.netw_client->get_DEFAULT_KEY();
+                        else if (!ct.netw_client->rnd_valid)
+                            key = ct.netw_client->get_initial_key();
+                        else
+                            key = ct.netw_client->get_random_key();
+                    }
+
+                    NETW_MSG::MSG m;
+                    m.make_msg(NETW_MSG::MSG_FILE, message, key);
+                    ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
+
+                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, is_txtfile_send_cmd);
+                    ct.netw_client->set_ui_dirty();
+                }
+            }
+            else
+            {
+                if (message.size() > 0)
+                {
+                    std::string key;
+                    {
+                        std::lock_guard l(ct.netw_client->_key_mutex);
+
+                        if (!ct.netw_client->key_valid)
+                            key = ct.netw_client->get_DEFAULT_KEY();
+                        else if (!ct.netw_client->rnd_valid)
+                            key = ct.netw_client->get_initial_key();
+                        else
+                            key = ct.netw_client->get_random_key();
+                    }
+
+                    NETW_MSG::MSG m;
+                    m.make_msg(NETW_MSG::MSG_TEXT, message, key);
+                    ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
+
+                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                    ct.netw_client->set_ui_dirty();
+                }
+            }
+
+            free(e);
         }
     }
 };
@@ -463,8 +582,8 @@ int main_client_ui(ysSocket::ysClient* netwclient)
         int rows, cols;
         term.get_term_size(rows, cols);
 
-        ClientTerm ct(rows, cols);
-        ct.netw_client = netwclient;
+        ClientTerm* ct = new ClientTerm(rows, cols);
+        ct->netw_client = netwclient;
 
         bool on = true;
         Term::Window scr(1, 1, cols, rows);
@@ -475,104 +594,14 @@ int main_client_ui(ysSocket::ysClient* netwclient)
             if (netwclient->is_got_chat_cli_signal())
             {
                 std::cerr << " Terminating thread client_UI " << std::endl;
+                delete ct;
+                on = false;
                 break;
             }
 
-            // prompt_msg = Waits for a key press, translates escape codes
-            //int read_key() const
-            //{
-            //    int key;
-            //    while ((key = read_key0()) == 0)
-            //    {
-            //        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            //    }
-            //    return key;
-            //}
+            char* e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
+            ct->process_prompt(term, e);
 
-            char* e = ct.prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
-            if (e != NULL)
-            {
-                bool is_txtfile_send_cmd = false;
-                bool is_binfile_send_cmd = false;
-                std::string message = std::string(e, strlen(e));
-
-                std::string filename;
-                if (ct.is_file_command(message))
-                {
-                    is_txtfile_send_cmd = true;
-                    filename = ct.file_from_command(message);
-                    // check file exist...
-
-                    bool r = ct.netw_client->add_file_to_send(filename);
-                    if (!r)
-                    {
-                    }
-                    message = "[" + filename + ",1]";
-                }
-                else if (ct.is_binfile_command(message))
-                {
-                    filename = ct.file_from_command(message);
-                    // check file exist...
-
-                    is_binfile_send_cmd = true;
-                    bool r = ct.netw_client->add_file_to_send(filename);
-                    if (!r)
-                    {
-                    }
-                    message = "[" + filename + ",0]";
-                }
-
-                if (is_binfile_send_cmd || is_txtfile_send_cmd)
-                {
-                    if (message.size() > 0)
-                    {
-                        std::string key;
-                        {
-                            std::lock_guard l(ct.netw_client->_key_mutex);
-
-                            if (!ct.netw_client->key_valid)
-                                key = ct.netw_client->get_DEFAULT_KEY();
-                            else if (!ct.netw_client->rnd_valid)
-                                key = ct.netw_client->get_initial_key();
-                            else
-                                key = ct.netw_client->get_random_key();
-                        }
-
-                        NETW_MSG::MSG m;
-                        m.make_msg(NETW_MSG::MSG_FILE, message, key);
-                        ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
-
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, is_txtfile_send_cmd);
-                        ct.netw_client->set_ui_dirty();
-                    }
-                }
-                else
-                {
-                    if (message.size() > 0)
-                    {
-                        std::string key;
-                        {
-                            std::lock_guard l(ct.netw_client->_key_mutex);
-
-                            if (!ct.netw_client->key_valid)
-                                key = ct.netw_client->get_DEFAULT_KEY();
-                            else if (!ct.netw_client->rnd_valid)
-                                key = ct.netw_client->get_initial_key();
-                            else
-                                key = ct.netw_client->get_random_key();
-                        }
-
-                        NETW_MSG::MSG m;
-                        m.make_msg(NETW_MSG::MSG_TEXT, message, key);
-                        ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key);
-
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
-                        ct.netw_client->set_ui_dirty();
-                    }
-                }
-
-                free(e);
-            }
         }
     } catch(const std::runtime_error& re) {
         std::cerr << "Runtime error: " << re.what() << std::endl;

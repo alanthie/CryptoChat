@@ -99,15 +99,16 @@ namespace cryptochat
 
 			static void signalHandler(int code)
 			{
-				char ch;
-				std::cout << "Are you sure you want to close socket? (y/n)";
-				std::cin >> ch;
-				if (toupper(ch) == 'Y') 
+				//char ch;
+				//std::cout << "Are you sure you want to close socket? (y/n)";
+				// cin is lock by terminal readkey...
+				//std::cin >> ch;
+				//if (toupper(ch) == 'Y')
 				{
 					got_chat_cli_signal = 1;
 				}
-				std::cin.clear();
-				std::cin.ignore(0x7fffffffffffffff, '\n');
+				//std::cin.clear();
+				//std::cin.ignore(0x7fffffffffffffff, '\n');
 			}
 		};
 
