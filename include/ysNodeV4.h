@@ -16,7 +16,7 @@
 #include <map>
 #include <queue>
 #include <mutex>
-
+#include <atomic>
 
 // cross platform
 #ifdef _WIN32

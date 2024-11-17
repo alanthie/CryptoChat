@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <syncstream>
 #include <mutex>
 #include "../include/chat_cli.hpp"
 
