@@ -606,6 +606,9 @@ struct ClientTerm
                 filename = ct.file_from_command(message);
                 // check file exist...
 
+                //test
+                //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
+
                 filename_key = filename + std::to_string(ct.netw_client->file_counter);
                 ct.netw_client->file_counter++;
                 bool r = ct.netw_client->add_file_to_send(filename, filename_key);

@@ -74,7 +74,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 	}
 	std::string make_header()
 	{
-		return "[" + filename_key + "," + filename_key + "," + total_size + "," + from + "," + to + "]";
+		return "[" + filename + "," + filename_key + "," + total_size + "," + from + "," + to + "]";
 	}
 
 	size_t get_pos_delimiter(size_t pos_start, const std::string& data, char delim)

@@ -340,7 +340,7 @@ namespace ysSocket {
 
 						if (DEBUG_INFO)
                         {
-							std::stringstream ss; 
+							std::stringstream ss;
 							ss << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
 
 							ss << "Random key recv ["
@@ -465,6 +465,8 @@ namespace ysSocket {
 						std::string filename;
 						std::string filename_key;
 						int for_display = true;
+
+						bool ok = false;
 						if (str_message.size() > 6)
 						{
 							for (size_t p = 1; p < str_message.size(); p++)
@@ -476,17 +478,24 @@ namespace ysSocket {
 									{
 										if (str_message[k] == ',')
 										{
-											filename_key = str_message.substr(p + 1, k - 1);
+											filename_key = str_message.substr(p + 1, k - 1 - p);
 											if (str_message[k + 1] == '1') for_display = true;
 											else for_display = false;
+
+											ok = true;
+											break;
 										}
 									}
+									break;
 								}
 							}
 						}
 
-						add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, filename_key, for_display);
-						ui_dirty = true;
+						if (ok)
+						{
+                            add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, filename_key, for_display);
+                            ui_dirty = true;
+						}
 					}
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
