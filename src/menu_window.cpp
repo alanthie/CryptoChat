@@ -33,10 +33,16 @@ struct ClientTerm
     std::vector<std::string> vfilerows;     // file view
     std::vector<std::string> vlogrows;      // log view
 
-    char editmsg[800] = { 0 };
+    std::vector<char> vallrows_is_file;     // chat view
+
+    char editmsg[256] = { 0 };
     std::string status_msg;
 
     int _mode = 0; // 0 = chat view, 1 = file view, 2 = log view
+
+    // chat view cursor position in screen
+    int cursor_x=0;
+    int cursor_y=0;
 
     ClientTerm(int r, int c) : nrows(r), ncols(c)
     {
@@ -130,19 +136,37 @@ struct ClientTerm
                             first_row = vallrows.size() - (nrows - 4);
                         refresh_screen(term, false);
                     }
-                    else if (c == Key::ARROW_UP)
+                }
+
+                if (c == Key::ARROW_UP)
+                {
+                    if (cursor_y == 0)
                     {
                         first_row = first_row - 1;
                         if (first_row < 0) first_row = 0;
-                        refresh_screen(term, false);
                     }
-                    else if (c == Key::ARROW_DOWN)
+                    else
                     {
-                        first_row = first_row + 1;
-                        if (first_row > vallrows.size() - (nrows - 4))
-                            first_row = vallrows.size() - (nrows - 4);
-                        refresh_screen(term, false);
+                        cursor_y--;
                     }
+                    refresh_screen(term, false);
+                }
+                else if (c == Key::ARROW_DOWN)
+                {
+                    if (cursor_y == (nrows - 4) - 1)
+                    {
+                        if (vallrows.size() > (nrows - 4))
+                        {
+                            first_row = first_row + 1;
+                            if (first_row > vallrows.size() - (nrows - 4))
+                                first_row = vallrows.size() - (nrows - 4);
+                        }
+                    }
+                    else
+                    {
+                        cursor_y++;
+                    }
+                    refresh_screen(term, false);
                 }
             }
             else if (_mode == 2)
@@ -185,6 +209,22 @@ struct ClientTerm
         // TESTING view change
         if (_mode==1)
         {
+            bool is_file = false;
+            int row_cursor = first_row + cursor_y;
+            if (row_cursor < vallrows_is_file.size())
+            {
+                if (vallrows_is_file[row_cursor] == true)
+                {
+                    is_file = true;
+                }
+            }
+
+            if (is_file)
+            {
+                //std::string filename_key = vallrows_filename_key[row_cursor];
+                //...
+            }
+
             for (int i = 0; i < nrows - 4; i++)
             {
                 ab.append(std::to_string(i));
@@ -297,7 +337,11 @@ struct ClientTerm
                     }
                 }
 
+                //int row_cursor = first_row + cursor_y;
                 vallrows.clear();
+                vallrows_is_file.clear();
+                char is_file_line;
+
                 for (int i = 0; i < (int)vh.size(); i++)
                 {
                     std::string work;
@@ -317,6 +361,11 @@ struct ClientTerm
                                 sl = get_printable_string(vlines[j]);
                             else
                                 sl = vh[i].filename;
+
+                            if (vh[i].msg_type != NETW_MSG::MSG_FILE)
+                                is_file_line = true;
+                            else
+                                is_file_line = false;
 
                             if (vh[i].msg_type == NETW_MSG::MSG_FILE)
                             {
@@ -363,10 +412,13 @@ struct ClientTerm
                                 work.append(sl); // ncols ...
                         }
                         vallrows.push_back(work);
+                        vallrows_is_file.push_back(is_file_line);
 
                         for (size_t j = 0; j < vh[i].vmsg_extra.size(); j++)
                         {
                             work.clear();
+                            is_file_line = true;
+
                             if (j < MAX_EXTRA_LINE_TO_DISPLAY - 1)
                             {
                                 {
@@ -377,6 +429,7 @@ struct ClientTerm
                                     std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
                                     work.append(sl); // ncols ...
                                     vallrows.push_back(work);
+                                    vallrows_is_file.push_back(is_file_line);
                                 }
                             }
                             else if (j == MAX_EXTRA_LINE_TO_DISPLAY - 1)
@@ -389,6 +442,7 @@ struct ClientTerm
                                     std::string sl = "..................";
                                     work.append(sl); // ncols ...
                                     vallrows.push_back(work);
+                                    vallrows_is_file.push_back(is_file_line);
                                 }
                             }
                         }
@@ -408,7 +462,6 @@ struct ClientTerm
             if (first_row < 0) first_row = 0;
         }
 
-        //int n_row_idx = -1;
         for (int i = first_row; i < (int)vallrows.size(); i++)
         {
             ab.append(vallrows[i]);
@@ -433,10 +486,6 @@ struct ClientTerm
         ab.append(Term::erase_to_eol());
         ab.append("Status: ");
 
-//        size_t msglen = status_msg.size();
-//        if (msglen > ncols - 10)
-//        {
-//        }
         ab.append(status_msg);
         ab.append("\r\n");
     }
@@ -472,6 +521,12 @@ struct ClientTerm
         draw_history(ab, is_dirty);
         draw_edit_msg(ab);
         draw_status_msg(ab);
+
+        if (_mode == 0)
+        {
+            ab.append(Term::move_cursor(cursor_y + 1, cursor_x + 1));
+            ab.append(Term::cursor_on());
+        }
 
         term.write(ab);
     }
