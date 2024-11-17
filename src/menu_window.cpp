@@ -6,6 +6,7 @@
 #include "../include/ysClient.h"
 #include "../include/data.hpp"
 #include "../include/string_util.hpp"
+#include "../include/file_util.hpp"
 #include "../include/main_global.hpp"
 #include <stdarg.h>
 
@@ -33,7 +34,12 @@ struct ClientTerm
     std::vector<std::string> vfilerows;     // file view
     std::vector<std::string> vlogrows;      // log view
 
-    std::vector<char> vallrows_is_file;     // chat view
+    std::vector<char> vallrows_is_file; 
+    std::vector<char> vallrows_is_send;
+    std::vector<std::string> vallrows_filename_key;
+
+    bool is_file_view_dirty = true;
+    std::string file_view_filename_key;
 
     char editmsg[256] = { 0 };
     std::string status_msg;
@@ -201,38 +207,149 @@ struct ClientTerm
                     }
                 }
             }
+            else if (_mode == 1)
+            {
+                if (vfilerows.size() > (nrows - 4))
+                {
+                    if (c == Key::PAGE_UP)
+                    {
+                        first_row_fileview = first_row_fileview - (nrows - 4);
+                        if (first_row_fileview < 0) first_row_fileview = 0;
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::PAGE_DOWN)
+                    {
+                        first_row_fileview = first_row_fileview + (nrows - 4);
+                        if (first_row_fileview > vfilerows.size() - (nrows - 4))
+                            first_row_fileview = vfilerows.size() - (nrows - 4);
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::ARROW_UP)
+                    {
+                        first_row_fileview = first_row_fileview - 1;
+                        if (first_row_fileview < 0) first_row_fileview = 0;
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::ARROW_DOWN)
+                    {
+                        first_row_fileview = first_row_fileview + 1;
+                        if (first_row_fileview > vfilerows.size() - (nrows - 4))
+                            first_row_fileview = vfilerows.size() - (nrows - 4);
+                        refresh_screen(term, false);
+                    }
+                }
+            }
         }
     }
 
     void draw_history(std::string& ab, bool is_dirty = true)
     {
-        // TESTING view change
+        // File view
         if (_mode==1)
         {
-            bool is_file = false;
-            int row_cursor = first_row + cursor_y;
-            if (row_cursor < vallrows_is_file.size())
+            if (is_dirty)
             {
-                if (vallrows_is_file[row_cursor] == true)
+                vfilerows.clear();
+                file_view_filename_key = {};
+
+                bool is_msgfile = false;
+                int row_cursor = first_row + cursor_y;
+                if (row_cursor < vallrows_is_file.size() && row_cursor >= 0)
                 {
-                    is_file = true;
+                    if (vallrows_is_file[row_cursor] == 1)
+                    {
+                        is_msgfile = true;
+                    }
+                }
+
+                if (is_msgfile)
+                {
+                    std::string filename_key = vallrows_filename_key[row_cursor];
+                    size_t byte_processed;
+                    size_t total_size = 1;
+                    bool is_done;
+
+                    file_view_filename_key = filename_key;
+
+                    if (filename_key.size() > 0)
+                    {
+                        bool r;
+                        if (vallrows_is_send[row_cursor])
+                            r = netw_client->get_info_file_to_send(filename_key, byte_processed, total_size, is_done);
+                        else
+                            r = netw_client->get_info_file_to_recv(filename_key, byte_processed, total_size, is_done);
+
+                        if (r)
+                        {
+                            if (is_done)
+                            {
+                                std::string s;
+                                if (vallrows_is_send[row_cursor])
+                                    s = netw_client->get_file_to_send(filename_key);
+                                else
+                                    s = netw_client->get_file_to_recv(filename_key);
+
+                                if (s.size() > 0)
+                                {
+                                    vfilerows = NETW_MSG::split(s, "\n");
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
-            if (is_file)
+            if (vfilerows.size() == 0)
             {
-                //std::string filename_key = vallrows_filename_key[row_cursor];
-                //...
-            }
-
-            for (int i = 0; i < nrows - 4; i++)
-            {
-                ab.append(std::to_string(i));
+                first_row_fileview = 0;
+                ab.append("No file to show (move cursor to a file send or recv)");
                 ab.append(Term::erase_to_eol());
                 ab.append("\r\n");
+
+                for (int i = 1; i < nrows - 4; i++)
+                {
+                    ab.append(" ");
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+                }
+                return;
+            }
+
+            {
+                // shows nrows - 4 at most
+                // first row is at n_rows - nrows + 4
+                int cnt = 0;
+                int n_total_rows = vfilerows.size();
+
+                if (is_dirty)
+                {
+                    first_row_fileview = n_total_rows - (nrows - 4);
+                    if (first_row_fileview < 0) first_row_fileview = 0;
+                }
+
+                for (int i = first_row_fileview; i < (int)vfilerows.size(); i++)
+                {
+                    ab.append("[" + std::to_string(i) + "]: ");
+                    ab.append(vfilerows[i]);
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+                    cnt++;
+
+                    if (cnt >= nrows - 4)
+                        break;
+                }
+
+                for (int i = cnt; i < nrows - 4; i++)
+                {
+                    ab.append(" ");
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+                }
             }
             return;
         }
+
+        // Log view
         else if (_mode==2)
         {
             if (is_dirty)
@@ -246,6 +363,13 @@ struct ClientTerm
                     ab.append("Log is empty");
                     ab.append(Term::erase_to_eol());
                     ab.append("\r\n");
+
+                    for (int i = 1; i < nrows - 4; i++)
+                    {
+                        ab.append(" ");
+                        ab.append(Term::erase_to_eol());
+                        ab.append("\r\n");
+                    }
                     return;
                 }
             }
@@ -340,7 +464,12 @@ struct ClientTerm
                 //int row_cursor = first_row + cursor_y;
                 vallrows.clear();
                 vallrows_is_file.clear();
+                vallrows_is_send.clear();
+                vallrows_filename_key.clear();
+
                 char is_file_line;
+                bool is_file_send;
+                std::string filename_key;
 
                 for (int i = 0; i < (int)vh.size(); i++)
                 {
@@ -358,14 +487,19 @@ struct ClientTerm
 
                             std::string sl;
                             if (vh[i].msg_type != NETW_MSG::MSG_FILE)
-                                sl = get_printable_string(vlines[j]);
-                            else
-                                sl = vh[i].filename;
-
-                            if (vh[i].msg_type != NETW_MSG::MSG_FILE)
-                                is_file_line = true;
-                            else
+                            {
                                 is_file_line = false;
+                                sl = get_printable_string(vlines[j]);
+                                filename_key = {};
+                                is_file_send = !vh[i].is_receive;
+                            }
+                            else
+                            {
+                                sl = vh[i].filename;
+                                is_file_line = true;
+                                is_file_send = !vh[i].is_receive;
+                                filename_key = vh[i].filename_key;
+                            }
 
                             if (vh[i].msg_type == NETW_MSG::MSG_FILE)
                             {
@@ -413,11 +547,15 @@ struct ClientTerm
                         }
                         vallrows.push_back(work);
                         vallrows_is_file.push_back(is_file_line);
+                        vallrows_filename_key.push_back(filename_key);
+                        vallrows_is_send.push_back(is_file_send);
 
                         for (size_t j = 0; j < vh[i].vmsg_extra.size(); j++)
                         {
                             work.clear();
                             is_file_line = true;
+                            is_file_send = !vh[i].is_receive;
+                            filename_key = vh[i].filename_key;
 
                             if (j < MAX_EXTRA_LINE_TO_DISPLAY - 1)
                             {
@@ -430,6 +568,8 @@ struct ClientTerm
                                     work.append(sl); // ncols ...
                                     vallrows.push_back(work);
                                     vallrows_is_file.push_back(is_file_line);
+                                    vallrows_is_send.push_back(is_file_send);
+                                    vallrows_filename_key.push_back(filename_key);
                                 }
                             }
                             else if (j == MAX_EXTRA_LINE_TO_DISPLAY - 1)
@@ -443,6 +583,8 @@ struct ClientTerm
                                     work.append(sl); // ncols ...
                                     vallrows.push_back(work);
                                     vallrows_is_file.push_back(is_file_line);
+                                    vallrows_is_send.push_back(is_file_send);
+                                    vallrows_filename_key.push_back(filename_key);
                                 }
                             }
                         }
@@ -460,6 +602,22 @@ struct ClientTerm
         {
             first_row = n_total_rows - (nrows - 4);
             if (first_row < 0) first_row = 0;
+        }
+
+        // check is_file_view_dirty
+        {
+            int row_cursor = first_row + cursor_y;
+            if (row_cursor >= 0 && row_cursor < vallrows_filename_key.size())
+            {
+                if (vallrows_is_file[row_cursor] == false)
+                {
+                    is_file_view_dirty = true;
+                }
+                else if (vallrows_filename_key[row_cursor] != file_view_filename_key)
+                {
+                    is_file_view_dirty = true;
+                }
+            }
         }
 
         for (int i = first_row; i < (int)vallrows.size(); i++)
@@ -548,11 +706,11 @@ struct ClientTerm
 
                 if      (_mode == 0)    refresh_screen(term, netw_client->get_ui_dirty());
                 else if (_mode == 2)    refresh_screen(term, main_global::is_log_dirty());
-                else                    refresh_screen(term, netw_client->get_ui_dirty());
+                else                    refresh_screen(term, is_file_view_dirty);
 
                 if      (_mode == 0)    netw_client->set_ui_dirty(false);
                 else if (_mode == 2)    main_global::set_log_dirty(false);
-                else                    netw_client->set_ui_dirty(false);
+                else                    is_file_view_dirty = false;
 
 				bool key_read = false;
 				while (key_read == false)
@@ -657,34 +815,66 @@ struct ClientTerm
 
             if (ct.is_file_command(message))
             {
-                is_txtfile_send_cmd = true;
                 filename = ct.file_from_command(message);
-                // check file exist...
-
-                //test
-                //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
-
-                filename_key = filename + std::to_string(ct.netw_client->file_counter);
-                ct.netw_client->file_counter++;
-                bool r = ct.netw_client->add_file_to_send(filename, filename_key);
-                if (!r)
+                try
                 {
+                    if (file_util::fileexists(filename))
+                    {
+                        //test
+                        //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
+
+                        filename_key = filename + std::to_string(ct.netw_client->file_counter);
+                        ct.netw_client->file_counter++;
+                        bool r = ct.netw_client->add_file_to_send(filename, filename_key);
+                        if (r)
+                        {
+                            is_txtfile_send_cmd = true;
+                            message = "[" + filename + "," + filename_key + ",1]";
+                        }
+                    }
+                    else
+                    {
+                        std::stringstream ss;
+                        ss << "WARNING - File do not exist: " << filename << std::endl;
+                        main_global::log(ss.str());
+                    }
                 }
-                message = "[" + filename + "," + filename_key + ",1]";
+                catch (...)
+                {
+                    std::stringstream ss;
+                    ss << "WARNING - Invalid file: " << filename << std::endl;
+                    main_global::log(ss.str());
+                }
             }
             else if (ct.is_binfile_command(message))
             {
                 filename = ct.file_from_command(message);
-                // check file exist...
-
-                is_binfile_send_cmd = true;
-                filename_key = filename + std::to_string(ct.netw_client->file_counter);
-                ct.netw_client->file_counter++;
-                bool r = ct.netw_client->add_file_to_send(filename, filename_key);
-                if (!r)
+                try
                 {
+                    if (file_util::fileexists(filename))
+                    {
+                        filename_key = filename + std::to_string(ct.netw_client->file_counter);
+                        ct.netw_client->file_counter++;
+                        bool r = ct.netw_client->add_file_to_send(filename, filename_key);
+                        if (r)
+                        {
+                            is_binfile_send_cmd = true;
+                            message = "[" + filename + "," + filename_key + ",0]";
+                        }
+                    }
+                    else
+                    {
+                        std::stringstream ss;
+                        ss << "WARNING - File do not exist: " << filename << std::endl;
+                        main_global::log(ss.str());
+                    }
                 }
-                message = "[" + filename + "," + filename_key + ",0]";
+                catch (...)
+                {
+                    std::stringstream ss;
+                    ss << "WARNING - Invalid file: " << filename << std::endl;
+                    main_global::log(ss.str());
+                }
             }
 
             if (is_binfile_send_cmd || is_txtfile_send_cmd)

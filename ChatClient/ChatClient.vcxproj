@@ -43,6 +43,7 @@
     <ClInclude Include="..\include\crypto_strutil.hpp" />
     <ClInclude Include="..\include\data.hpp" />
     <ClInclude Include="..\include\encrypt.h" />
+    <ClInclude Include="..\include\file_util.hpp" />
     <ClInclude Include="..\include\IDEA.hpp" />
     <ClInclude Include="..\include\Menu.h" />
     <ClInclude Include="..\include\netw_msg.hpp" />
