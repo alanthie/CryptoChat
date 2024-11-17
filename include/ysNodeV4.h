@@ -134,16 +134,16 @@ namespace ysSocket {
 
 		std::atomic<bool> ui_dirty = true;
 
-		bool add_file_to_send(const std::string& filename);
-		bool add_file_to_recv(const std::string& filename);
-		bool add_msg_to_send(const NETW_MSG::MSG& m);
-		bool add_msg_to_recv(const NETW_MSG::MSG& m);
+		bool add_file_to_send(const std::string& filename, const std::string& filename_key);
+		bool add_file_to_recv(const std::string& filename, const std::string& filename_key);
+		//bool add_msg_to_send(const NETW_MSG::MSG& m);
+		//bool add_msg_to_recv(const NETW_MSG::MSG& m);
 
-		bool get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done);
-		bool get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done);
+		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
+		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
 
-		std::string get_file_to_send(const std::string& filename);
-		std::string get_file_to_recv(const std::string& filename);
+		std::string get_file_to_send(const std::string& filename_key);
+		std::string get_file_to_recv(const std::string& filename_key);
 
 		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status);
 

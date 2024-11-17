@@ -50,6 +50,8 @@ namespace ysSocket {
         cryptochat::cfg::cfg_cli    _cfg_cli;
         const std::string&          _cfgfile;
 
+		size_t file_counter = 0;
+
 	public:
 		ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
 
@@ -77,10 +79,10 @@ namespace ysSocket {
 			return vhistory;
 		}
 
-		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {}, bool is_for_display = true)
+		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {}, std::string filename_key = {}, bool is_for_display = true)
 		{
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
-			vhistory.push_back({ is_receive, msg_type, msg, filename, is_for_display, {} });
+			vhistory.push_back({ is_receive, msg_type, msg, filename, filename_key, is_for_display, {} });
 			history_cnt++;
 			while (vhistory.size() > HISTORY_SIZE)
 			{
@@ -88,30 +90,30 @@ namespace ysSocket {
 			}
 		}
 
-		bool add_file_to_send(const std::string& filename) {
-			return ysNodeV4::add_file_to_send(filename);
+		bool add_file_to_send(const std::string& filename, const std::string& filename_key) {
+			return ysNodeV4::add_file_to_send(filename, filename_key);
 		}
-		bool add_file_to_recv(const std::string& filename)
+		bool add_file_to_recv(const std::string& filename, const std::string& filename_key)
 		{
-			return ysNodeV4::add_file_to_recv(filename);
-		}
-
-		bool get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
-		{
-			return ysNodeV4::get_info_file_to_send(filename, byte_processed, total_size, is_done);
-		}
-		bool get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
-		{
-			return ysNodeV4::get_info_file_to_recv(filename, byte_processed, total_size, is_done);
+			return ysNodeV4::add_file_to_recv(filename, filename_key);
 		}
 
-		std::string get_file_to_send(const std::string& filename)
+		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
 		{
-			return ysNodeV4::get_file_to_send(filename);
+			return ysNodeV4::get_info_file_to_send(filename_key, byte_processed, total_size, is_done);
 		}
-		std::string get_file_to_recv(const std::string& filename)
+		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
 		{
-			return ysNodeV4::get_file_to_recv(filename);
+			return ysNodeV4::get_info_file_to_recv(filename_key, byte_processed, total_size, is_done);
+		}
+
+		std::string get_file_to_send(const std::string& filename_key)
+		{
+			return ysNodeV4::get_file_to_send(filename_key);
+		}
+		std::string get_file_to_recv(const std::string& filename_key)
+		{
+			return ysNodeV4::get_file_to_recv(filename_key);
 		}
 
 		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)

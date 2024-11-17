@@ -168,30 +168,30 @@ namespace ysSocket {
 		closeSocket();
 	}
 
-	bool ysNodeV4::add_file_to_send(const std::string& filename)
+	bool ysNodeV4::add_file_to_send(const std::string& filename, const std::string& filename_key)
 	{
 		std::lock_guard lck(_map_file_to_send_mutex);
-		if (!map_file_to_send.contains(filename))
+		if (!map_file_to_send.contains(filename_key))
 		{
-			map_file_to_send[filename] = NETW_MSG::MSG_BINFILE();
+			map_file_to_send[filename_key] = NETW_MSG::MSG_BINFILE();
 
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
-			binfile.init(filename, true);
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
+			binfile.init(filename, filename_key, true);
 
 			ui_dirty = true;
 			return true;
 		}
 		return true; // already exist
 	}
-	bool ysNodeV4::add_file_to_recv(const std::string& filename)
+	bool ysNodeV4::add_file_to_recv(const std::string& filename, const std::string& filename_key)
 	{
 		std::lock_guard lck(_map_file_to_recv_mutex);
-		if (!map_file_to_recv.contains(filename))
+		if (!map_file_to_recv.contains(filename_key))
 		{
-			map_file_to_recv[filename] = NETW_MSG::MSG_BINFILE();
+			map_file_to_recv[filename_key] = NETW_MSG::MSG_BINFILE();
 
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
-			binfile.init(filename, false);
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
+			binfile.init(filename, filename_key, false);
 
 			ui_dirty = true;
 			return true;
@@ -199,12 +199,12 @@ namespace ysSocket {
 		return true; // already exist
 	}
 
-	bool ysNodeV4::get_info_file_to_send(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
+	bool ysNodeV4::get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
 	{
 		std::lock_guard lck(_map_file_to_send_mutex);
-		if (map_file_to_send.contains(filename))
+		if (map_file_to_send.contains(filename_key))
 		{
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
 			byte_processed = binfile.byte_send;
 			total_size = binfile.data_size_in_fragments();
 			is_done = binfile._is_processing_done;
@@ -212,12 +212,12 @@ namespace ysSocket {
 		}
 		return false;
 	}
-	bool ysNodeV4::get_info_file_to_recv(const std::string& filename, size_t& byte_processed, size_t& total_size, bool& is_done)
+	bool ysNodeV4::get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
 	{
 		std::lock_guard lck(_map_file_to_recv_mutex);
-		if (map_file_to_recv.contains(filename))
+		if (map_file_to_recv.contains(filename_key))
 		{
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
 			byte_processed = binfile.byte_recv;
 			//total_size = binfile.data_size_in_fragments();
 			total_size = binfile.total_size_read_from_fragment;
@@ -227,13 +227,13 @@ namespace ysSocket {
 		return false;
 	}
 
-	std::string ysNodeV4::get_file_to_send(const std::string& filename)
+	std::string ysNodeV4::get_file_to_send(const std::string& filename_key)
 	{
 		std::string r;
 		std::lock_guard lck(_map_file_to_send_mutex);
-		if (map_file_to_send.contains(filename))
+		if (map_file_to_send.contains(filename_key))
 		{
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename];
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
 			if (binfile._file != nullptr)
 			{
 				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());
@@ -241,13 +241,13 @@ namespace ysSocket {
 		}
 		return r;
 	}
-	std::string ysNodeV4::get_file_to_recv(const std::string& filename)
+	std::string ysNodeV4::get_file_to_recv(const std::string& filename_key)
 	{
 		std::string r;
 		std::lock_guard lck(_map_file_to_recv_mutex);
-		if (map_file_to_recv.contains(filename))
+		if (map_file_to_recv.contains(filename_key))
 		{
-			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename];
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
 			if (binfile._file != nullptr)
 			{
 				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());

@@ -461,22 +461,31 @@ namespace ysSocket {
 						}
 
 						showMessage(str_message);
-						//parse "[" + filename + ",1]"
+						//parse "[" + filename + "," + filename_key + ",1]";
 						std::string filename;
+						std::string filename_key;
 						int for_display = true;
-						if (str_message.size() > 4)
+						if (str_message.size() > 6)
 						{
 							for (size_t p = 1; p < str_message.size(); p++)
 							{
 								if (str_message[p] == ',')
 								{
 									filename = str_message.substr(1, p - 1);
-									if (str_message[p + 1] == '1') for_display = true;
-									else for_display = false;
+									for (size_t k = p+1; k < str_message.size(); k++)
+									{
+										if (str_message[k] == ',')
+										{
+											filename_key = str_message.substr(p + 1, k - 1);
+											if (str_message[k + 1] == '1') for_display = true;
+											else for_display = false;
+										}
+									}
 								}
 							}
 						}
-						add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, for_display);
+
+						add_to_history(true, NETW_MSG::MSG_FILE, str_message, filename, filename_key, for_display);
 						ui_dirty = true;
 					}
 
@@ -489,17 +498,18 @@ namespace ysSocket {
 						bool r = NETW_MSG::MSG::parse_file_fragment_header_from_msg(m, mh);
 						if (r)
 						{
-							r = add_file_to_recv(mh.filename);
+							//???????
+							r = add_file_to_recv(mh.filename, mh.filename_key);
 							if (r)
 							{
 								std::lock_guard lck(_map_file_to_recv_mutex);
 								size_t idx_fragment;
-								r = map_file_to_recv[mh.filename].add_recv_fragment_data(mh,
+								r = map_file_to_recv[mh.filename_key].add_recv_fragment_data(mh,
 													m.buffer + NETW_MSG::MESSAGE_HEADER + mh.header_size(),
 													m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()), idx_fragment);
 								if (r)
 								{
-									auto& binfile = map_file_to_recv[mh.filename];
+									auto& binfile = map_file_to_recv[mh.filename_key];
 									binfile.set_fragment_processed(idx_fragment, m.buffer_len - (NETW_MSG::MESSAGE_HEADER + mh.header_size()) );
 									// save file if fully processed...
 									ui_dirty = true;

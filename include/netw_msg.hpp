@@ -30,6 +30,7 @@ struct netw_msg
 	uint8_t msg_type;
 	std::string msg;        // ONE LINE
 	std::string filename;	// MSG_FILE
+	std::string filename_key; // in map
 	bool is_for_display;	// MSG_FILE display or disk saving
 	std::vector<std::string> vmsg_extra;   // From MSG_FILE (for display)
 };
@@ -57,6 +58,7 @@ const uint8_t MSG_FILE_FRAGMENT = 31;
 struct MSG_FILE_FRAGMENT_HEADER
 {
 	std::string filename;
+	std::string filename_key;
 	std::string total_size;
 	std::string from;
 	std::string to;
@@ -72,7 +74,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 	}
 	std::string make_header()
 	{
-		return "[" + filename + "," + total_size + "," + from + "," + to + "]";
+		return "[" + filename_key + "," + filename_key + "," + total_size + "," + from + "," + to + "]";
 	}
 
 	size_t get_pos_delimiter(size_t pos_start, const std::string& data, char delim)
@@ -95,12 +97,14 @@ struct MSG_FILE_FRAGMENT_HEADER
 		if (data.size() < sz)
 			return false;
 		size_t pos_file = 1;
-		size_t pos_total_size = 1 + get_pos_delimiter(pos_file, data, ',');
+		size_t pos_file_key = 1 + get_pos_delimiter(pos_file, data, ',');
+		size_t pos_total_size = 1 + get_pos_delimiter(pos_file_key, data, ',');
 		size_t pos_from = 1 + get_pos_delimiter(pos_total_size, data, ',');
 		size_t pos_to = 1 + get_pos_delimiter(pos_from, data, ',');
 		size_t end_bracket = 0 + get_pos_delimiter(pos_to, data, ']');
 
-		filename = get_substr(pos_file, pos_total_size - 2, data);
+		filename = get_substr(pos_file, pos_file_key - 2, data);
+		filename_key = get_substr(pos_file_key, pos_total_size - 2, data);
 		total_size = get_substr(pos_total_size, pos_from - 2, data);
 		from = get_substr(pos_from, pos_to - 2, data);
 		to = get_substr(pos_to, end_bracket - 1, data);
@@ -108,7 +112,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 		return true;
 	}
 
-	static bool make_fragments(const std::string& filename, std::vector<MSG_FILE_FRAGMENT_HEADER>& vout)
+	static bool make_fragments(const std::string& filename, const std::string& filename_key, std::vector<MSG_FILE_FRAGMENT_HEADER>& vout)
 	{
 		bool r = false;
 		cryptoAL::cryptodata file;
@@ -120,6 +124,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 
 		MSG_FILE_FRAGMENT_HEADER h;
 		h.filename = filename;
+		h.filename_key = filename_key;
 		h.total_size = std::to_string(total_size);
 		h.from = std::to_string(0);
 		h.to = std::to_string(total_size - 1);
@@ -137,6 +142,7 @@ struct MSG_FILE_FRAGMENT_HEADER
 			{
 				MSG_FILE_FRAGMENT_HEADER h;
 				h.filename = filename;
+				h.filename_key = filename_key;
 				h.total_size = std::to_string(total_size);
 				h.from = std::to_string(data_count);
 
@@ -174,7 +180,7 @@ struct MSG_BINFILE
 			delete _file;
 	}
 
-	void init(const std::string& filename, bool to_send)
+	void init(const std::string& filename, const std::string& filename_key, bool to_send)
 	{
 		if (_file != nullptr)
 		{
@@ -184,12 +190,13 @@ struct MSG_BINFILE
 
 		_to_send = to_send;
 		_filename = filename;
+		_filename_key = filename_key;
 		_file = new cryptoAL::cryptodata();
 
 		if (to_send)
 		{
 			bool r = _file->read_from_file(filename);
-			if (r) r = MSG_FILE_FRAGMENT_HEADER::make_fragments(filename, _vfragments);
+			if (r) r = MSG_FILE_FRAGMENT_HEADER::make_fragments(filename, filename_key, _vfragments);
 
 			if (r) _is_valid = true;
 			else  _is_valid = false;
@@ -213,6 +220,8 @@ struct MSG_BINFILE
 	bool _is_valid = false;
 	bool _is_processing_done = false;
 	std::string _filename;
+	std::string _filename_key;
+
 	cryptoAL::cryptodata* _file = nullptr; // allow =()
 	bool _to_send; // recv or send
 	std::vector<MSG_FILE_FRAGMENT_HEADER> _vfragments;
@@ -337,7 +346,7 @@ struct MSG
 
 	static bool parse_file_fragment_header_from_msg(MSG& msgin, MSG_FILE_FRAGMENT_HEADER& header_out)
 	{
-		//"[" + filename + "," + total_size + "," + from + "," + to + "]";
+		//"[" + filename + "," + filename_key + "," + total_size + "," + from + "," + to + "]";
 		if (msgin.buffer_len <= MESSAGE_HEADER) return false;
 		uint8_t* data = msgin.buffer+ MESSAGE_HEADER;
 		if (data[0]!='[') return false;
@@ -354,7 +363,19 @@ struct MSG
 		}
 		if (pos_end_filename == 0) return false;
 
-		size_t pos_start_total_size = pos_end_filename + 2;
+		size_t pos_start_filename_key = pos_end_filename + 2;
+		size_t pos_end_filename_key = 0;
+		for (size_t i = pos_start_filename_key; i < msgin.buffer_len; i++)
+		{
+			if (data[i] == ',')
+			{
+				pos_end_filename_key = i - 1;
+				break;
+			}
+		}
+		if (pos_end_filename_key == 0) return false;
+
+		size_t pos_start_total_size = pos_end_filename_key + 2;
 		size_t pos_end_total_size = 0;
 		for (size_t i = pos_start_total_size; i < msgin.buffer_len; i++)
 		{
@@ -406,8 +427,6 @@ struct MSG
 		{
 			if (binfile._file == nullptr)
 				return false;
-
-			//type_msg = MSG_FILE_FRAGMENT;
 
 			size_t idx = binfile.next_fragment_index_to_process();
 			MSG_FILE_FRAGMENT_HEADER packet = binfile._vfragments[idx];
