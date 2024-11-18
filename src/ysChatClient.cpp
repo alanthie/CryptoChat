@@ -31,10 +31,10 @@ bool				main_global::log_is_dirty = true;
 
 static void signalHandler(int code)
 {
-	char ch;
-	std::cout << "Are you sure you want to close client? (y/n)";
-	std::cin >> ch;
-	if (toupper(ch) == 'Y')
+//	char ch;
+//	std::cout << "Are you sure you want to close client? (y/n)";
+//	std::cin >> ch;
+//	if (toupper(ch) == 'Y')
 	{
 		if (main_global::global_cli != nullptr)
 		{
@@ -59,7 +59,7 @@ static void signalHandler(int code)
 
 int main(int argc, char** argv)
 {
-	std::string FULLVERSION = CLI_VERSION + "_" + cryptoAL::parsing::get_current_date();
+	std::string FULLVERSION = CLI_VERSION;// + "_" + cryptoAL::parsing::get_current_date();
 
 	// Argument parser
 	try
@@ -97,37 +97,37 @@ int main(int argc, char** argv)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - invalid_argument thrown " << ex.what() << '\n';
-		main_global::log(ss.str());
+		main_global::log(ss.str(),true);
 	}
 	catch (std::logic_error const& ex)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - logic_error thrown " << ex.what() << '\n';
-		main_global::log(ss.str());
+		main_global::log(ss.str(),true);
 	}
 	catch (std::range_error const& ex)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - range_error thrown " << ex.what() << '\n';
-		main_global::log(ss.str());
+		main_global::log(ss.str()),true;
 	}
 	catch (std::runtime_error const& ex)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - runtime_error thrown " << ex.what() << '\n';
-		main_global::log(ss.str());
+		main_global::log(ss.str(),true);
 	}
 	catch (std::exception const& ex)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - std exception thrown " << ex.what() << '\n';
-		main_global::log(ss.str());
+		main_global::log(ss.str(),true);
 	}
 	catch (...)
 	{
 		std::stringstream ss;
 		ss << "CHATCLI FAILED - exception thrown" << std::endl;
-		main_global::log(ss.str());
+		main_global::log(ss.str()), true;
 	}
 	return 0;
 }

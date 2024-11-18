@@ -11,13 +11,18 @@ class main_global
 public:
 	static cryptochat::cli::chat_cli* global_cli;
 
-	static void log(const std::string s)
+	static void log(const std::string s, bool show_in_console = false)
 	{
 		{
 			std::lock_guard lck(main_global::log_mutex);
 			std::stringstream& ss = log_stream();
 			ss << s;
 			log_is_dirty = true;
+
+			if (show_in_console)
+			{
+                std::cout << s;
+			}
 		}
 	};
 

@@ -34,7 +34,7 @@ struct ClientTerm
     std::vector<std::string> vfilerows;     // file view
     std::vector<std::string> vlogrows;      // log view
 
-    std::vector<char> vallrows_is_file; 
+    std::vector<char> vallrows_is_file;
     std::vector<char> vallrows_is_send;
     std::vector<std::string> vallrows_filename_key;
 
@@ -717,7 +717,9 @@ struct ClientTerm
 				{
                     if (netw_client->is_got_chat_cli_signal())
                     {
-                        std::cerr << " Exiting prompt_msg loop " << std::endl;
+						std::stringstream ss; ss << "Exiting prompt_msg loop " << std::endl;
+						main_global::log(ss.str(), true);
+
                         set_edit_msg("");
                         free(buf);
                         return NULL;
@@ -950,7 +952,9 @@ int main_client_ui(ysSocket::ysClient* netwclient)
         {
             if (netwclient->is_got_chat_cli_signal())
             {
-                std::cerr << " Terminating thread client_UI " << std::endl;
+				std::stringstream ss; ss << "Terminating thread client_UI" << std::endl;
+				main_global::log(ss.str(), true);
+
                 delete ct;
                 on = false;
                 break;
@@ -963,12 +967,12 @@ int main_client_ui(ysSocket::ysClient* netwclient)
     } catch(const std::runtime_error& re) {
         std::stringstream ss;
         ss << "Runtime error: " << re.what() << std::endl;
-        main_global::log(ss.str());
+        main_global::log(ss.str(),true);
         return 2;
     } catch(...) {
         std::stringstream ss;
         ss << "Unknown error." << std::endl;
-        main_global::log(ss.str());
+        main_global::log(ss.str(),true);
         return 1;
     }
     return 0;

@@ -83,8 +83,8 @@ namespace ysSocket {
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::stringstream ss; ss << " Exiting thread send_pending_file_packet_thread " << std::endl;
-					main_global::log(ss.str());
+					std::stringstream ss; ss << "Exiting thread send_pending_file_packet_thread " << std::endl;
+					main_global::log(ss.str(), true);
 					break;
 				}
 
@@ -131,7 +131,7 @@ namespace ysSocket {
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
 					std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
-					main_global::log(ss.str());
+					main_global::log(ss.str(), true);
 					break;
 				}
 
@@ -151,7 +151,7 @@ namespace ysSocket {
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
 						std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
-						main_global::log(ss.str());
+						main_global::log(ss.str(), true);
 						msg_ok = false;
 						break;
 					}
@@ -186,7 +186,7 @@ namespace ysSocket {
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
 						std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
-						main_global::log(ss.str());
+						main_global::log(ss.str(), true);
 						msg_ok = false;
 						break;
 					}
@@ -251,8 +251,17 @@ namespace ysSocket {
 						std::vector< std::string> a;
 						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
 
+                        bool menu_abort = false;
                         while (true)
                         {
+                            if (is_got_chat_cli_signal())
+                            {
+                                std::stringstream ss; ss << "Terminating menu" << std::endl;
+                                main_global::log(ss.str(), true);
+                                menu_abort = true;
+                                break;
+                            }
+
                             Menu qa;
                             qa.set_heading(std::string("Challenges (q TO QUIT MENU)")
                             + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]");
@@ -261,6 +270,7 @@ namespace ysSocket {
                             for(size_t i = 0; i< questions.size(); i++)
                                 qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
 
+                            // Blocking....to do
                             int c = qa.get_menu_choice();
                             if (c == 'q')
                             {
@@ -270,34 +280,41 @@ namespace ysSocket {
                             int idx = c - '1';
                             if ((idx >= 0) && (idx < questions.size()))
                             {
+                                // Blocking....to do
                                 a[idx] = get_input("Enter answer [" + std::to_string(idx+1) + "]");
                             }
 
                         }
 
-                        std::string r;
-                        for(size_t i = 0; i< questions.size(); i++)
+                        if (!menu_abort)
                         {
-                            r += a[i];
-                            //if (i <  questions.size() - 1) r+=";";
-                        }
+                            std::string r;
+                            for(size_t i = 0; i< questions.size(); i++)
+                            {
+                                r += a[i];
+                                //if (i <  questions.size() - 1) r+=";";
+                            }
 
-                        {
-							if (DEBUG_INFO) { std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl; main_global::log(ss.str());
-							}
+                            {
+                                if (DEBUG_INFO)
+                                {
+                                    std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
+                                    main_global::log(ss.str());
+                                }
 
-							{
-								std::lock_guard l(_key_mutex);
-								initial_key = r; // still key_valid = false;
-							}
+                                {
+                                    std::lock_guard l(_key_mutex);
+                                    initial_key = r; // still key_valid = false;
+                                }
 
-							if (DEBUG_INFO) {
-								std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
-								main_global::log(ss.str());
-							}
-							NETW_MSG::MSG m;
-                            m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
-                            this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+                                if (DEBUG_INFO) {
+                                    std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+                                    main_global::log(ss.str());
+                                }
+                                NETW_MSG::MSG m;
+                                m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
+                                this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+                            }
                         }
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
@@ -544,7 +561,7 @@ namespace ysSocket {
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
 				std::stringstream ss; ss << " Exiting thread client_UI " << std::endl;
-				main_global::log(ss.str());
+				main_global::log(ss.str(), true);
 				break;
 			}
 

@@ -40,11 +40,12 @@
 	<stdio.h>
 	<ctype.h>
 
-1731816253 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1731887778 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/terminal.h"
 	"../include/ysClient.h"
 	"../include/data.hpp"
 	"../include/string_util.hpp"
+	"../include/file_util.hpp"
 	"../include/main_global.hpp"
 	<stdarg.h>
 
@@ -74,7 +75,7 @@
 	<mutex>
 	<atomic>
 
-1731803658 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731885515 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -87,6 +88,7 @@
 	<map>
 	<queue>
 	<mutex>
+	<atomic>
 	<winsock2.h>
 	<ws2tcpip.h>
 	<netinet/in.h>
@@ -169,7 +171,7 @@
 	<ctype.h>
 	"../include/vigenere.hpp"
 
-1731803658 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
+1731887510 source:/home/allaptop/dev/CryptoChat/src/ysChatClient.cpp
 	<iostream>
 	<string>
 	<sstream>
@@ -199,7 +201,7 @@
 	<thread>
 	<mutex>
 
-1731808685 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
+1731887076 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
 	<iostream>
 	<string>
 	<conio.h>
@@ -214,7 +216,7 @@
 	<iostream>
 	<string>
 
-1731803658 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731885515 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	<mutex>
 	"../include/ysNodeV4.h"
@@ -583,11 +585,10 @@
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
 
-1731803658 /home/allaptop/dev/CryptoChat/include/main_global.hpp
+1731886569 /home/allaptop/dev/CryptoChat/include/main_global.hpp
 	<iostream>
 	<string>
 	<sstream>
-	<syncstream>
 	<mutex>
 	"../include/chat_cli.hpp"
 

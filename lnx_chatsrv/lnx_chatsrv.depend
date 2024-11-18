@@ -64,7 +64,7 @@
 	<thread>
 	<mutex>
 
-1731803658 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731885515 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -77,6 +77,7 @@
 	<map>
 	<queue>
 	<mutex>
+	<atomic>
 	<winsock2.h>
 	<ws2tcpip.h>
 	<netinet/in.h>
@@ -949,11 +950,10 @@
 
 1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h
 
-1731803658 /home/allaptop/dev/CryptoChat/include/main_global.hpp
+1731885515 /home/allaptop/dev/CryptoChat/include/main_global.hpp
 	<iostream>
 	<string>
 	<sstream>
-	<syncstream>
 	<mutex>
 	"../include/chat_cli.hpp"
 
