@@ -38,6 +38,7 @@
 		</Compiler>
 		<Unit filename="../include/Base64.h" />
 		<Unit filename="../include/IDEA.hpp" />
+		<Unit filename="../include/Menu.h" />
 		<Unit filename="../include/SHA256.h" />
 		<Unit filename="../include/argparse.hpp" />
 		<Unit filename="../include/base_const.hpp" />

@@ -274,6 +274,11 @@ namespace ysSocket {
                             int c = qa.get_menu_choice();
                             if (c == 'q')
                             {
+                                # ifdef _WIN32
+                                    system("cls");
+                                # else
+                                    system("clear");
+                                # endif
                                 break;
                             }
 
@@ -281,9 +286,9 @@ namespace ysSocket {
                             if ((idx >= 0) && (idx < questions.size()))
                             {
                                 // Blocking....to do
+                                std::cout << std::endl;
                                 a[idx] = get_input("Enter answer [" + std::to_string(idx+1) + "]");
                             }
-
                         }
 
                         if (!menu_abort)
