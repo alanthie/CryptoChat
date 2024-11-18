@@ -153,18 +153,27 @@ namespace ysSocket {
 		}
 #ifdef _WIN32
 		if (::closesocket(this->m_socketFd) < 0) {
+            std::cout << "could not close socket" << std::endl;
 			throw std::runtime_error("Could not close socket");
 		}
 		::WSACleanup();
 #else
-		if (close(this->m_socketFd) < 0) {
-			throw std::runtime_error("Could not close socket");
+        std::cout << "shutdown socket" << std::endl;
+		if (shutdown(this->m_socketFd, SHUT_RD) < 0) {
+            std::cout << "could not shutdown socket" << std::endl;
+			throw std::runtime_error("Could not shutdown socket");
 		}
+
+//		if (close(this->m_socketFd) < 0) {
+//            std::cout << "could not close socket" << std::endl;
+//			throw std::runtime_error("Could not close socket");
+//		}
 #endif
 		this->m_state = STATE::CLOSED;
 	}
 
 	ysNodeV4::~ysNodeV4() {
+        std::cout << "~ysNodeV4" << std::endl;
 		closeSocket();
 	}
 

@@ -699,6 +699,16 @@ struct ClientTerm
 
         while (1)
         {
+            if (netw_client->is_got_chat_cli_signal())
+            {
+                std::stringstream ss; ss << "Exiting prompt_msg loop " << std::endl;
+                main_global::log(ss.str(), true);
+
+                set_edit_msg("");
+                free(buf);
+                return NULL;
+            }
+
             {
                 int c;
 
@@ -941,7 +951,8 @@ int main_client_ui(ysSocket::ysClient* netwclient)
         int rows, cols;
         term.get_term_size(rows, cols);
 
-        ClientTerm* ct = new ClientTerm(rows, cols);
+        ClientTerm _ct(rows, cols);
+        ClientTerm* ct = &_ct; //new ClientTerm(rows, cols);
         ct->netw_client = netwclient;
 
         bool on = true;
@@ -955,7 +966,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
 				std::stringstream ss; ss << "Terminating thread client_UI" << std::endl;
 				main_global::log(ss.str(), true);
 
-                delete ct;
+                //delete ct;
                 on = false;
                 break;
             }

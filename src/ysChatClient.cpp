@@ -50,11 +50,11 @@ static void signalHandler(int code)
 			{
 			}
 		}
-		exit(0);
+		//exit(0);
 	}
 
-	std::cin.clear();
-	std::cin.ignore(0x7fffffffffffffff, '\n');
+//	std::cin.clear();
+//	std::cin.ignore(0x7fffffffffffffff, '\n');
 }
 
 int main(int argc, char** argv)

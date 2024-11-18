@@ -92,6 +92,9 @@ namespace cryptochat
 				catch (const std::exception& e) {
 					std::cerr << e.what() << std::endl;
 				}
+				catch(...)
+				{
+				}
 
 				// EXITING
 				std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -166,7 +166,7 @@ namespace ysSocket {
 					{
 						// closed or error
 						std::stringstream ss; ss << "ERROR - socket error or closed" << std::endl;
-						main_global::log(ss.str());
+						main_global::log(ss.str(),true);
 						msg_ok = false;
 						break;
 					}
@@ -560,7 +560,7 @@ namespace ysSocket {
 		{
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
-				std::stringstream ss; ss << " Exiting thread client_UI " << std::endl;
+				std::stringstream ss; ss << " Exiting loop client_UI " << std::endl;
 				main_global::log(ss.str(), true);
 				break;
 			}
@@ -651,16 +651,27 @@ namespace ysSocket {
 	}
 
 	void ysClient::closeConnection() {
-		this->closeSocket();
+        std::cout << "closing socket" << std::endl;
+        try{
+            this->closeSocket();
+		}
+		catch(...)
+		{
+		}
+
+		std::cout << "waiting recv thread ending " << std::endl;
 		if (this->m_recv_thread.joinable()) {
 			this->m_recv_thread.join();
 		}
+
+		std::cout << "waiting send thread ending " << std::endl;
 		if (this->m_send_thread.joinable()) {
 			this->m_send_thread.join();
 		}
 	}
 
 	ysClient::~ysClient() {
+        std::cout << "closing connection" << std::endl;
 		this->closeConnection();
 	}
 
