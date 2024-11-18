@@ -33,8 +33,8 @@ namespace ysSocket {
 	//	setDefault();
 	//}
 
-	//ysServer::ysServer(const int& t_port, const int& t_connectionSize) : 
-	//	ysNodeV4(t_port), m_connectionSize(t_connectionSize) 
+	//ysServer::ysServer(const int& t_port, const int& t_connectionSize) :
+	//	ysNodeV4(t_port), m_connectionSize(t_connectionSize)
 	//{
 	//	setDefault();
 	//}
@@ -174,7 +174,7 @@ namespace ysSocket {
 		}
 		else
 		{
-			// ask user... 
+			// ask user...
 			//cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 			initial_key_hint = "1th prime number;1th prime number;1000th prime number";
 			initial_key = "227919";
@@ -224,12 +224,12 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::handle_accept() 
+	void ysServer::handle_accept()
 	{
 		showMessage("ysServer is running...");
 		showMessage(std::string(inet_ntoa(this->m_socketInfo.sin_addr)) + ":" + std::to_string(ntohs(this->m_socketInfo.sin_port)));
 
-		while (1) 
+		while (1)
 		{
 			struct sockaddr_in temp_addr;
 			socklen_t temp_len = sizeof (temp_addr);
@@ -377,7 +377,7 @@ namespace ysSocket {
 
 									if (v_client[idx]->hostname.size() == 0)
 									{
-										if (DEBUG_INFO) 
+										if (DEBUG_INFO)
 											std::cout << "send MSG_CMD_REQU_HOSTNAME " << idx << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your hostname : ";
@@ -441,13 +441,14 @@ namespace ysSocket {
 								if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_USERNAME" << std::endl;
 
 								std::string user = m.get_data_as_string();
-								if (user.size() == 0) user = "user_" + std::to_string(idx + 1);
-								v_client[idx]->username = user;
-								std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+								if (user.size() == 0)
+									user = "user";
+                                v_client[idx]->username = user + "_" + std::to_string(idx) ;
+                                std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_HOSTNAME)
 							{
-								if (DEBUG_INFO) 
+								if (DEBUG_INFO)
 									std::cout << "recv MSG_CMD_RESP_HOSTNAME" << std::endl;
 
 								std::string host = m.get_data_as_string();
@@ -456,11 +457,11 @@ namespace ysSocket {
 									v_client[idx]->hostname = host;
 									std::cout << "INFO client[" << idx << "] hostname:" << v_client[idx]->hostname << std::endl;
 
-									if (v_client[idx]->username == NETW_MSG::DEFAULT_USERNAME)
-									{
-										v_client[idx]->username = "user_" + std::to_string(idx) + "_" + v_client[idx]->hostname;
-										std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
-									}
+									// if (v_client[idx]->username == NETW_MSG::DEFAULT_USERNAME)
+									// {
+										// v_client[idx]->username = "user_" + std::to_string(idx) + "_" + v_client[idx]->hostname;
+										// std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+									// }
 								}
 							}
 
@@ -591,7 +592,7 @@ namespace ysSocket {
 	// Relay message m
 	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
 	{
-		for (auto& client : v_client) 
+		for (auto& client : v_client)
 		{
 			if (client->getSocketFd() != t_socket)
 			{

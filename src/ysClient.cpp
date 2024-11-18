@@ -439,7 +439,8 @@ namespace ysSocket {
 
 						//if (DEBUG_INFO)
 						{
-                            std::stringstream ss; ss << "send MSG_CMD_RESP_USERNAME" << std::endl; main_global::log(ss.str());
+                            std::stringstream ss; ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
+                            main_global::log(ss.str());
 						}
                         NETW_MSG::MSG m;
 
@@ -466,7 +467,7 @@ namespace ysSocket {
 
 							//if (DEBUG_INFO)
 							{
-                                std::stringstream ss; ss << "send MSG_CMD_RESP_HOSTNAME " << h << std::endl; main_global::log(ss.str());
+                                std::stringstream ss; ss << "send MSG_CMD_RESP_HOSTNAME : " << h << std::endl; main_global::log(ss.str());
 							}
 							NETW_MSG::MSG m;
 
