@@ -36,6 +36,7 @@
     <ClInclude Include="..\include\base_const.hpp" />
     <ClInclude Include="..\include\Buffer.hpp" />
     <ClInclude Include="..\include\cfg_cli.hpp" />
+    <ClInclude Include="..\include\challenge.hpp" />
     <ClInclude Include="..\include\chat_cli.hpp" />
     <ClInclude Include="..\include\crc32a.hpp" />
     <ClInclude Include="..\include\crypto_const.hpp" />

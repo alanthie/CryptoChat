@@ -20,6 +20,7 @@
 #include "../include/chat_cli.hpp" // std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal
 #include "../include/main_global.hpp"
 #include "../include/data.hpp"
+#include "../include/challenge.hpp"
 
 #include <ciso646>
 #include <iostream>
@@ -249,7 +250,7 @@ namespace ysSocket {
                         challenge_attempt++;
                         //std::vector<std::string> questions = NETW_MSG::split(str_message, ";");
 
-                        std::vector<std::string> lines = NETW_MSG::split(str_message, ";");
+                        std::vector<std::string> lines = NETW_MSG::split(str_message, "\n");
                         std::vector<std::string> comments;
                         std::vector<std::string> questions;
                         std::vector<int> question_types;
@@ -288,7 +289,7 @@ namespace ysSocket {
                                 + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]",
                                 comments);
 
-                            qa.set_max_len(80);
+                            qa.set_max_len(120);
                             for(size_t i = 0; i< questions.size(); i++)
                                 qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
 
@@ -320,46 +321,24 @@ namespace ysSocket {
                             {
                                 if (question_types[i] == 1)
                                 {
-                                    if (file_util::fileexists(a[i]))
-                                    {
-                                        cryptoAL::cryptodata file;
-                                        if (file.read_from_file(a[i]))
-                                        {
-                                            std::string work = std::string(file.buffer.getdata(), file.buffer.size());
-                                            std::erase(work, '\r');
-                                            std::erase(work, '\n');
-
-                                            SHA256 sha;
-                                            sha.update((uint8_t*)work.data(), work.size());
-                                            uint8_t* digestkey = sha.digest();
-                                            std::string str_digest = sha.toString(digestkey);
-                                            delete[]digestkey;
-
-                                            a[i] = str_digest;
-                                        }
-                                        else
-                                        {
-                                            std::stringstream ss; ss << "ERROR - can not read file: " << a[i]  << std::endl;
-                                            main_global::log(ss.str());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        std::stringstream ss; ss << "ERROR - no file: " << a[i]  << std::endl;
-                                        main_global::log(ss.str());
-                                    }
+									std::string out_answer;
+									std::string out_error;
+									bool r = NETW_MSG::challenge_answer(a[i], out_answer, out_error);
+									if (r)
+									{
+										a[i] = out_answer;
+									}
                                 }
                                 r += a[i];
                             }
 
                             // test
                             {
-                                    //std::stringstream ss; ss << "initkey: " << r  << std::endl;
-                                    //main_global::log(ss.str(), true);
+                                //std::stringstream ss; ss << "initkey: " << r  << std::endl;
+                                //main_global::log(ss.str(), true);
                             }
 
                             {
-                                //if (DEBUG_INFO)
                                 {
                                     std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
                                     main_global::log(ss.str());
@@ -370,7 +349,6 @@ namespace ysSocket {
                                     initial_key = r; // still key_valid = false;
                                 }
 
-                                //if (DEBUG_INFO)
                                 {
                                     std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
                                     main_global::log(ss.str());
@@ -384,7 +362,6 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
                     {
                         {
-							//if (DEBUG_INFO)
 							{
 								std::stringstream ss; ss << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
 								main_global::log(ss.str());
@@ -400,7 +377,6 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_INVALID)
                     {
                         {
-							//if (DEBUG_INFO)
 							{
                                 std::stringstream ss; ss << "recv MSG_CMD_INFO_KEY_INVALID" << std::endl;
                                 main_global::log(ss.str());
@@ -450,7 +426,6 @@ namespace ysSocket {
 							key = rnd_valid ? random_key : initial_key;
 						}
 
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
                             main_global::log(ss.str());
@@ -463,7 +438,6 @@ namespace ysSocket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID)
                     {
                         {
-							//if (DEBUG_INFO)
 							{
                                 std::stringstream ss; ss << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl; main_global::log(ss.str());
 							}
@@ -479,7 +453,6 @@ namespace ysSocket {
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
                     {
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "recv MSG_CMD_REQU_USERNAME" << std::endl; main_global::log(ss.str());
 						}
@@ -495,7 +468,6 @@ namespace ysSocket {
                         }
                         user_valid = true;
 
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
                             main_global::log(ss.str());
@@ -513,7 +485,6 @@ namespace ysSocket {
                     }
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
 					{
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "recv MSG_CMD_REQU_HOSTNAME" << std::endl; main_global::log(ss.str());
 						}
@@ -522,8 +493,6 @@ namespace ysSocket {
 						if (gethostname(host, 80) == 0)
 						{
 							std::string h = std::string(host);
-
-							//if (DEBUG_INFO)
 							{
                                 std::stringstream ss; ss << "send MSG_CMD_RESP_HOSTNAME : " << h << std::endl; main_global::log(ss.str());
 							}
@@ -546,7 +515,6 @@ namespace ysSocket {
 					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
                             main_global::log(ss.str());
@@ -559,7 +527,6 @@ namespace ysSocket {
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE)
 					{
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "recv MSG_FILE : " << m.get_data_as_string() << std::endl; main_global::log(ss.str());
 						}
@@ -603,7 +570,6 @@ namespace ysSocket {
 
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
 					{
-						//if (DEBUG_INFO)
 						{
                             std::stringstream ss; ss << "recv MSG_FILE_FRAGMENT : " << std::endl;
                             main_global::log(ss.str());

@@ -35,6 +35,8 @@
     <ClInclude Include="..\include\Base64.h" />
     <ClInclude Include="..\include\base_const.hpp" />
     <ClInclude Include="..\include\Buffer.hpp" />
+    <ClInclude Include="..\include\cfg_srv.hpp" />
+    <ClInclude Include="..\include\challenge.hpp" />
     <ClInclude Include="..\include\chat_srv.hpp" />
     <ClInclude Include="..\include\crypto_const.hpp" />
     <ClInclude Include="..\include\crypto_parsing.hpp" />

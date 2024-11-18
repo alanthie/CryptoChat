@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-
 namespace NETW_MSG
 {
 	[[maybe_unused]] static long long str_to_ll(const std::string& snum)

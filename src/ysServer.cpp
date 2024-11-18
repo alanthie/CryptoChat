@@ -7,6 +7,7 @@
 #include "../include/ysServer.h"
 #include "../include/SHA256.h"
 #include "../include/crc32a.hpp"
+#include "../include/challenge.hpp"
 
 #ifdef _WIN32
 #pragma warning(disable : 4996)
@@ -43,6 +44,15 @@ namespace ysSocket {
 		this->bindServer();
 		this->listenServer();
 
+
+		// TEST
+		//{
+		//	std::map<std::string, std::string> map_out;
+		//	std::string out_error;
+		//	bool r = NETW_MSG::challenge_read_from_file("C:\\cpp\\CryptoChat\\challenge.txt", map_out, out_error);
+		//}
+
+		// 
 		// TEST MSG_FILE_FRAGMENT_HEADER
 		//{
 		//	NETW_MSG::MSG_FILE_FRAGMENT_HEADER h;
@@ -156,15 +166,19 @@ namespace ysSocket {
 			auto iter = _cfg._map_challenges.begin();
 			initial_key_hint = iter->first;
 			initial_key = iter->second;
+
+			std::cout << std::endl;
+			std::cout << "INFO initial challenge set to : " << std::endl;
+			_cfg.print_challenge(initial_key_hint, iter->second);
+			std::cout << std::endl;
 		}
 		else
 		{
 			// ask user...
 			//cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-			initial_key_hint = "1th prime number;1th prime number;1000th prime number";
-			initial_key = "227919";
+			initial_key_hint = "1th prime number\n1000th prime number";
+			initial_key = "27919";
 		}
-		std::cout << "INFO initial challenge set to : " << initial_key_hint << std::endl;
 	}
 
 	void ysServer::createServer() {
