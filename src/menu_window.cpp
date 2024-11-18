@@ -831,7 +831,7 @@ struct ClientTerm
                 try
                 {
                     //test
-                    filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
+                    //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
 
                     if (file_util::fileexists(filename))
                     {
@@ -957,7 +957,7 @@ int main_client_ui(ysSocket::ysClient* netwclient)
 {
     try {
         Terminal term(true, false);
-        term.save_screen();
+        //term.save_screen();
         int rows, cols;
         term.get_term_size(rows, cols);
 

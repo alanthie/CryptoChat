@@ -86,7 +86,6 @@ namespace cryptochat
 					_chat_cli->client_UI();
 
 					// The destructor of ysSocket::ysClient call closeConnection that join with the client threads
-					delete _chat_cli;
 
 				}
 				catch (const std::exception& e) {

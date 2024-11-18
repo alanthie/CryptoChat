@@ -31,30 +31,8 @@ bool				main_global::log_is_dirty = true;
 
 static void signalHandler(int code)
 {
-//	char ch;
-//	std::cout << "Are you sure you want to close client? (y/n)";
-//	std::cin >> ch;
-//	if (toupper(ch) == 'Y')
-	{
-		if (main_global::global_cli != nullptr)
-		{
-			try
-			{
-				cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-
-				delete main_global::global_cli;
-				main_global::global_cli = nullptr;
-			}
-			catch (...)
-			{
-			}
-		}
-		//exit(0);
-	}
-
-//	std::cin.clear();
-//	std::cin.ignore(0x7fffffffffffffff, '\n');
+    main_global::shutdown();
+    //exit(0);
 }
 
 int main(int argc, char** argv)

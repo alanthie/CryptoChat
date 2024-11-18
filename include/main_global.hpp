@@ -52,6 +52,26 @@ public:
 		}
 	}
 
+	static void shutdown()
+	{
+        main_global::log("shutdown", true);
+
+		if (main_global::global_cli != nullptr)
+		{
+			try
+			{
+				cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
+				std::this_thread::sleep_for(std::chrono::seconds(1));
+
+				delete main_global::global_cli;
+				main_global::global_cli = nullptr;
+			}
+			catch (...)
+			{
+			}
+		}
+	}
+
 private:
 	static std::stringstream log_ss;
 	static std::mutex log_mutex;

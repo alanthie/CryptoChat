@@ -25,23 +25,8 @@ namespace ysSocket {
 		}
 	}
 
-	//ysServer::ysServer() : ysNodeV4() {
-	//	setDefault();
-	//}
-
-	//ysServer::ysServer(const int& t_port) : ysNodeV4(t_port) {
-	//	setDefault();
-	//}
-
-	//ysServer::ysServer(const int& t_port, const int& t_connectionSize) :
-	//	ysNodeV4(t_port), m_connectionSize(t_connectionSize)
-	//{
-	//	setDefault();
-	//}
-
 	ysServer::ysServer(cryptochat::cfg::cfg_srv cfg) :
 		ysNodeV4(cfg._port),
-		//m_connectionSize(cfg._number_connection),
 		_cfg(cfg)
 	{
 		setDefault();
