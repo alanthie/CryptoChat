@@ -857,7 +857,7 @@
 	<string>
 	<vector>
 
-1731911718 /home/allaptop/dev/CryptoChat/include/chat_srv.hpp
+1731935270 /home/allaptop/dev/CryptoChat/include/chat_srv.hpp
 	<iostream>
 	<limits>
 	<csignal>
@@ -868,9 +868,10 @@
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1731724409 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
+1731937585 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
+	"../include/string_util.hpp"
 
 1731630352 /home/allaptop/dev/CryptoChat/include/c_plus_plus_serializer.h
 	<fstream>

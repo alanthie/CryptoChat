@@ -19,6 +19,7 @@
 #include "../include/Menu.h"
 #include "../include/chat_cli.hpp" // std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal
 #include "../include/main_global.hpp"
+#include "../include/data.hpp"
 
 #include <ciso646>
 #include <iostream>
@@ -246,7 +247,27 @@ namespace ysSocket {
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
                         challenge_attempt++;
-                        std::vector<std::string> questions = NETW_MSG::split(str_message, ";");
+                        //std::vector<std::string> questions = NETW_MSG::split(str_message, ";");
+
+                        std::vector<std::string> lines = NETW_MSG::split(str_message, ";");
+                        std::vector<std::string> comments;
+                        std::vector<std::string> questions;
+                        std::vector<int> question_types;
+                        for (size_t i = 0; i < lines.size(); i++)
+                        {
+                            if (lines[i][0] == 'C')
+                                comments.push_back(lines[i].substr(1, lines[i].size()-1));
+                            if (lines[i][0] == 'F')
+                            {
+                                questions.push_back(lines[i].substr(1, lines[i].size()-1));
+                                question_types.push_back(1);
+                            }
+                        }
+//                s = "CGeneral comments;" +
+//                "CSave the link content in a file;" +
+//                "CLink: https://drive.google.com/file/d/1YfyMe7I5aiQYplDCzdjx8BWUJlOrw_4z/view;" +
+//                "C \n;" +
+//                "FEnter the filename you saved;";
 
 						std::vector< std::string> a;
 						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
@@ -264,7 +285,8 @@ namespace ysSocket {
 
                             Menu qa;
                             qa.set_heading(std::string("Challenges (q TO QUIT MENU)")
-                            + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]");
+                                + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]",
+                                comments);
 
                             qa.set_max_len(80);
                             for(size_t i = 0; i< questions.size(); i++)
@@ -296,9 +318,48 @@ namespace ysSocket {
                             std::string r;
                             for(size_t i = 0; i< questions.size(); i++)
                             {
+                                if (question_types[i] == 1)
+                                {
+                                    if (file_util::fileexists(a[i]))
+                                    {
+                                        cryptoAL::cryptodata file;
+                                        if (file.read_from_file(a[i]))
+                                        {
+                                            std::string work = std::string(file.buffer.getdata(), file.buffer.size());
+                                            std::erase(work, '\r');
+                                            std::erase(work, '\n');
+
+                                            SHA256 sha;
+                                            sha.update((uint8_t*)work.data(), work.size());
+                                            uint8_t* digestkey = sha.digest();
+                                            std::string str_digest = sha.toString(digestkey);
+                                            delete[]digestkey;
+
+                                            a[i] = str_digest;
+                                        }
+                                        else
+                                        {
+                                            std::stringstream ss; ss << "ERROR - can not read file: " << a[i]  << std::endl;
+                                            main_global::log(ss.str());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        std::stringstream ss; ss << "ERROR - no file: " << a[i]  << std::endl;
+                                        main_global::log(ss.str());
+                                    }
+                                }
                                 r += a[i];
                                 //if (i <  questions.size() - 1) r+=";";
                             }
+
+                            // test
+                            {
+                                    //std::stringstream ss; ss << "initkey: " << r  << std::endl;
+                                    //main_global::log(ss.str(), true);
+                            }
+
+                            //r = "abcdef";
 
                             {
                                 //if (DEBUG_INFO)

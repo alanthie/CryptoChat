@@ -59,6 +59,8 @@ class Menu{
         bool waitForNextIteration;
         // required by conio.h
 
+        std::vector<std::string> comments;
+
 #ifdef _WIN32
 
 #else
@@ -94,7 +96,7 @@ class Menu{
         // returns the heading of the class
         std::string get_heading();
         // sets the new heading for the class
-        void set_heading(std::string header);
+        void set_heading(std::string header, std::vector<std::string> _comments );
 
         // returns the head and the body colors
         std::pair<std::string, std::string> get_colors();
@@ -193,6 +195,7 @@ Menu Menu::operator=(Menu m1){
     this->pos = m1.pos;
     this->keybinds = m1.keybinds;
     this->waitForNextIteration = m1.waitForNextIteration;
+    this->comments = m1.comments;
 
     return *this;
 }
@@ -214,8 +217,9 @@ std::string Menu::get_heading(){
     return heading;
 }
 
-void Menu::set_heading(std::string header){
+void Menu::set_heading(std::string header, std::vector<std::string> _comments ){
     heading = header;
+    comments = _comments;
 }
 
 std::pair<std::string, std::string> Menu::get_colors(){
@@ -354,6 +358,13 @@ void Menu::print_neutral_menu(){
     std::cout << std::string(max_string_len + 2, '=') << std::endl << "|";
     gen_element(heading, colors.first);
     std::cout << "|" << std::endl << std::string(max_string_len + 2, '=') << std::endl;
+
+    for(auto& s : comments)
+    {
+        std::cout << "|";
+        gen_element(s,colors.second);
+        std::cout << "|"<< std::endl;
+    }
 
     for(auto itr = names.begin(); itr != names.end(); itr++){
         std::cout << ((itr != pos)? "|": "|");

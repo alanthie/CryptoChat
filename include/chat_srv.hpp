@@ -96,7 +96,7 @@ namespace cryptochat
 
 			int run()
 			{
-				bool ok = read_cfg(true);
+				bool ok = read_cfg(false);
 				if (ok)
 				{
 					_cfg.print();
