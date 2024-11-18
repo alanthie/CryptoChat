@@ -582,9 +582,10 @@
 	<stdexcept>
 	<algorithm>
 
-1731934027 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
+1731937585 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
+	"../include/string_util.hpp"
 
 1731908887 /home/allaptop/dev/CryptoChat/include/main_global.hpp
 	<iostream>

@@ -257,17 +257,17 @@ namespace ysSocket {
                         {
                             if (lines[i][0] == 'C')
                                 comments.push_back(lines[i].substr(1, lines[i].size()-1));
-                            if (lines[i][0] == 'F')
+                            else if (lines[i][0] == 'F')
                             {
                                 questions.push_back(lines[i].substr(1, lines[i].size()-1));
                                 question_types.push_back(1);
                             }
+                            else if (lines[i][0] == 'T')
+                            {
+                                questions.push_back(lines[i].substr(1, lines[i].size()-1));
+                                question_types.push_back(0);
+                            }
                         }
-//                s = "CGeneral comments;" +
-//                "CSave the link content in a file;" +
-//                "CLink: https://drive.google.com/file/d/1YfyMe7I5aiQYplDCzdjx8BWUJlOrw_4z/view;" +
-//                "C \n;" +
-//                "FEnter the filename you saved;";
 
 						std::vector< std::string> a;
 						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
@@ -350,7 +350,6 @@ namespace ysSocket {
                                     }
                                 }
                                 r += a[i];
-                                //if (i <  questions.size() - 1) r+=";";
                             }
 
                             // test
@@ -358,8 +357,6 @@ namespace ysSocket {
                                     //std::stringstream ss; ss << "initkey: " << r  << std::endl;
                                     //main_global::log(ss.str(), true);
                             }
-
-                            //r = "abcdef";
 
                             {
                                 //if (DEBUG_INFO)
