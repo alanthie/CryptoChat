@@ -132,6 +132,7 @@ namespace ysSocket {
 				{
 					std::stringstream ss; ss << " Exiting thread recv_thread " << std::endl;
 					main_global::log(ss.str(), true);
+					msg_ok = false;
 					break;
 				}
 
@@ -146,7 +147,7 @@ namespace ysSocket {
 				// If the connection has been gracefully closed, the return value is zero.
 				// Otherwise, a value of SOCKET_ERROR is returned, and a specific error code can be retrieved by calling WSAGetLastError.
 
-				while (byte_recv < NETW_MSG::MESSAGE_HEADER)
+				while (byte_recv < NETW_MSG::MESSAGE_HEADER && msg_ok==true)
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
@@ -181,7 +182,7 @@ namespace ysSocket {
 					break;
 				}
 
-				while (byte_recv < expected_len)
+				while (byte_recv < expected_len && msg_ok==true)
 				{
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{

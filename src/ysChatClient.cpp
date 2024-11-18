@@ -50,7 +50,7 @@ static void signalHandler(int code)
 			{
 			}
 		}
-		//exit(0);
+		exit(0);
 	}
 
 //	std::cin.clear();

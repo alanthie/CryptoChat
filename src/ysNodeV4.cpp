@@ -159,15 +159,15 @@ namespace ysSocket {
 		::WSACleanup();
 #else
         std::cout << "shutdown socket" << std::endl;
-		if (shutdown(this->m_socketFd, SHUT_RD) < 0) {
+		if (shutdown(this->m_socketFd, SHUT_RDWR) < 0) {
             std::cout << "could not shutdown socket" << std::endl;
 			throw std::runtime_error("Could not shutdown socket");
 		}
 
-//		if (close(this->m_socketFd) < 0) {
-//            std::cout << "could not close socket" << std::endl;
-//			throw std::runtime_error("Could not close socket");
-//		}
+		if (close(this->m_socketFd) < 0) {
+            std::cout << "could not close socket" << std::endl;
+			throw std::runtime_error("Could not close socket");
+		}
 #endif
 		this->m_state = STATE::CLOSED;
 	}
