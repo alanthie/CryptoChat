@@ -23,6 +23,9 @@ std::stringstream	main_global::log_ss;
 std::mutex			main_global::log_mutex;
 bool				main_global::log_is_dirty = true;
 
+// TODO add shutdown signal....
+//std::atomic<int> cryptochat::srv::chat_srv::got_chat_srv_signal = 0;
+
 class main_global_srv
 {
 public:
@@ -32,10 +35,6 @@ cryptochat::srv::chat_srv* main_global_srv::global_srv = nullptr;
 
 static void signalHandler(int code)
 {
-//	char ch;
-//	std::cout << "Are you sure you want to close server? (y/n)";
-//	std::cin >> ch;
-//	if (toupper(ch) == 'Y')
 	{
 		if (main_global_srv::global_srv != nullptr)
 		try
@@ -48,14 +47,12 @@ static void signalHandler(int code)
 		}
   		exit(0);
 	}
-//	std::cin.clear();
-//	std::cin.ignore(0x7fffffffffffffff, '\n');
 }
 
 
 int main(int argc, char** argv)
 {
-	std::string FULLVERSION = CHATSRV_VERSION + "_" + cryptoAL::parsing::get_current_date();
+	std::string FULLVERSION = CHATSRV_VERSION;// + "_" + cryptoAL::parsing::get_current_date();
 
 	// Argument parser
 	try

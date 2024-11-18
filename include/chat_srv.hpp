@@ -96,8 +96,6 @@ namespace cryptochat
 
 			int run()
 			{
-				//signal(SIGINT, signalHandler);
-
 				bool ok = read_cfg(true);
 				if (ok)
 				{
@@ -121,7 +119,6 @@ namespace cryptochat
 					_chat_server = new ysSocket::ysServer(_cfg);
 					_chat_server->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_server->runServer();
-					delete _chat_server;
 				}
 				catch (const std::exception& e)
 				{
