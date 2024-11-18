@@ -41,7 +41,7 @@ static void signalHandler(int code)
 		try
 		{
 			delete main_global_srv::global_srv;
-			main_global_srv::global_srv = nullptr;c
+			main_global_srv::global_srv = nullptr;
 		}
 		catch (...)
 		{

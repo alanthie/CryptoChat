@@ -983,11 +983,11 @@ int main_client_ui(ysSocket::ysClient* netwclient)
 
             char* e ;
             if (ct->_mode == 0)
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
             else if (ct->_mode == 1)
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
             else
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
 
             ct->process_prompt(term, e);
 
