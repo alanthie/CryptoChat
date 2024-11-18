@@ -32,23 +32,24 @@ cryptochat::srv::chat_srv* main_global_srv::global_srv = nullptr;
 
 static void signalHandler(int code)
 {
-	char ch;
-	std::cout << "Are you sure you want to close server? (y/n)";
-	std::cin >> ch;
-	if (toupper(ch) == 'Y') 
+//	char ch;
+//	std::cout << "Are you sure you want to close server? (y/n)";
+//	std::cin >> ch;
+//	if (toupper(ch) == 'Y')
 	{
 		if (main_global_srv::global_srv != nullptr)
 		try
 		{
 			delete main_global_srv::global_srv;
+			main_global_srv::global_srv = nullptr;c
 		}
 		catch (...)
 		{
 		}
   		exit(0);
 	}
-	std::cin.clear();
-	std::cin.ignore(0x7fffffffffffffff, '\n');
+//	std::cin.clear();
+//	std::cin.ignore(0x7fffffffffffffff, '\n');
 }
 
 

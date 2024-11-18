@@ -76,7 +76,7 @@ namespace cryptochat
 					std::cout << "Port : " << _cfg._port << std::endl;
 					std::cout << "Username : " << _cfg._username << std::endl;
 
-					bool r = save_cfg();
+					save_cfg();
 				}
 
 				try {

@@ -10,7 +10,7 @@
 #include "IDEA.hpp"
 #include "../include/string_util.hpp"
 
-constexpr bool DEBUG_INFO = true;
+constexpr bool DEBUG_INFO = false;
 
 namespace NETW_MSG
 {

@@ -330,7 +330,7 @@ struct ClientTerm
                 for (int i = first_row_fileview; i < (int)vfilerows.size(); i++)
                 {
                     ab.append("[" + std::to_string(i) + "]: ");
-                    ab.append(vfilerows[i]);
+                    ab.append(get_printable_string(vfilerows[i]));
                     ab.append(Term::erase_to_eol());
                     ab.append("\r\n");
                     cnt++;
@@ -389,7 +389,7 @@ struct ClientTerm
                 for (int i = first_row_log_view; i < (int)vlogrows.size(); i++)
                 {
                     ab.append("[" + std::to_string(i) + "]: ");
-                    ab.append(vlogrows[i]);
+                    ab.append(get_printable_string(vlogrows[i]));
                     ab.append(Term::erase_to_eol());
                     ab.append("\r\n");
                     cnt++;
@@ -495,7 +495,7 @@ struct ClientTerm
                             }
                             else
                             {
-                                sl = vh[i].filename;
+                                sl = get_printable_string(vh[i].filename);
                                 is_file_line = true;
                                 is_file_send = !vh[i].is_receive;
                                 filename_key = vh[i].filename_key;
@@ -830,11 +830,11 @@ struct ClientTerm
                 filename = ct.file_from_command(message);
                 try
                 {
+                    //test
+                    filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
+
                     if (file_util::fileexists(filename))
                     {
-                        //test
-                        //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
-
                         filename_key = filename + std::to_string(ct.netw_client->file_counter);
                         ct.netw_client->file_counter++;
                         bool r = ct.netw_client->add_file_to_send(filename, filename_key);
@@ -911,6 +911,11 @@ struct ClientTerm
 
                     ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
                     ct.netw_client->set_ui_dirty();
+
+                    {
+                        std::stringstream ss; ss << "send MSG_FILE : " << filename << std::endl;
+                        main_global::log(ss.str());
+                    }
                 }
             }
             else
@@ -935,6 +940,11 @@ struct ClientTerm
 
                     ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
                     ct.netw_client->set_ui_dirty();
+
+                    {
+                        std::stringstream ss; ss << "send MSG_TEXT : " << message << std::endl;
+                        main_global::log(ss.str());
+                    }
                 }
             }
 
@@ -971,7 +981,14 @@ int main_client_ui(ysSocket::ysClient* netwclient)
                 break;
             }
 
-            char* e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
+            char* e ;
+            if (ct->_mode == 0)
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
+            else if (ct->_mode == 1)
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+            else
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+
             ct->process_prompt(term, e);
 
         }
