@@ -248,127 +248,166 @@ namespace ysSocket {
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
                         challenge_attempt++;
-                        //std::vector<std::string> questions = NETW_MSG::split(str_message, ";");
+						{
+							std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
+							main_global::log(ss.str());
+						}
 
-                        std::vector<std::string> lines = NETW_MSG::split(str_message, "\n");
-                        std::vector<std::string> comments;
-                        std::vector<std::string> questions;
-                        std::vector<int> question_types;
-                        for (size_t i = 0; i < lines.size(); i++)
-                        {
-                            if (lines[i][0] == 'C')
-                                comments.push_back(lines[i].substr(1, lines[i].size()-1));
-                            else if (lines[i][0] == 'F')
-                            {
-                                questions.push_back(lines[i].substr(1, lines[i].size()-1));
-                                question_types.push_back(1);
-                            }
-                            else if (lines[i][0] == 'T')
-                            {
-                                questions.push_back(lines[i].substr(1, lines[i].size()-1));
-                                question_types.push_back(0);
-                            }
-                        }
+						if (_cfg_cli.map_challenges.contains(str_message))
+						{
+							std::stringstream ss; 
+							ss << "using known challenge answer" << std::endl;
+							ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
 
-						std::vector< std::string> a;
-						for (size_t i = 0; i < questions.size(); i++) a.push_back({});
+							{
+								std::lock_guard l(_key_mutex);
+								initial_key_hint = str_message;
+								initial_key = _cfg_cli.map_challenges[str_message]; // but key_valid = false until confirmed
+							}
+							ss << "initial_key_hint set" << std::endl;
+							main_global::log(ss.str());
+							
+							NETW_MSG::MSG m;
+							m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, _cfg_cli.map_challenges[str_message], getDEFAULT_KEY());
+							this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+						}
+						else
+						{
+							std::string work = str_message;
+							std::vector<std::string> lines = NETW_MSG::split(work, "\n");
+							std::vector<std::string> comments;
+							std::vector<std::string> questions;
+							std::vector<int> question_types;
+							for (size_t i = 0; i < lines.size(); i++)
+							{
+								if (lines[i][0] == 'C')
+									comments.push_back(lines[i].substr(1, lines[i].size() - 1));
+								else if (lines[i][0] == 'F')
+								{
+									questions.push_back(lines[i].substr(1, lines[i].size() - 1));
+									question_types.push_back(1);
+								}
+								else if (lines[i][0] == 'T')
+								{
+									questions.push_back(lines[i].substr(1, lines[i].size() - 1));
+									question_types.push_back(0);
+								}
+							}
 
-                        bool menu_abort = false;
-                        while (true)
-                        {
-                            if (is_got_chat_cli_signal())
-                            {
-                                std::stringstream ss; ss << "Terminating menu" << std::endl;
-                                main_global::log(ss.str(), true);
-                                menu_abort = true;
-                                break;
-                            }
+							std::vector< std::string> a;
+							for (size_t i = 0; i < questions.size(); i++) a.push_back({});
 
-                            Menu qa;
-                            qa.set_heading(std::string("Challenges (q TO QUIT MENU)")
-                                + std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]",
-                                comments);
+							bool menu_abort = false;
+							while (true)
+							{
+								if (is_got_chat_cli_signal())
+								{
+									std::stringstream ss; ss << "Terminating menu" << std::endl;
+									main_global::log(ss.str(), true);
+									menu_abort = true;
+									break;
+								}
 
-                            qa.set_max_len(120);
-                            for(size_t i = 0; i< questions.size(); i++)
-                                qa.add_field( std::string("[" + std::to_string(i+1) + "] ") + questions[i] + " : " + a[i], nullptr);
+								Menu qa;
+								qa.set_heading(std::string("Challenges (q TO QUIT MENU)")
+									+ std::string(" [Attempt: ") + std::to_string(challenge_attempt) + "]",
+									comments);
 
-                            // Blocking....to do
-                            int c = qa.get_menu_choice();
-                            if (c == 'q')
-                            {
-                                # ifdef _WIN32
-                                    system("cls");
-                                # else
-                                    system("clear");
-                                # endif
-                                break;
-                            }
+								qa.set_max_len(120);
+								for (size_t i = 0; i < questions.size(); i++)
+									qa.add_field(std::string("[" + std::to_string(i + 1) + "] ") + questions[i] + " : " + a[i], nullptr);
 
-                            int idx = c - '1';
-                            if ((idx >= 0) && (idx < questions.size()))
-                            {
-                                // Blocking....to do
-                                std::cout << std::endl;
-                                a[idx] = get_input("Enter answer [" + std::to_string(idx+1) + "]");
-                            }
-                        }
+								// Blocking....to do
+								int c = qa.get_menu_choice();
+								if (c == 'q')
+								{
+# ifdef _WIN32
+									system("cls");
+# else
+									system("clear");
+# endif
+									break;
+								}
 
-                        if (!menu_abort)
-                        {
-                            std::string r;
-                            for(size_t i = 0; i< questions.size(); i++)
-                            {
-                                if (question_types[i] == 1)
-                                {
-									std::string out_answer;
-									std::string out_error;
-									bool r = NETW_MSG::challenge_answer(a[i], out_answer, out_error);
-									if (r)
+								int idx = c - '1';
+								if ((idx >= 0) && (idx < questions.size()))
+								{
+									// Blocking....to do
+									std::cout << std::endl;
+									a[idx] = get_input("Enter answer [" + std::to_string(idx + 1) + "]");
+								}
+							}
+
+							if (!menu_abort)
+							{
+								std::string r;
+								for (size_t i = 0; i < questions.size(); i++)
+								{
+									if (question_types[i] == 1)
 									{
-										a[i] = out_answer;
+										std::string out_answer;
+										std::string out_error;
+										bool r = NETW_MSG::challenge_answer(a[i], out_answer, out_error);
+										if (r)
+										{
+											a[i] = out_answer;
+										}
 									}
-                                }
-                                r += a[i];
-                            }
+									r += a[i];
+								}
 
-                            // test
-                            {
-                                //std::stringstream ss; ss << "initkey: " << r  << std::endl;
-                                //main_global::log(ss.str(), true);
-                            }
+								// test
+								{
+									//std::stringstream ss; ss << "initkey: " << r  << std::endl;
+									//main_global::log(ss.str(), true);
+								}
 
-                            {
-                                {
-                                    std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
-                                    main_global::log(ss.str());
-                                }
+								{
+									{
+										std::stringstream ss; ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
+										main_global::log(ss.str());
+									}
 
-                                {
-                                    std::lock_guard l(_key_mutex);
-                                    initial_key = r; // still key_valid = false;
-                                }
+									{
+										std::lock_guard l(_key_mutex);
+										initial_key_hint = str_message;
+										initial_key = r; // but key_valid = false until confirmed
+									}
 
-                                {
-                                    std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
-                                    main_global::log(ss.str());
-                                }
-                                NETW_MSG::MSG m;
-                                m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
-                                this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
-                            }
-                        }
+									std::stringstream ss;
+									ss << "initial_key_hint set size=" << initial_key_hint.size() << std::endl;
+									main_global::log(ss.str());
+
+									{
+										std::stringstream ss; ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+										main_global::log(ss.str());
+									}
+									NETW_MSG::MSG m;
+									m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
+									this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+								}
+							}
+						}
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
                     {
                         {
-							{
-								std::stringstream ss; ss << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
-								main_global::log(ss.str());
-							}
+							std::stringstream ss;
+							ss << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
 
                             // CONFIRMED new key
                             key_valid = true;
+							if (initial_key_hint.size() > 0)
+							{
+								_cfg_cli.map_challenges[initial_key_hint] = initial_key;
+								_cfg_cli.save_cfg(_cfgfile);
+								ss << "saving challenge answer" << std::endl;
+							}
+							else
+							{
+								ss << "WARNING initial_key_hint empty" << std::endl;
+							}
+							main_global::log(ss.str());
 
                             showMessage(str_message);
                             add_to_history(true, NETW_MSG::MSG_CMD_INFO_KEY_VALID, str_message);

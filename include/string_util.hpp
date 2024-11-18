@@ -31,8 +31,10 @@ namespace NETW_MSG
 		return r;
 	}
 
-	[[maybe_unused]] static std::vector<std::string> split(std::string& s, const std::string& delimiter)
+	[[maybe_unused]] static std::vector<std::string> split(const std::string& sin, const std::string& delimiter)
 	{
+		std::string s = sin;
+
 		std::vector<std::string> tokens;
 		size_t pos = 0;
 		std::string token;
