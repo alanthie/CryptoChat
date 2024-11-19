@@ -40,8 +40,8 @@ namespace NETW_MSG
         chk.update((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
 
-		make_msg(msgin.type_msg, s, digestkey);
-        //make_msg_with_crc(msgin.type_msg, s, digestkey, crc);
+		//make_msg(msgin.type_msg, s, digestkey);
+        make_msg_with_crc(msgin.type_msg, s, digestkey, crc);
 
         delete[] digestkey;
 
@@ -152,13 +152,12 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
-
-//		CRC32 chk;
-//        chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
-//		uint32_t crc = chk.get_hash();
-//		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
-
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
+
+        CRC32 chk;
+        chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
+		uint32_t crc = chk.get_hash();
+		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
     }
 
     void MSG::make_msg(uint8_t* buffer_in, size_t len)
