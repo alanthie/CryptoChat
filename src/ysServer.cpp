@@ -2,12 +2,12 @@
  * Author: Alain Lanthier
  */
 
+#include "../include/challenge.hpp"
+#include "../include/crc32a.hpp"
+#include "../include/SHA256.h"
+#include "../include/ysServer.h"
 #include <iostream>
 #include <string>
-#include "../include/ysServer.h"
-#include "../include/SHA256.h"
-#include "../include/crc32a.hpp"
-#include "../include/challenge.hpp"
 
 #ifdef _WIN32
 #pragma warning(disable : 4996)
@@ -212,7 +212,6 @@ namespace ysSocket {
             else if (r == ENOTDIR) serr = "ENOTDIR";
             else if (r == EROFS) serr = "ENOTEROFSDIR";
 #endif
-
 			throw std::runtime_error("Could not bind socket " + serr);
 		}
 	}
@@ -273,6 +272,12 @@ namespace ysSocket {
 				// RECV ()
 				while(msg_ok)
 				{
+					if (new_client->getState() == STATE::CLOSED)
+					{
+						msg_ok = false;
+						break;
+					}
+
 					if (byte_recv > 0)
 					{
 						memcpy(message_buffer, message_previous_buffer, byte_recv);
@@ -332,19 +337,17 @@ namespace ysSocket {
 							memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
 						}
 
-						size_t idx = get_client_index(new_client->getSocketFd());
-
 						// Parse message
 						NETW_MSG::MSG m;
 						bool r;
 						if (message_buffer[0] == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
 							r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
-						else if (!v_client[idx]->initial_key_validation_done)
+						else if (!new_client->initial_key_validation_done)
 							r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
-						else if (!v_client[idx]->random_key_validation_done)
-							r = m.parse(message_buffer, expected_len, v_client[idx]->initial_key);
+						else if (!new_client->random_key_validation_done)
+							r = m.parse(message_buffer, expected_len, new_client->initial_key);
 						else
-							r = m.parse(message_buffer, expected_len, v_client[idx]->random_key, v_client[idx]->previous_random_key, v_client[idx]->pending_random_key);
+							r = m.parse(message_buffer, expected_len, new_client->random_key, new_client->previous_random_key, new_client->pending_random_key);
 
 						if (r == true)
 						{
@@ -356,47 +359,52 @@ namespace ysSocket {
 								std::string s = m.get_data_as_string();
 								if (s == initial_key)
 								{
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_VALID " << idx << std::endl;
+									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_VALID " << new_client->getSocketFd() << std::endl;
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
-									sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
+									sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
 
-									v_client[idx]->initial_key = initial_key;
-									v_client[idx]->initial_key_validation_done = true;
+									new_client->initial_key = initial_key;
+									new_client->initial_key_validation_done = true;
 
-									if (v_client[idx]->username.size() == 0)
+									if (new_client->username.size() == 0)
 									{
-										if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << idx << std::endl;
+										if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << new_client->getSocketFd() << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your username : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
-										sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 									}
 
-									if (v_client[idx]->hostname.size() == 0)
+									if (new_client->hostname.size() == 0)
 									{
 										if (DEBUG_INFO)
-											std::cout << "send MSG_CMD_REQU_HOSTNAME " << idx << std::endl;
+											std::cout << "send MSG_CMD_REQU_HOSTNAME " << new_client->getSocketFd() << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your hostname : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
-										sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 									}
 								}
 								else
 								{
-									std::cerr << "WARNING invalid initial_key recv " << idx << " " << s << std::endl;
-
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << idx << std::endl;
+									std::cerr << "WARNING invalid initial_key recv " << new_client->getSocketFd() << " " << s << std::endl;
+									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << new_client->getSocketFd() << std::endl;
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_INVALID, "Initial key is INVALID", getDEFAULT_KEY());
-									sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
+									sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
 
-									if (!v_client[idx]->initial_key_validation_done)
+									if (!new_client->initial_key_validation_done)
 									{
-										this->request_client_initial_key(new_client->getSocketFd());
+										this->request_client_initial_key(new_client);
+									}
+
+									count_initial_key_validation++;
+									if (count_initial_key_validation >= 3)
+									{
+										// Kill client......
 									}
 								}
 							}
@@ -408,31 +416,31 @@ namespace ysSocket {
 								std::string s = m.get_data_as_string(); // rnd key digest
 
 								SHA256 sha;
-								sha.update((uint8_t*)v_client[idx]->pending_random_key.data(), v_client[idx]->pending_random_key.size());
+								sha.update((uint8_t*)new_client->pending_random_key.data(), new_client->pending_random_key.size());
 								uint8_t* digestkey = sha.digest();
 								std::string str_digest = sha.toString(digestkey);
 								delete[]digestkey;
 
 								if (s == str_digest)
 								{
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_RND_KEY_VALID " << idx << std::endl;
+									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_RND_KEY_VALID " << new_client->getSocketFd() << std::endl;
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
-										v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 
-									sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 
-									v_client[idx]->previous_random_key = v_client[idx]->random_key;
-									v_client[idx]->random_key = v_client[idx]->pending_random_key;
+									new_client->previous_random_key = new_client->random_key;
+									new_client->random_key = new_client->pending_random_key;
 
-									v_client[idx]->random_key_validation_done = true;
-									v_client[idx]->new_pending_random_key = false;
+									new_client->random_key_validation_done = true;
+									new_client->new_pending_random_key = false;
 								}
 								else
 								{
 									std::cout << "recv MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
-									std::cout << "ERROR received invalid random_key digest " << idx << " " << s << std::endl;
+									std::cout << "ERROR received invalid random_key digest " << new_client->getSocketFd() << " " << s << std::endl;
 								}
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_USERNAME)
@@ -442,8 +450,8 @@ namespace ysSocket {
 								std::string user = m.get_data_as_string();
 								if (user.size() == 0)
 									user = "user";
-                                v_client[idx]->username = user + "_" + std::to_string(idx) ;
-                                std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+                                new_client->username = user + "_" + std::to_string(new_client->getSocketFd()) ;
+                                std::cout << "INFO client[" << new_client->getSocketFd() << "] username:" << new_client->username << std::endl;
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_HOSTNAME)
 							{
@@ -453,13 +461,13 @@ namespace ysSocket {
 								std::string host = m.get_data_as_string();
 								if (host.size() != 0)
 								{
-									v_client[idx]->hostname = host;
-									std::cout << "INFO client[" << idx << "] hostname:" << v_client[idx]->hostname << std::endl;
+									new_client->hostname = host;
+									std::cout << "INFO client[" << new_client->getSocketFd() << "] hostname:" << new_client->hostname << std::endl;
 
-									// if (v_client[idx]->username == NETW_MSG::DEFAULT_USERNAME)
+									// if (new_client->username == NETW_MSG::DEFAULT_USERNAME)
 									// {
-										// v_client[idx]->username = "user_" + std::to_string(idx) + "_" + v_client[idx]->hostname;
-										// std::cout << "INFO client[" << idx << "] username:" << v_client[idx]->username << std::endl;
+										// new_client->username = "user_" + std::to_string(idx) + "_" + new_client->hostname;
+										// std::cout << "INFO client[" << idx << "] username:" << new_client->username << std::endl;
 									// }
 								}
 							}
@@ -470,46 +478,46 @@ namespace ysSocket {
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
 								if (DEBUG_INFO) std::cout << std::string((char*)m.buffer + NETW_MSG::MESSAGE_HEADER, 40) << std::endl;
 
-								sendMessageAll(m, v_client[idx]->getSocketFd());
+								sendMessageAll(m, new_client->getSocketFd());
 							}
 							// RELAY
 							else if (m.type_msg == NETW_MSG::MSG_FILE)
 							{
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << std::endl;
 								std::string s = m.get_data_as_string(); // filename
-								sendMessageAll(m, v_client[idx]->getSocketFd());
+								sendMessageAll(m, new_client->getSocketFd());
 							}
 							else if (m.type_msg == NETW_MSG::MSG_TEXT)
 							{
 								std::string username_display;
-								if (v_client[idx]->username.size() > 0) username_display = " (" + v_client[idx]->username + ") ";
+								if (new_client->username.size() > 0) username_display = " (" + new_client->username + ") ";
 								std::string message(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
 
 								this->sendMessageAll(message, new_client->getSocketFd());
 								//this->sendMessageClients(message);
 
-								if (!v_client[idx]->initial_key_validation_done)
+								if (!new_client->initial_key_validation_done)
 								{
-									this->request_client_initial_key(new_client->getSocketFd());
+									this->request_client_initial_key(new_client);
 								}
-								else if (v_client[idx]->username.size() == 0)
+								else if (new_client->username.size() == 0)
 								{
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << idx << std::endl;
+									if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << new_client->getSocketFd() << std::endl;
 
 									NETW_MSG::MSG m;
 									std::string s = "Please, provide your username : ";
-									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
-									sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 								}
-								else if (!v_client[idx]->random_key_validation_done)
+								else if (!new_client->random_key_validation_done)
 								{
-									this->request_accept_rnd_key(new_client->getSocketFd());
+									this->request_accept_rnd_key(new_client);
 								}
-								else if (v_client[idx]->new_pending_random_key)
+								else if (new_client->new_pending_random_key)
 								{
-									std::string work = v_client[idx]->pending_random_key;
+									std::string work = new_client->pending_random_key;
 
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << idx << std::endl;
+									if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << new_client->getSocketFd() << std::endl;
 									if (DEBUG_INFO)
 										std::cout << "Random key send ["
 										+ get_summary_hex((char*)work.data(), work.size())
@@ -539,19 +547,19 @@ namespace ysSocket {
 									}
 
 									NETW_MSG::MSG m;
-									m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
-										v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+									m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, new_client->pending_random_key,
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 
-									sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
 								}
 								else
 								{
 									if (USE_BASE64_RND_KEY_GENERATOR == false)
-										v_client[idx]->pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
+										new_client->pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
 									else
-										v_client[idx]->pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
+										new_client->pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
 
-									v_client[idx]->new_pending_random_key = true;
+									new_client->new_pending_random_key = true;
 								}
 							}
 						}
@@ -560,41 +568,35 @@ namespace ysSocket {
 					std::memset(message_buffer, '\0', sizeof (message_buffer));
 				}
 
-				// connection closed.
- 				this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
+				// connection closed. DELETING socket instance
+				{
+					std::lock_guard lck(vclient_mutex);
+					this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
+
+					// TODO
+					//this->m_nodeSize -= 1;
+				}
 				this->showMessage(client_ip + ":" + client_port + " disconnected.");
 			}));
 
 			this->showMessage(client_ip + ":" + client_port + " connected.");
-			this->v_client.push_back(new_client);
+			{
+				std::lock_guard lck(vclient_mutex);
+				this->v_client.push_back(new_client);
+			}
 		}
 	}
 
-	void ysServer::sendMessageClients(const std::string& t_message) {
+	void ysServer::sendMessageClients(const std::string& t_message)
+	{
+		std::lock_guard lck(vclient_mutex);
+
 		for (auto &client : v_client)
 		{
-			NETW_MSG::MSG  m;
-
-			std::string key;
-			if (!client->initial_key_validation_done)
-				key = getDEFAULT_KEY();
-			else if (!client->random_key_validation_done)
-				key = client->initial_key;
-			else
-				key = client->random_key;
-
-			m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
-			sendMessageBuffer(client->getSocketFd(), m, key);
-		}
-	}
-
-	// Relay message m
-	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
-	{
-		for (auto& client : v_client)
-		{
-			if (client->getSocketFd() != t_socket)
+			if (client->getState() == STATE::OPEN)
 			{
+				NETW_MSG::MSG  m;
+
 				std::string key;
 				if (!client->initial_key_validation_done)
 					key = getDEFAULT_KEY();
@@ -603,7 +605,33 @@ namespace ysSocket {
 				else
 					key = client->random_key;
 
+				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
 				sendMessageBuffer(client->getSocketFd(), m, key);
+			}
+		}
+	}
+
+	// Relay message m
+	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
+	{
+		std::lock_guard lck(vclient_mutex);
+
+		for (auto& client : v_client)
+		{
+			if (client->getSocketFd() != t_socket)
+			{
+				if (client->getState() == STATE::OPEN)
+				{
+					std::string key;
+					if (!client->initial_key_validation_done)
+						key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done)
+						key = client->initial_key;
+					else
+						key = client->random_key;
+
+					sendMessageBuffer(client->getSocketFd(), m, key);
+				}
 
 			}
 		}
@@ -612,59 +640,60 @@ namespace ysSocket {
 	// NETW_MSG::MSG_TEXT
 	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket)
 	{
-		for (auto &client : v_client) {
+		std::lock_guard lck(vclient_mutex);
+
+		for (auto &client : v_client) 
+		{
 			if (client->getSocketFd() != t_socket)
 			{
-				std::string key;
-				if (!client->initial_key_validation_done)
-					key = getDEFAULT_KEY();
-				else if (!client->random_key_validation_done)
-					key = client->initial_key;
-				else
-					key = client->random_key;
+				if (client->getState() == STATE::OPEN)
+				{
+					std::string key;
+					if (!client->initial_key_validation_done)
+						key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done)
+						key = client->initial_key;
+					else
+						key = client->random_key;
 
-				NETW_MSG::MSG m;
-				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
-				sendMessageBuffer(client->getSocketFd(), m, key);
-
+					NETW_MSG::MSG m;
+					m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
+					sendMessageBuffer(client->getSocketFd(), m, key);
+				}
 			}
 		}
 	}
 
-	size_t ysServer::get_client_index(const int& t_socket)
+	bool ysServer::close_client(ysNodeV4* client,bool force)
 	{
-		size_t idx = 0;
-		for (auto& client : v_client)
+		if (client->getState() == STATE::OPEN)
 		{
-			if (client->getSocketFd() == t_socket)
-			{
-				return idx;
-			}
-			idx++;
+			// notify
+			client->setState(STATE::CLOSED);
+
+			// removed by RECV thread 
+			//	this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
 		}
-		return idx;
 	}
 
-	void ysServer::request_client_initial_key(const int& t_socket)
+	void ysServer::request_client_initial_key(ysNodeV4* client)
 	{
-		size_t idx = get_client_index(t_socket);
-		if (!v_client[idx]->initial_key_validation_done)
+		if (!client->initial_key_validation_done)
 		{
-			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_KEY_HINT " << idx << std::endl;
+			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_KEY_HINT " << client->getSocketFd() << std::endl;
 
 			NETW_MSG::MSG m;
 			std::string s = initial_key_hint;
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
-			sendMessageBuffer(v_client[idx]->getSocketFd(), m, getDEFAULT_KEY());
+			sendMessageBuffer(client->getSocketFd(), m, getDEFAULT_KEY());
 		}
 	}
 
-	void ysServer::request_accept_rnd_key(const int& t_socket)
+	void ysServer::request_accept_rnd_key(ysNodeV4* client)
 	{
-		size_t idx = get_client_index(t_socket);
-		if (!v_client[idx]->random_key_validation_done)
+		if (!client->random_key_validation_done)
 		{
-			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << idx << std::endl;
+			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << client->getSocketFd() << std::endl;
 			if (DEBUG_INFO)
 				std::cout << "First Random key send ["
 				+ get_summary_hex((char*)pending_random_key.data(), pending_random_key.size())
@@ -682,16 +711,18 @@ namespace ysSocket {
 					+ "]" << std::endl;
 
 			NETW_MSG::MSG m;
-			v_client[idx]->pending_random_key = pending_random_key;
+			client->pending_random_key = pending_random_key;
 
-			m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, v_client[idx]->pending_random_key,
-				v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+			m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, client->pending_random_key,
+				client->random_key_validation_done ? client->random_key : client->initial_key);
 
-			sendMessageBuffer(v_client[idx]->getSocketFd(), m, v_client[idx]->random_key_validation_done ? v_client[idx]->random_key : v_client[idx]->initial_key);
+			sendMessageBuffer(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key);
 		}
 	}
 
-	void ysServer::closeClient() {
+	void ysServer::closeClient() 
+	{
+		std::lock_guard lck(vclient_mutex);
 		for (auto &client : v_client) {
 			delete client;
 		}
@@ -705,11 +736,13 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::closeServer() {
+	void ysServer::closeServer() 
+	{
 		sendMessageClients("Server closed.");
 		this->closeClient();
 		this->closeSocket();
 		this->joinThread();
+
 		this->v_client.clear();
 		this->v_thread.clear();
 	}

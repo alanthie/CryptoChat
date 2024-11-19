@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "string_util.hpp"
 #include "file_util.hpp"
+#include "vigenere.hpp"
 
 
 namespace NETW_MSG

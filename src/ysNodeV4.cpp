@@ -147,11 +147,13 @@ namespace ysSocket {
 		return r;
 	}
 
-	void ysNodeV4::closeSocket() {
-		if (this->m_state == STATE::CLOSED) {
+	void ysNodeV4::closeSocket(bool force) {
+		if (this->m_state == STATE::CLOSED && force==false) {
 			return;
 		}
+
 #ifdef _WIN32
+		std::cout << "closesocket " << this->m_socketFd  << std::endl;
 		if (::closesocket(this->m_socketFd) < 0) {
             std::cout << "could not close socket" << std::endl;
 			throw std::runtime_error("Could not close socket");
@@ -174,7 +176,7 @@ namespace ysSocket {
 
 	ysNodeV4::~ysNodeV4() {
         std::cout << "~ysNodeV4" << std::endl;
-		closeSocket();
+		closeSocket(true);
 	}
 
 	bool ysNodeV4::add_file_to_send(const std::string& filename, const std::string& filename_key)
@@ -300,25 +302,8 @@ namespace ysSocket {
 			}
 		}
 
-		// delete file done
-		//if (msg_sent)
-		//{
-		//	std::lock_guard lck(_map_file_to_send_mutex);
-		//	bool some_delete_done = true;
-		//	while (some_delete_done)
-		//	{
-		//		some_delete_done = false;
-		//		for (auto& [filename, binfile] : map_file_to_send)
-		//		{
-		//			if (binfile.has_unprocess_fragment() == false)
-		//			{
-		//				some_delete_done = true;
-		//				map_file_to_send.erase(filename);
-		//				break;
-		//			}
-		//		}
-		//	}
-		//}
+		// delete file done and not in history....
+
 
 		return msg_sent;
 	}

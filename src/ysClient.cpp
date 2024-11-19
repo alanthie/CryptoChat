@@ -197,7 +197,6 @@ namespace ysSocket {
 					if (len > 0)
 					{
 						byte_recv += len;
-						//std::cout << "RECV - byte_recv cumulative2: " << byte_recv << std::endl;
 					}
 					else
 					{
@@ -216,7 +215,6 @@ namespace ysSocket {
 					if (byte_recv > 0)
 					{
 						memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
-						//std::cout << "RECV more - byte_recv remaining: " << byte_recv << std::endl;
 					}
 				}
 
@@ -662,8 +660,6 @@ namespace ysSocket {
 
 			if (cnt == 0)
 			{
-				//message = get_input("Send first msg to server to receive instructions");
-
 				if (message.size() == 0) message = "hello";
 
 				NETW_MSG::MSG m;
@@ -674,7 +670,6 @@ namespace ysSocket {
 				add_to_history(false, NETW_MSG::MSG_TEXT, s);
 				ui_dirty = true;
 
-				//if (DEBUG_INFO)
 				{
                     std::stringstream ss; ss << "send MSG_TEXT : " << message << std::endl;
                     main_global::log(ss.str());
@@ -708,7 +703,7 @@ namespace ysSocket {
 
 					NETW_MSG::MSG m;
 					m.make_msg(NETW_MSG::MSG_TEXT, message, key);
-					//if (DEBUG_INFO)
+
 					{
                         std::stringstream ss; ss << "send MSG_TEXT : " << message << std::endl;
                         main_global::log(ss.str());

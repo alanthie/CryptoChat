@@ -77,7 +77,7 @@ namespace ysSocket {
 		void createSocket();
 		int sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key);
 		//void sendMessageBuffer(const int& t_socketFd, uint8_t* t_message, size_t len, std::string key);
-		void closeSocket();
+		void closeSocket(bool force = false);
 
 	public:
 		ysNodeV4();
@@ -103,6 +103,7 @@ namespace ysSocket {
 		int getMessageSize() const;
 		void setMessageSize(const int& t_messageSize);
 
+		int count_initial_key_validation = 0;
 		bool initial_key_validation_done = false;
 		bool random_key_validation_done = false;
 
