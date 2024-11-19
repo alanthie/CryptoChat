@@ -32,18 +32,11 @@ static WSAData wsaData;
 #endif
 
 #include "../include/netw_msg.hpp"
-//using namespace NETW_MSG;
-
 
 namespace ysSocket {
 
 	//constexpr bool DEBUG_INFO = false;
 	constexpr int VERSION = 202411;
-
-	//const int MESSAGE_SIZE = 4 * 1024; // 4k or better if supported 64k to 8MB, use in recv(), send()
-
-	// Make KEY_SIZE a multiple of 128 to support most encryption algos
-	//const int KEY_SIZE     = 2 * (1024 - 128); // Key transfer is encrypt and may 2x in size
 
 	// UI history size
 	const int HISTORY_SIZE = 2000;
@@ -75,8 +68,7 @@ namespace ysSocket {
 		// socket
 		void setSocketInfo();
 		void createSocket();
-		int sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key);
-		//void sendMessageBuffer(const int& t_socketFd, uint8_t* t_message, size_t len, std::string key);
+		int  sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key);
 		void closeSocket(bool force = false);
 
 	public:
@@ -137,8 +129,6 @@ namespace ysSocket {
 
 		bool add_file_to_send(const std::string& filename, const std::string& filename_key);
 		bool add_file_to_recv(const std::string& filename, const std::string& filename_key);
-		//bool add_msg_to_send(const NETW_MSG::MSG& m);
-		//bool add_msg_to_recv(const NETW_MSG::MSG& m);
 
 		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
 		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);

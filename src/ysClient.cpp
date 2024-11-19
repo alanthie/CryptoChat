@@ -127,7 +127,7 @@ namespace ysSocket {
 			char message_previous_buffer[NETW_MSG::MESSAGE_SIZE + 1];
 
 			// RECV ()
-			while (msg_ok)
+			while (msg_ok && this->m_state == STATE::OPEN)
 			{
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
@@ -139,7 +139,6 @@ namespace ysSocket {
 
 				if (byte_recv > 0)
 				{
-					//std::cout << "RECV - byte_recv: " << byte_recv << std::endl;
 					memcpy(message_buffer, message_previous_buffer, byte_recv);
 				}
 
@@ -162,7 +161,6 @@ namespace ysSocket {
 					if (len > 0)
 					{
 						byte_recv += len;
-						//std::cout << "RECV - byte_recv cumulative1: " << byte_recv << std::endl;
 					}
 					else
 					{

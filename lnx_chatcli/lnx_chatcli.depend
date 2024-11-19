@@ -75,7 +75,7 @@
 	<mutex>
 	<atomic>
 
-1731980485 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731980717 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -201,7 +201,7 @@
 	<thread>
 	<mutex>
 
-1731931837 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
+1731980485 source:/home/allaptop/dev/CryptoChat/src/ysClient.cpp
 	<iostream>
 	<string>
 	<conio.h>
@@ -213,11 +213,12 @@
 	"../include/chat_cli.hpp"
 	"../include/main_global.hpp"
 	"../include/data.hpp"
+	"../include/challenge.hpp"
 	<ciso646>
 	<iostream>
 	<string>
 
-1731979893 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731980806 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	<mutex>
 	"../include/ysNodeV4.h"
