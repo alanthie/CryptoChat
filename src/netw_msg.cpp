@@ -61,7 +61,11 @@ namespace NETW_MSG
 
         buffer[0] = msgin.type_msg;
         MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
-        memcpy(buffer + MESSAGE_KEYDIGEST_START, msgin.buffer + MESSAGE_KEYDIGEST_START, 32);
+        memcpy(buffer + MESSAGE_KEYDIGEST_START, 	msgin.buffer + MESSAGE_KEYDIGEST_START, 32);
+		memcpy(buffer + MESSAGE_SIGNATURE_START, 	msgin.buffer + MESSAGE_SIGNATURE_START, 20);
+		memcpy(buffer + MESSAGE_PADDING_START, 		msgin.buffer + MESSAGE_PADDING_START, 1);
+		memcpy(buffer + MESSAGE_CRC_START, 			msgin.buffer + MESSAGE_CRC_START, 4);
+		memcpy(buffer + MESSAGE_MISC_START, 		msgin.buffer + MESSAGE_MISC_START, 2);
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
 
         if (DEBUG_INFO)
@@ -97,7 +101,9 @@ namespace NETW_MSG
         delete[]digestkey;
     }
 
-    void MSG::make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey)
+    void MSG::make_msg( uint8_t t,
+                        uint32_t len_data, uint8_t* data,
+                        uint8_t* digestkey)
     {
         if (data == nullptr)
         {
@@ -111,6 +117,8 @@ namespace NETW_MSG
         buffer[0] = t;
         MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
+		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
+		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
     }
 
@@ -199,15 +207,24 @@ namespace NETW_MSG
                 else
                 {
                     delete[]digestkeypending;
-                    std::stringstream ss;
-                    ss << "INFO using pending key" << std::endl;
-                    main_global::log(ss.str());
 
-                    MSG m;
-                    m.make_msg((uint8_t*)message_buffer, len);
-                    this->make_decrypt_msg(m, pending_key);
-                    return true;
+					 if (memcmp(message_buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20) != 0)
+					 {
+                        std::stringstream ss;
+                        ss << "WARNING invalid signature in pending key" << std::endl;
+                        main_global::log(ss.str());
+					 }
+					 else
+					 {
+                        std::stringstream ss;
+                        ss << "INFO using pending key" << std::endl;
+                        main_global::log(ss.str());
 
+                        MSG m;
+                        m.make_msg((uint8_t*)message_buffer, len);
+                        this->make_decrypt_msg(m, pending_key);
+                        return true;
+                    }
                 }
             }
             else
@@ -232,15 +249,24 @@ namespace NETW_MSG
                 }
                 else
                 {
-                    delete[]digestkeyprevious;
-                    std::stringstream ss;
-                    ss << "INFO using previous key" << std::endl;
-                    main_global::log(ss.str());
+                    if (memcmp(message_buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20) != 0)
+                    {
+                        std::stringstream ss;
+                        ss << "WARNING invalid signature in previous key" << std::endl;
+                        main_global::log(ss.str());
+                    }
+                    else
+                    {
+                        delete[]digestkeyprevious;
+                        std::stringstream ss;
+                        ss << "INFO using previous key" << std::endl;
+                        main_global::log(ss.str());
 
-                    MSG m;
-                    m.make_msg((uint8_t*)message_buffer, len);
-                    this->make_decrypt_msg(m, previous_key);
-                    return true;
+                        MSG m;
+                        m.make_msg((uint8_t*)message_buffer, len);
+                        this->make_decrypt_msg(m, previous_key);
+                        return true;
+                    }
                 }
             }
             else

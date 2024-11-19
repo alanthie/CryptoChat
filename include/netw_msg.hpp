@@ -24,6 +24,9 @@ const int MESSAGE_PADDING_START = MESSAGE_SIGNATURE_START + 20;
 const int MESSAGE_CRC_START = MESSAGE_PADDING_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 
+const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
+const char MESSAGE_LAST[7+1] {0};
+
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
 
@@ -58,8 +61,6 @@ const uint8_t MSG_CMD_REQU_HOSTNAME = 22;
 const uint8_t MSG_CMD_RESP_HOSTNAME = 23;
 
 const uint8_t MSG_FILE_FRAGMENT = 31;
-//
-
 
 struct MSG_FILE_FRAGMENT_HEADER
 {
@@ -306,11 +307,6 @@ struct MSG_BINFILE
 struct MSG
 {
 	// HEADER + data
-	// type_msg (1 byte) =  buffer[0]
-	// buffer_len (4 bytes) = buffer[1]...buffer[4]
-	// digest of key (32 bytes) = buffer[5]...buffer[36]
-	// data = buffer[37]...buffer[N]
-
 	uint8_t	type_msg = MSG_EMPTY;
 	uint32_t buffer_len = 0;
 	uint8_t* buffer = nullptr;
