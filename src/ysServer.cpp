@@ -52,7 +52,7 @@ namespace ysSocket {
 		//	bool r = NETW_MSG::challenge_read_from_file("C:\\cpp\\CryptoChat\\challenge.txt", map_out, out_error);
 		//}
 
-		// 
+		//
 		// TEST MSG_FILE_FRAGMENT_HEADER
 		//{
 		//	NETW_MSG::MSG_FILE_FRAGMENT_HEADER h;
@@ -151,9 +151,15 @@ namespace ysSocket {
 	{
 		NETW_MSG::MSG m, m2, m3;
 		m.make_msg(NETW_MSG::MSG_TEXT, "Hello Test", key);
+        std::string sm = m.get_data_as_string();
 
+		uint32_t crc;
 		m2.make_encrypt_msg(m, key);
-		m3.make_decrypt_msg(m2, key);
+		std::string sm2 = m2.get_data_as_string();
+
+		m3.make_decrypt_msg(m2, key, crc);
+		std::string sm3 = m3.get_data_as_string();
+
 		return m.is_same(m3);
 	}
 
@@ -644,7 +650,7 @@ namespace ysSocket {
 	{
 		std::lock_guard lck(vclient_mutex);
 
-		for (auto &client : v_client) 
+		for (auto &client : v_client)
 		{
 			if (client->getSocketFd() != t_socket)
 			{
@@ -675,7 +681,7 @@ namespace ysSocket {
 				// notify
 				client->setState(STATE::CLOSED);
 
-				// removed by RECV thread 
+				// removed by RECV thread
 				//	this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
 			}
 		}
@@ -725,7 +731,7 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::closeClient() 
+	void ysServer::closeClient()
 	{
 		std::lock_guard lck(vclient_mutex);
 		for (auto &client : v_client) {
@@ -741,7 +747,7 @@ namespace ysSocket {
 		}
 	}
 
-	void ysServer::closeServer() 
+	void ysServer::closeServer()
 	{
 		sendMessageClients("Server closed.");
 		this->closeClient();

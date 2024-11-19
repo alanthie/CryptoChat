@@ -318,9 +318,14 @@ struct MSG
 	bool is_same(MSG& msgin);
 
 	void make_encrypt_msg(MSG& msgin, std::string& key);
-	void make_decrypt_msg(MSG& msgin, std::string& key);
+	void make_decrypt_msg(MSG& msgin, std::string& key, uint32_t& crc);
+
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
+
+	void make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc);
+	void make_msg_with_crc_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc);
+
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
 	bool parse(char* message_buffer, size_t len, std::string key, std::string previous_key = {}, std::string pending_key = {});

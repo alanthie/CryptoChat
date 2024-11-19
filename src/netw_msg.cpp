@@ -1,5 +1,6 @@
 #include "../include/netw_msg.hpp"
 #include "../include/main_global.hpp"
+#include "../include/crc32a.hpp"
 
 namespace NETW_MSG
 {
@@ -35,7 +36,13 @@ namespace NETW_MSG
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-        make_msg(msgin.type_msg, s, digestkey);
+        CRC32 chk;
+        chk.update((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER);
+		uint32_t crc = chk.get_hash();
+
+		make_msg(msgin.type_msg, s, digestkey);
+        //make_msg_with_crc(msgin.type_msg, s, digestkey, crc);
+
         delete[] digestkey;
 
         if (DEBUG_INFO)
@@ -49,7 +56,7 @@ namespace NETW_MSG
         }
     }
 
-    void MSG::make_decrypt_msg(MSG& msgin, std::string& key)
+    void MSG::make_decrypt_msg(MSG& msgin, std::string& key, uint32_t& crc)
     {
         std::string s = msgin.get_data_as_string();
         std::string b64_encoded_str = decrypt_simple_string(s, key);
@@ -67,6 +74,8 @@ namespace NETW_MSG
 		memcpy(buffer + MESSAGE_CRC_START, 			msgin.buffer + MESSAGE_CRC_START, 4);
 		memcpy(buffer + MESSAGE_MISC_START, 		msgin.buffer + MESSAGE_MISC_START, 2);
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
+
+        // crc =...
 
         if (DEBUG_INFO)
         {
@@ -101,6 +110,30 @@ namespace NETW_MSG
         delete[]digestkey;
     }
 
+    void MSG::make_msg_with_crc_buffer( uint8_t t,
+                        uint32_t len_data, uint8_t* data,
+                        uint8_t* digestkey, uint32_t crc)
+    {
+        if (data == nullptr)
+        {
+            return;
+        }
+
+        type_msg = t;
+        buffer_len = len_data + MESSAGE_HEADER;
+        buffer = new uint8_t[buffer_len]{ 0 };
+
+        buffer[0] = t;
+        MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
+        memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
+		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
+		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
+
+		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
+
+        memcpy(buffer + MESSAGE_HEADER, data, len_data);
+    }
+
     void MSG::make_msg( uint8_t t,
                         uint32_t len_data, uint8_t* data,
                         uint8_t* digestkey)
@@ -119,6 +152,12 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
+
+//		CRC32 chk;
+//        chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
+//		uint32_t crc = chk.get_hash();
+//		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
+
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
     }
 
@@ -144,6 +183,11 @@ namespace NETW_MSG
     {
         make_msg(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey);
     }
+    void MSG::make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc)
+    {
+        make_msg_with_crc_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc);
+    }
+
 
     bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)
     {
@@ -170,7 +214,7 @@ namespace NETW_MSG
             ss  << "WARNING MSG(truncated), size = MESSAGE_SIZE" << std::endl;
             main_global::log(ss.str());
         }
-
+        uint32_t crc;
         uint32_t expected_len = MSG::byteToUInt4(message_buffer + 1);
         if (expected_len != len)
         {
@@ -222,7 +266,7 @@ namespace NETW_MSG
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        this->make_decrypt_msg(m, pending_key);
+                        this->make_decrypt_msg(m, pending_key, crc);
                         return true;
                     }
                 }
@@ -264,7 +308,7 @@ namespace NETW_MSG
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        this->make_decrypt_msg(m, previous_key);
+                        this->make_decrypt_msg(m, previous_key, crc);
                         return true;
                     }
                 }
@@ -284,7 +328,7 @@ namespace NETW_MSG
 
             MSG m;
             m.make_msg((uint8_t*)message_buffer, len);
-            this->make_decrypt_msg(m, key);
+            this->make_decrypt_msg(m, key, crc);
             return true;
         }
     }
