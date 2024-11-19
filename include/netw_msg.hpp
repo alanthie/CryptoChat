@@ -15,8 +15,14 @@ constexpr bool DEBUG_INFO = false;
 namespace NETW_MSG
 {
 const int MESSAGE_SIZE = 4 * 1024;
-const int MESSAGE_HEADER = 37;
-const int MESSAGE_KEYDIGEST_START = 5;
+const int MESSAGE_HEADER = 1+4+32+20+1+4+2; // 64 bytes
+const int MESSAGE_MSGTYPE_START = 0;
+const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
+const int MESSAGE_KEYDIGEST_START = MESSAGE_LEN_START + 4;
+const int MESSAGE_SIGNATURE_START = MESSAGE_KEYDIGEST_START + 32;
+const int MESSAGE_PADDING_START = MESSAGE_SIGNATURE_START + 20;
+const int MESSAGE_CRC_START = MESSAGE_PADDING_START + 1;
+const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
