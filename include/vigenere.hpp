@@ -13,10 +13,10 @@ namespace cryptoAL_vigenere
     static std::string AVAILABLE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
     int index(char c);
-    bool is_valid_string(std::string s);
-    std::string extend_key(std::string& msg, std::string& key);
-    std::string encrypt_vigenere(std::string& msg, std::string& key);
-    std::string decrypt_vigenere(std::string& encryptedMsg, std::string& newKey);
+    bool is_valid_string(const std::string s);
+    std::string extend_key(const std::string& msg, const std::string& key);
+    std::string encrypt_vigenere(const std::string& msg, const std::string& key);
+    std::string decrypt_vigenere(const std::string& encryptedMsg, const std::string& newKey);
 
     bool is_string_ok(const std::string& s);
 };

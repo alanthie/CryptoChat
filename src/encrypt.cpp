@@ -10,7 +10,6 @@
 #include "../include/Base64.h"
 #include "../include/vigenere.hpp"
 #include "../include/netw_msg.hpp"
-//#include "../include/main_global.hpp"
 
 
 template <typename T> std::string makehex(T value, unsigned int size = 2 * sizeof(T), bool caps = false) {
@@ -33,47 +32,8 @@ template <typename T> std::string makehex(T value, unsigned int size = 2 * sizeo
     return out;
 }
 
-/*[[maybe_unused]] *//*static*/ std::string get_summary_hex(const char* buffer, uint32_t buf_len)
-{
-    std::string s;
-    for (uint32_t j = 0; j < buf_len; j++)
-    {
-        if (j < 16) { s += makehex((char)buffer[j], 2); s += " "; }
-        else if (j == 16) { s += " ... ["; s += std::to_string(buf_len); s += "] ... "; }
-        else if (j > buf_len - 16) { s += makehex((char)buffer[j], 2); s += " "; }
-    }
-    return s;
-}
-
-std::string encrypt_simple_string(std::string& msg, std::string& key)
-{
-    //std::string s;
-    //{
-        std::vector<char> msg2(msg.begin(), msg.end());
-        std::string b64_str = Base64::encode(msg2);
-        std::string vigenere_msg = cryptoAL_vigenere::encrypt_vigenere(b64_str, key);
-        //s = vigenere_msg;
-    //}
-
-    //std::vector<char> msg2b(s.begin(), s.end());
-    //std::string b64_str = Base64::encode(msg2b);
-    //std::string vigenere_msg2 = cryptoAL_vigenere::encrypt_vigenere(b64_str, key);
-
-    //if (DEBUG_INFO)
-    //{
-    //    std::stringstream ss;
-    //    ss << "Encrypt simple ["
-    //        + get_summary_hex((char*)msg.data(), msg.size()) + "]=>["
-    //        + get_summary_hex((char*)vigenere_msg.data(), vigenere_msg.size())
-    //        + "]" << std::endl;
-    //    main_global::log(ss.str());
-    //}
-
-    return vigenere_msg;
-}
-
 // https://stackoverflow.com/questions/17316506/strip-invalid-utf8-from-string-in-c-c
-std::string sanitize_utf8(std::string& str)
+std::string sanitize_utf8(const std::string& str)
 {
     int i,f_size= (int)str.size();
     unsigned char c,c2,c3,c4;
@@ -159,36 +119,26 @@ std::string sanitize_utf8(std::string& str)
     return to;
 }
 
+std::string encrypt_simple_string(const std::string& msg, const std::string& key)
+{
+    std::vector<char> msg2(msg.begin(), msg.end());
+    std::string b64_str = Base64::encode(msg2);
+    std::string vigenere_msg = cryptoAL_vigenere::encrypt_vigenere(b64_str, key);
 
-std::string decrypt_simple_string(std::string& encrypted_msg, std::string& key)
+    return vigenere_msg;
+}
+
+std::string decrypt_simple_string(const std::string& encrypted_msg, const std::string& key)
 {
     std::string s;
-    //{
-        std::string newKey = cryptoAL_vigenere::extend_key(encrypted_msg, key);
-        std::string b64_encoded_str = cryptoAL_vigenere::decrypt_vigenere(encrypted_msg, newKey);
-        std::vector<char> b64_decode_vec = Base64::decode(b64_encoded_str);
-        std::string b64_decode_str(b64_decode_vec.begin(), b64_decode_vec.end());
-        //s = sanitize_utf8(b64_decode_str);
-        s = b64_decode_str;
-    //}
 
-    //std::string newKey = cryptoAL_vigenere::extend_key(s, key);
-    //std::string b64_encoded_str = cryptoAL_vigenere::decrypt_vigenere(s, newKey);
-    //std::vector<char> b64_decode_vec = Base64::decode(b64_encoded_str);
-    //std::string b64_decode_str(b64_decode_vec.begin(), b64_decode_vec.end());
+    std::string newKey = cryptoAL_vigenere::extend_key(encrypted_msg, key);
+    std::string b64_encoded_str = cryptoAL_vigenere::decrypt_vigenere(encrypted_msg, newKey);
+    std::vector<char> b64_decode_vec = Base64::decode(b64_encoded_str);
+    std::string b64_decode_str(b64_decode_vec.begin(), b64_decode_vec.end());
     //s = sanitize_utf8(b64_decode_str);
+    s = b64_decode_str;
 
-    //if (DEBUG_INFO) std::cout << "Decrypt simple [" + encrypted_msg + "]=>[" + s + "]" << std::endl;
-
-    //if (DEBUG_INFO)
-    //{
-    //    std::stringstream ss;
-    //    ss << "Decrypt simple ["
-    //        + get_summary_hex((char*)encrypted_msg.data(), encrypted_msg.size()) + "]=>["
-    //        + get_summary_hex((char*)s.data(), s.size())
-    //        + "]" << std::endl;
-    //    main_global::log(ss.str());
-    //}
     return s;
 }
 

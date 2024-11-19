@@ -6,6 +6,8 @@
 #include "../include/crc32a.hpp"
 #include "../include/SHA256.h"
 #include "../include/ysServer.h"
+#include "../include/file_util.hpp"
+#include "../include/encdec_algo.hpp"
 #include <iostream>
 #include <string>
 
@@ -127,8 +129,8 @@ namespace ysSocket {
 				// "encode_idea data file must be multiple of 8 bytes idea: "
 				// "encode_idea key must be multiple of 16 bytes: "
 
-				bool r = NETW_MSG::MSG::encode_idea(datain, bkey.data(), bkey.size(), dataenc);
-				if (r) r = NETW_MSG::MSG::decode_idea(dataenc, bkey.data(), bkey.size(), dataout);
+				bool r = NETW_MSG::encode_idea(datain, bkey.data(), bkey.size(), dataenc);
+				if (r) r = NETW_MSG::decode_idea(dataenc, bkey.data(), bkey.size(), dataout);
 				if (r) if (dataout.buffer.size() != bdat.size()) r = false;
 				if (r) if (memcmp(dataout.buffer.getdata(),bdat.data(), bdat.size())!=0) r = false;
 				if (!r)
@@ -167,7 +169,6 @@ namespace ysSocket {
 		return m.is_same(m3);
 	}
 
-	//
 	void ysServer::set_key_hint()
 	{
 		if (_cfg._map_challenges.size() > 0)
@@ -532,7 +533,7 @@ namespace ysSocket {
 									if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << new_client->getSocketFd() << std::endl;
 									if (DEBUG_INFO)
 										std::cout << "Random key send ["
-										+ get_summary_hex((char*)work.data(), work.size())
+										+ file_util::get_summary_hex((char*)work.data(), work.size())
 										+ "]" << std::endl;
 
 									SHA256 sha;
@@ -711,7 +712,7 @@ namespace ysSocket {
 			if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_ACCEPT_RND_KEY " << client->getSocketFd() << std::endl;
 			if (DEBUG_INFO)
 				std::cout << "First Random key send ["
-				+ get_summary_hex((char*)pending_random_key.data(), pending_random_key.size())
+				+ file_util::get_summary_hex((char*)pending_random_key.data(), pending_random_key.size())
 				+ "]" << std::endl;
 
 			SHA256 sha;

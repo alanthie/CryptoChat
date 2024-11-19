@@ -22,14 +22,13 @@ namespace cryptoAL_vigenere
 	    {
 		    if(AVAILABLE_CHARS[ii] == c)
 		    {
-			    // std::cout << ii << " " << c << std::endl;
 			    return ii;
 		    }
 	    }
 	    return -1;
     }
 
-    bool is_valid_string(std::string s)
+    bool is_valid_string(const std::string s)
     {
         char c;
         unsigned char v;
@@ -67,7 +66,7 @@ namespace cryptoAL_vigenere
         return true;
     }
 
-    std::string extend_key(std::string& msg, std::string& key)
+    std::string extend_key(const std::string& msg, const std::string& key)
     {
 	    // generating new key
 	    int msgLen = (int)msg.size();
@@ -89,20 +88,17 @@ namespace cryptoAL_vigenere
     }
 
 
-    std::string encrypt_vigenere(std::string& msg, std::string& key)
+    std::string encrypt_vigenere(const std::string& msg, const std::string& key)
     {
 	    int msgLen = (int)msg.size();
         int i = 0;
 
  	    std::string encryptedMsg(msgLen, 'x');
-        // char newKey[msgLen], encryptedMsg[msgLen], decryptedMsg[msgLen];
-
 	    std::string newKey = extend_key(msg, key);
 
         //encryption
         for(i = 0; i < msgLen; ++i)
         {
-    	    // std::cout << msg[i] << " " << isalnum(msg[i]) << std::endl;
     	    if( myisalnum(msg[i]) or msg[i] == ' ')
     	    {
     		    encryptedMsg[i] = AVAILABLE_CHARS[((index(msg[i]) + index(newKey[i])) % AVAILABLE_CHARS.size())];
@@ -117,7 +113,7 @@ namespace cryptoAL_vigenere
         return encryptedMsg;
     }
 
-    std::string decrypt_vigenere(std::string& encryptedMsg, std::string& newKey)
+    std::string decrypt_vigenere(const std::string& encryptedMsg, const std::string& newKey)
     {
 	    // decryption
 	    int msgLen = (int)encryptedMsg.size();

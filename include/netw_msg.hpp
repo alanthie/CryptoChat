@@ -317,8 +317,8 @@ struct MSG
 	std::string get_data_as_string();
 	bool is_same(MSG& msgin);
 
-	void make_encrypt_msg(MSG& msgin, std::string& key);
-	void make_decrypt_msg(MSG& msgin, std::string& key, uint32_t& crc);
+	void make_encrypt_msg(MSG& msgin, const std::string& key);
+	void make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc);
 
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
@@ -331,9 +331,6 @@ struct MSG
 	bool parse(char* message_buffer, size_t len, std::string key, std::string previous_key = {}, std::string pending_key = {});
 
 	~MSG();
-
-	static bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next);
-	static bool decode_idea(cryptoAL::cryptodata& data_encrypted, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_decrypted);
 
 	static void uint4ToByte(uint32_t k, char buff[])
 	{

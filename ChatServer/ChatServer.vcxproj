@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\Base64.cpp" />
     <ClCompile Include="..\src\crc32a.cpp" />
+    <ClCompile Include="..\src\encdec_algo.cpp" />
     <ClCompile Include="..\src\encrypt.cpp" />
     <ClCompile Include="..\src\includes.cpp" />
     <ClCompile Include="..\src\netw_msg.cpp" />
@@ -43,6 +44,7 @@
     <ClInclude Include="..\include\crypto_strutil.hpp" />
     <ClInclude Include="..\include\c_plus_plus_serializer.h" />
     <ClInclude Include="..\include\data.hpp" />
+    <ClInclude Include="..\include\encdec_algo.hpp" />
     <ClInclude Include="..\include\encrypt.h" />
     <ClInclude Include="..\include\file_util.hpp" />
     <ClInclude Include="..\include\IDEA.hpp" />

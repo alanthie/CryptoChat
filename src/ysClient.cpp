@@ -21,6 +21,7 @@
 #include "../include/main_global.hpp"
 #include "../include/data.hpp"
 #include "../include/challenge.hpp"
+#include "../include/file_util.hpp"
 
 #include <ciso646>
 #include <iostream>
@@ -440,7 +441,7 @@ namespace ysSocket {
 						if (DEBUG_INFO)
                         {
 							ss << "Random key recv ["
-                                + get_summary_hex((char*)work.data(), work.size())
+                                + file_util::get_summary_hex((char*)work.data(), work.size())
                                 + "]" << std::endl;
 
 							 ss << "Random key digest recv ["
