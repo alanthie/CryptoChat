@@ -153,17 +153,17 @@ namespace ysSocket {
 	{
 		NETW_MSG::MSG m, m2, m3;
 		m.make_msg(NETW_MSG::MSG_TEXT, "Hello Test", key);
-        std::string sm = m.get_data_as_string();
+        std::string sm = m.get_data_as_string(true);
 
         uint32_t crc1 = NETW_MSG::MSG::byteToUInt4((char*)m.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		uint32_t crc;
 		m2.make_encrypt_msg(m, key);
-		std::string sm2 = m2.get_data_as_string();
+		std::string sm2 = m2.get_data_as_string(true);
 		uint32_t crc2 = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		m3.make_decrypt_msg(m2, key, crc);
-		std::string sm3 = m3.get_data_as_string();
+		std::string sm3 = m3.get_data_as_string(true);
 		uint32_t crc3 = NETW_MSG::MSG::byteToUInt4((char*)m3.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		return m.is_same(m3);

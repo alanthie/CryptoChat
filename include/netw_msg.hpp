@@ -15,6 +15,8 @@ constexpr bool DEBUG_INFO = false;
 namespace NETW_MSG
 {
 const int MESSAGE_SIZE = 4 * 1024;
+const int MESSAGE_FACTOR = 64;
+
 const int MESSAGE_HEADER = 1+4+32+20+1+4+2; // 64 bytes
 const int MESSAGE_MSGTYPE_START = 0;
 const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
@@ -25,7 +27,7 @@ const int MESSAGE_CRC_START = MESSAGE_PADDING_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 
 const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
-const char MESSAGE_LAST[7+1] {0};
+const char MESSAGE_LAST[7 + 1]{ 0}; // header
 
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
@@ -314,7 +316,7 @@ struct MSG
 	size_t size();
 	uint8_t* get_buffer();
 
-	std::string get_data_as_string();
+	std::string get_data_as_string(bool with_padding = false);
 	bool is_same(MSG& msgin);
 
 	void make_encrypt_msg(MSG& msgin, const std::string& key);
@@ -323,8 +325,8 @@ struct MSG
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 
-	void make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc);
-	void make_msg_with_crc_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc);
+	void make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad);
+	void make_msg_with_crc_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t pad);
 
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
