@@ -405,6 +405,8 @@ namespace ysSocket {
 									if (count_initial_key_validation >= 3)
 									{
 										// Kill client......
+										std::cerr << "WARNING client exceed number of challenge attempt limit - closing socket : " << new_client->getSocketFd() << " " << std::endl;
+										close_client(new_client);
 									}
 								}
 							}
@@ -664,15 +666,18 @@ namespace ysSocket {
 		}
 	}
 
-	bool ysServer::close_client(ysNodeV4* client,bool force)
+	void ysServer::close_client(ysNodeV4* client,bool force)
 	{
-		if (client->getState() == STATE::OPEN)
+		if (client != nullptr)
 		{
-			// notify
-			client->setState(STATE::CLOSED);
+			if (client->getState() == STATE::OPEN)
+			{
+				// notify
+				client->setState(STATE::CLOSED);
 
-			// removed by RECV thread 
-			//	this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
+				// removed by RECV thread 
+				//	this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
+			}
 		}
 	}
 

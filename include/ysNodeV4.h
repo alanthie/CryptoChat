@@ -107,7 +107,6 @@ namespace ysSocket {
 		bool initial_key_validation_done = false;
 		bool random_key_validation_done = false;
 
-		int challenge_attempt = 0;
 		std::string initial_key_hint;
 		std::string initial_key;
 

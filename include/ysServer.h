@@ -57,12 +57,10 @@ namespace ysSocket {
 		void runServer();
 		void closeServer();
 
-		//size_t get_client_index(const int& t_socket);
-
 		void request_client_initial_key(ysNodeV4* client);
 		void request_accept_rnd_key(ysNodeV4* client);
 
-		bool close_client(ysNodeV4* client, bool force = false);
+		void close_client(ysNodeV4* client, bool force = false);
 
 		cryptochat::cfg::cfg_srv _cfg;
 		virtual ~ysServer();
