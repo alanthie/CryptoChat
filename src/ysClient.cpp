@@ -253,7 +253,7 @@ namespace ysSocket {
 
 						if (_cfg_cli.map_challenges.contains(str_message))
 						{
-							std::stringstream ss; 
+							std::stringstream ss;
 							ss << "using known challenge answer" << std::endl;
 							ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
 
@@ -264,7 +264,7 @@ namespace ysSocket {
 							}
 							ss << "initial_key_hint set" << std::endl;
 							main_global::log(ss.str());
-							
+
 							NETW_MSG::MSG m;
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, _cfg_cli.map_challenges[str_message], getDEFAULT_KEY());
 							this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());

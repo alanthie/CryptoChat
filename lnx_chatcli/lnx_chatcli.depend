@@ -75,7 +75,7 @@
 	<mutex>
 	<atomic>
 
-1731885515 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
+1731980485 /home/allaptop/dev/CryptoChat/include/ysNodeV4.h
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -217,7 +217,7 @@
 	<iostream>
 	<string>
 
-1731894925 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
+1731979893 source:/home/allaptop/dev/CryptoChat/src/ysNodeV4.cpp
 	<iostream>
 	<mutex>
 	"../include/ysNodeV4.h"
@@ -492,7 +492,7 @@
 	<fcntl.h>
 	<termios.h>
 
-1731726275 /home/allaptop/dev/CryptoChat/include/string_util.hpp
+1731979893 /home/allaptop/dev/CryptoChat/include/string_util.hpp
 	<cstring>
 	<iostream>
 	<string>
@@ -582,10 +582,11 @@
 	<stdexcept>
 	<algorithm>
 
-1731937585 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
+1731979893 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
 	"../include/string_util.hpp"
+	"../include/challenge.hpp"
 
 1731908887 /home/allaptop/dev/CryptoChat/include/main_global.hpp
 	<iostream>
@@ -694,4 +695,14 @@
 	<sstream>
 	<iomanip>
 	<string>
+
+1731979893 /home/allaptop/dev/CryptoChat/include/challenge.hpp
+	<cstring>
+	<iostream>
+	<string>
+	<vector>
+	<map>
+	"string_util.hpp"
+	"file_util.hpp"
+	"vigenere.hpp"
 
