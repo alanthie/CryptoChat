@@ -2,7 +2,6 @@
 #ifndef CFGSRV_H_INCLUDED
 #define CFGSRV_H_INCLUDED
 
-//#include "../uint_util.hpp"
 #include "../include/c_plus_plus_serializer.h"
 #include "../include/vigenere.hpp"
 #include "../include/string_util.hpp"
