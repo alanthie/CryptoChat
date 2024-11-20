@@ -6,6 +6,7 @@
 namespace NETW_MSG
 {
     size_t MSG::size() { return buffer_len; };
+
     uint8_t* MSG::get_buffer()
     {
         return buffer;
@@ -53,8 +54,7 @@ namespace NETW_MSG
         char cpadding = (char)(uint8_t)padding;
 
         char space[1]{ ' ' };
-        for (int i = 0; i < padding; i++)
-            sout.append(" ");
+        for (int i = 0; i < padding; i++) sout.append(" ");
         sout[sout.size() - 1] = (char)cpadding;
 
         return sout;
@@ -82,8 +82,7 @@ namespace NETW_MSG
         memcpy(buffer, m.buffer, m.buffer_len);
 
         char space[1]{ ' ' };
-        for (int i = 0; i < padding; i++)
-           memcpy(buffer + buffer_len - 1 - i, space, 1);
+        for (int i = 0; i < padding; i++) memcpy(buffer + buffer_len - 1 - i, space, 1);
         memcpy(buffer + buffer_len - 1, &cpadding, 1);
     }
 
@@ -245,11 +244,6 @@ namespace NETW_MSG
 
         type_msg = t;
 
-        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
-        //uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
-        //if (padding == 0) padding = 64;
-        //char cpadding = (char)(uint8_t)padding;
-
         buffer_len = len_data + MESSAGE_HEADER;// +padding;
         buffer = new uint8_t[buffer_len]{ 0 };
 
@@ -263,11 +257,6 @@ namespace NETW_MSG
 
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
         memcpy(buffer + MESSAGE_PADDING_START, &pad_originaL, 1);
-
- /*       char space[1]{ ' ' };
-        for (int i = 0; i < padding; i++)
-            memcpy(buffer + buffer_len - 1 - i, space, 1);
-        memcpy(buffer + buffer_len - 1, &cpadding, 1);*/
     }
 
     void MSG::make_msg( uint8_t t,
@@ -278,11 +267,6 @@ namespace NETW_MSG
  
         type_msg = t;
 
-        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
-        //uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
-        //if (padding == 0) padding = 64;
-        //char cpadding = (char)(uint8_t)padding;
-
         buffer_len = len_data + MESSAGE_HEADER;// +padding;
         buffer = new uint8_t[buffer_len]{ 0 };
 
@@ -292,11 +276,6 @@ namespace NETW_MSG
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
-        //memcpy(buffer + MESSAGE_PADDING_START, &cpadding, 1);
-        //char space[1]{ ' ' };
-        //for (int i = 0; i < padding; i++)
-        //    memcpy(buffer + buffer_len - 1 - i, space, 1);
-        //memcpy(buffer + buffer_len - 1, &cpadding, 1);
 
         CRC32 chk;
         chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
@@ -324,7 +303,6 @@ namespace NETW_MSG
         make_msg_with_crc_and_pad_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, pad);
     }
 
-
     bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)
     {
         if (len < MESSAGE_HEADER)
@@ -350,6 +328,7 @@ namespace NETW_MSG
             ss  << "WARNING MSG(truncated), size = MESSAGE_SIZE" << std::endl;
             main_global::log(ss.str());
         }
+
         uint32_t crc;
         uint32_t expected_len = MSG::byteToUInt4(message_buffer + 1);
         if (expected_len != len)

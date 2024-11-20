@@ -28,7 +28,7 @@ const int MESSAGE_CRC_START = MESSAGE_PADDING_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 
 const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
-const char MESSAGE_LAST[7 + 1]{ 0}; // header
+const char MESSAGE_LAST[7 + 1]{0}; // in header
 
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
@@ -446,7 +446,6 @@ struct MSG
 			size_t idx = binfile.next_fragment_index_to_process();
 			MSG_FILE_FRAGMENT_HEADER packet = binfile._vfragments[idx];
 			std::string header_fragm = packet.make_header();
-			//uint32_t data_len = header_fragm.size() + (packet.data_to - packet.data_from + 1);
 
 			SHA256 sha;
 			sha.update((uint8_t*)key.data(), key.size());
@@ -456,7 +455,6 @@ struct MSG
 			data_temp.buffer.write(header_fragm.data(), (uint32_t)header_fragm.size());
 			data_temp.buffer.write(binfile._file->buffer.getdata()+packet.data_from, (uint32_t)(packet.data_to - packet.data_from + 1));
 
-			//void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 			make_msg(MSG_FILE_FRAGMENT, data_temp.buffer.size(), (uint8_t*)data_temp.buffer.getdata(), digestkey);
 			delete[]digestkey;
 
