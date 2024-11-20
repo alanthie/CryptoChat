@@ -22,6 +22,7 @@
 #include "../include/data.hpp"
 #include "../include/challenge.hpp"
 #include "../include/file_util.hpp"
+#include "../include/encdec_algo.hpp"
 
 #include <ciso646>
 #include <iostream>
@@ -95,7 +96,7 @@ namespace ysSocket {
 					std::lock_guard l(_key_mutex);
 
 					if (!key_valid)	key = get_DEFAULT_KEY();
-					else if (!rnd_valid) key = get_initial_key();
+					else if (!rnd_valid) key = get_initial_key64();
 					else key = get_random_key();
 				}
 
@@ -232,7 +233,7 @@ namespace ysSocket {
 					std::lock_guard l(_key_mutex);
 
 					if (!key_valid)	r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
-					else if (!rnd_valid) r = m.parse(message_buffer, expected_len, initial_key);
+					else if (!rnd_valid) r = m.parse(message_buffer, expected_len, get_initial_key64());
 					else r = m.parse(message_buffer, expected_len, random_key, previous_random_key, pending_random_key);
 				}
 
@@ -260,6 +261,7 @@ namespace ysSocket {
 								std::lock_guard l(_key_mutex);
 								initial_key_hint = str_message;
 								initial_key = _cfg_cli.map_challenges[str_message]; // but key_valid = false until confirmed
+								initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 							}
 							ss << "initial_key_hint set" << std::endl;
 							main_global::log(ss.str());
@@ -369,6 +371,7 @@ namespace ysSocket {
 										std::lock_guard l(_key_mutex);
 										initial_key_hint = str_message;
 										initial_key = r; // but key_valid = false until confirmed
+										initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 									}
 
 									std::stringstream ss;
@@ -399,6 +402,8 @@ namespace ysSocket {
 								_cfg_cli.map_challenges[initial_key_hint] = initial_key;
 								_cfg_cli.save_cfg(_cfgfile);
 								ss << "saving challenge answer" << std::endl;
+
+								initial_key64 = initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 							}
 							else
 							{
@@ -459,7 +464,7 @@ namespace ysSocket {
 						std::string key;
 						{
 							std::lock_guard l(_key_mutex);
-							key = rnd_valid ? random_key : initial_key;
+							key = rnd_valid ? random_key : initial_key64;
 						}
 
 						{
@@ -513,7 +518,7 @@ namespace ysSocket {
                         std::string key;
                         {
                             std::lock_guard l(_key_mutex);
-                            key = rnd_valid ? random_key : initial_key;
+                            key = rnd_valid ? random_key : initial_key64;
                         }
 
                         m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, _cfg_cli._username, key);
@@ -537,7 +542,7 @@ namespace ysSocket {
 							std::string key;
 							{
 								std::lock_guard l(_key_mutex);
-								key = rnd_valid ? random_key : initial_key;
+								key = rnd_valid ? random_key : initial_key64;
 							}
 
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_HOSTNAME, h, key);
@@ -695,7 +700,7 @@ namespace ysSocket {
 						if (!key_valid)
 							key = getDEFAULT_KEY();
 						else if (!rnd_valid)
-							key = initial_key;
+							key = initial_key64;
 						else
 							key = random_key;
 					}

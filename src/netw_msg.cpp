@@ -1,6 +1,7 @@
 #include "../include/netw_msg.hpp"
 #include "../include/main_global.hpp"
 #include "../include/crc32a.hpp"
+#include "../include/encdec_algo.hpp"
 
 namespace NETW_MSG
 {
@@ -10,17 +11,11 @@ namespace NETW_MSG
         return buffer;
     }
 
-    std::string MSG::get_data_as_string(bool with_padding)
+    std::string MSG::get_data_as_string()
     {
         if (buffer_len > MESSAGE_HEADER)
         {
-            if (with_padding)
-                return std::string((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
-            else
-            {
-                uint32_t p = (uint32_t)buffer[MESSAGE_PADDING_START];
-                return std::string((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER - p);
-            }
+            return std::string((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
         }
         return std::string{};
     }
@@ -33,12 +28,104 @@ namespace NETW_MSG
         return true;
     }
 
-    void MSG::make_encrypt_msg(MSG& msgin, const std::string& key)
+    std::string MSG::make_key_64(const std::string& keyin, const std::string& extend)
+    {
+        std::string sout = keyin;
+        uint32_t len_data = keyin.size();
+
+        uint32_t padding = MESSAGE_FACTOR - (len_data % MESSAGE_FACTOR); // 0-63
+        for (int i = 0; i < padding; i++)
+        {
+            sout.push_back(extend[i % extend.size()]);
+        }
+        return sout;
+    }
+
+    std::string MSG::add_padding(const std::string& sin)
+    {
+        std::string sout = sin;
+
+        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+        uint32_t len_data = sin.size();
+
+        uint32_t padding = MESSAGE_FACTOR - (len_data % MESSAGE_FACTOR); // 0-63
+        if (padding == 0) padding = 64;
+        char cpadding = (char)(uint8_t)padding;
+
+        char space[1]{ ' ' };
+        for (int i = 0; i < padding; i++)
+            sout.append(" ");
+        sout[sout.size() - 1] = (char)cpadding;
+
+        return sout;
+    }
+
+    std::string MSG::remove_padding(const std::string& sin)
+    {
+        uint8_t padding = (uint8_t)sin[sin.size() - 1];
+        std::string sout = sin.substr(0, sin.size() - padding);
+        return sout;
+    }
+
+    void MSG::make_with_padding(MSG& m)
+    {
+        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+        uint32_t len_data = m.buffer_len - MESSAGE_HEADER;
+
+        uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
+        if (padding == 0) padding = 64;
+        char cpadding = (char)(uint8_t)padding;
+
+        buffer_len = len_data + MESSAGE_HEADER + padding;
+        buffer = new uint8_t[buffer_len]{ 0 };
+        type_msg = m.buffer[0];
+        memcpy(buffer, m.buffer, m.buffer_len);
+
+        char space[1]{ ' ' };
+        for (int i = 0; i < padding; i++)
+           memcpy(buffer + buffer_len - 1 - i, space, 1);
+        memcpy(buffer + buffer_len - 1, &cpadding, 1);
+    }
+
+    void MSG::make_removing_padding(MSG& m)
+    {
+        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+        uint32_t padding = m.buffer[m.buffer_len - 1];
+
+        buffer_len = m.buffer_len - padding;
+        buffer = new uint8_t[buffer_len]{ 0 };
+        type_msg = m.buffer[0];
+        memcpy(buffer, m.buffer, m.buffer_len - padding);
+    }
+
+    bool MSG::make_encrypt_msg(MSG& msgin, const std::string& key)
     {
         std::vector<char> vmsgin(msgin.buffer_len - MESSAGE_HEADER);
         for (size_t i = MESSAGE_HEADER; i < msgin.buffer_len; i++) vmsgin[i - MESSAGE_HEADER] = msgin.buffer[i];
+
+        // ENCRYPTION
         std::string b64_str = Base64::encode(vmsgin);
         std::string s_encrypted = encrypt_simple_string(b64_str, key);
+
+        // ENCRYPTION
+        std::string s_encrypted_with_pad = NETW_MSG::MSG::add_padding(s_encrypted);
+        std::string s_encrypted2;
+        bool r = NETW_MSG::encode_string_idea(s_encrypted_with_pad, key, s_encrypted2);
+        if (!r)
+        {
+            std::cerr << "encode_string_idea FAILED" << std::endl;
+            return false;
+        }
+
+        // ENCRYPTION
+        s_encrypted_with_pad = NETW_MSG::MSG::add_padding(s_encrypted2);
+        std::string s_encrypted3;
+        r = NETW_MSG::encode_string_salsa20(s_encrypted_with_pad, key, s_encrypted3);
+        if (!r)
+        {
+            std::cerr << "encode_string_salsa20 FAILED" << std::endl;
+            return false;
+        }
 
         SHA256 sha;
         sha.update((uint8_t*)key.data(), key.size());
@@ -47,11 +134,9 @@ namespace NETW_MSG
         CRC32 chk;
         chk.update((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
-
         uint8_t original_padding = msgin.buffer[MESSAGE_PADDING_START];
 
-		//make_msg(msgin.type_msg, s, digestkey);
-        make_msg_with_crc(msgin.type_msg, s_encrypted, digestkey, crc, original_padding);
+        make_msg_with_crc_and_pad(msgin.type_msg, s_encrypted3, digestkey, crc, original_padding);
 
         delete[] digestkey;
 
@@ -64,16 +149,40 @@ namespace NETW_MSG
                 + "]" << std::endl;
             main_global::log(ss.str());
         }
+
+        return true;
     }
 
-    void MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc)
+    bool MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc)
     {
-        std::string s = msgin.get_data_as_string(true); // including padding space
+        std::string s = msgin.get_data_as_string(); // including padding space
         if ((s.size() % MESSAGE_FACTOR) != 0)
         {
             std::cerr << "data is not 64x" << std::endl;
         }
-        std::string b64_encoded_str = decrypt_simple_string(s, key);
+
+        // DECRYPTION
+        std::string s_decrypted1;
+        bool r = NETW_MSG::decode_string_salsa20(s, key, s_decrypted1);
+        if (!r)
+        {
+            std::cerr << "decode_string_salsa20 FAILED" << std::endl;
+            return false;
+        }
+        std::string s_derypted_without_pad = NETW_MSG::MSG::remove_padding(s_decrypted1);
+
+        // DECRYPTION
+        std::string s_decrypted2;
+        r = NETW_MSG::decode_string_idea(s_derypted_without_pad, key, s_decrypted2);
+        if (!r)
+        {
+            std::cerr << "decode_string_idea FAILED" << std::endl;
+            return false;
+        }
+        s_derypted_without_pad = NETW_MSG::MSG::remove_padding(s_decrypted2);
+
+        // DECRYPTION
+        std::string b64_encoded_str = decrypt_simple_string(s_derypted_without_pad, key);
         std::vector<char> b64_decode_vec = Base64::decode(b64_encoded_str);
 
         uint32_t len = MESSAGE_HEADER + b64_decode_vec.size();
@@ -102,6 +211,8 @@ namespace NETW_MSG
                 << std::endl;
             main_global::log(ss.str());
         }
+
+        return true;
     }
 
     void MSG::make_msg(uint8_t t, const std::string& s, const std::string& key)
@@ -126,17 +237,20 @@ namespace NETW_MSG
         delete[]digestkey;
     }
 
-    void MSG::make_msg_with_crc_buffer( uint8_t t,
+    void MSG::make_msg_with_crc_and_pad_buffer( uint8_t t,
                         uint32_t len_data, uint8_t* data,
                         uint8_t* digestkey, uint32_t crc, uint8_t pad_originaL)
     {
         if (data == nullptr) return;
 
         type_msg = t;
-        uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
-        char cpadding = (char)(uint8_t)padding;
 
-        buffer_len = len_data + MESSAGE_HEADER + padding;
+        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+        //uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
+        //if (padding == 0) padding = 64;
+        //char cpadding = (char)(uint8_t)padding;
+
+        buffer_len = len_data + MESSAGE_HEADER;// +padding;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
@@ -150,9 +264,10 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
         memcpy(buffer + MESSAGE_PADDING_START, &pad_originaL, 1);
 
-        char space[1]{ ' ' };
+ /*       char space[1]{ ' ' };
         for (int i = 0; i < padding; i++)
             memcpy(buffer + buffer_len - 1 - i, space, 1);
+        memcpy(buffer + buffer_len - 1, &cpadding, 1);*/
     }
 
     void MSG::make_msg( uint8_t t,
@@ -162,10 +277,13 @@ namespace NETW_MSG
         if (data == nullptr) return;
  
         type_msg = t;
-        uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
-        char cpadding = (char)(uint8_t)padding;
 
-        buffer_len = len_data + MESSAGE_HEADER + padding;
+        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+        //uint32_t padding = MESSAGE_FACTOR - ((len_data + MESSAGE_HEADER) % MESSAGE_FACTOR); // 0-63
+        //if (padding == 0) padding = 64;
+        //char cpadding = (char)(uint8_t)padding;
+
+        buffer_len = len_data + MESSAGE_HEADER;// +padding;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
@@ -174,10 +292,11 @@ namespace NETW_MSG
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
-        memcpy(buffer + MESSAGE_PADDING_START, &cpadding, 1);
-        char space[1]{ ' ' };
-        for (int i = 0; i < padding; i++)
-            memcpy(buffer + buffer_len - 1 - i, space, 1);
+        //memcpy(buffer + MESSAGE_PADDING_START, &cpadding, 1);
+        //char space[1]{ ' ' };
+        //for (int i = 0; i < padding; i++)
+        //    memcpy(buffer + buffer_len - 1 - i, space, 1);
+        //memcpy(buffer + buffer_len - 1, &cpadding, 1);
 
         CRC32 chk;
         chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
@@ -200,9 +319,9 @@ namespace NETW_MSG
     {
         make_msg(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey);
     }
-    void MSG::make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad)
+    void MSG::make_msg_with_crc_and_pad(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad)
     {
-        make_msg_with_crc_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, pad);
+        make_msg_with_crc_and_pad_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, pad);
     }
 
 
@@ -283,8 +402,7 @@ namespace NETW_MSG
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        this->make_decrypt_msg(m, pending_key, crc);
-                        return true;
+                        return this->make_decrypt_msg(m, pending_key, crc);
                     }
                 }
             }
@@ -325,8 +443,7 @@ namespace NETW_MSG
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        this->make_decrypt_msg(m, previous_key, crc);
-                        return true;
+                        return this->make_decrypt_msg(m, previous_key, crc);
                     }
                 }
             }
@@ -345,8 +462,7 @@ namespace NETW_MSG
 
             MSG m;
             m.make_msg((uint8_t*)message_buffer, len);
-            this->make_decrypt_msg(m, key, crc);
-            return true;
+            return this->make_decrypt_msg(m, key, crc);
         }
     }
 

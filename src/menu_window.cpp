@@ -900,7 +900,7 @@ struct ClientTerm
                         if (!ct.netw_client->key_valid)
                             key = ct.netw_client->get_DEFAULT_KEY();
                         else if (!ct.netw_client->rnd_valid)
-                            key = ct.netw_client->get_initial_key();
+                            key = ct.netw_client->get_initial_key64();
                         else
                             key = ct.netw_client->get_random_key();
                     }
@@ -929,7 +929,7 @@ struct ClientTerm
                         if (!ct.netw_client->key_valid)
                             key = ct.netw_client->get_DEFAULT_KEY();
                         else if (!ct.netw_client->rnd_valid)
-                            key = ct.netw_client->get_initial_key();
+                            key = ct.netw_client->get_initial_key64();
                         else
                             key = ct.netw_client->get_random_key();
                     }

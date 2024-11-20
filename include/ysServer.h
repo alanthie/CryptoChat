@@ -39,7 +39,11 @@ namespace ysSocket {
 		void createServer();
 		void bindServer();
 		void listenServer();
+
 		bool check_default_encrypt(std::string& key);
+		bool check_idea_encrypt(std::string& key);
+		bool check_salsa_encrypt(std::string& key);
+
 		void set_key_hint();
 		void handle_accept();
 

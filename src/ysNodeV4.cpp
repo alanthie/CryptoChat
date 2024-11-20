@@ -85,17 +85,24 @@ namespace ysSocket {
 	{
 		int r = 0;
 		NETW_MSG::MSG m2;
-		m2.make_encrypt_msg(m, key);
+		if (m2.make_encrypt_msg(m, key) == false)
+		{
+			// TODO...
+			std::cerr << "ERROR - make_encrypt_msg FAILED\n";
+			return -1;
+		}
 
 		if (m2.buffer_len >= NETW_MSG::MESSAGE_SIZE)
 		{
 			std::cerr << "WARNING - sending too much data\n";
+			return -1;
 		}
 
 		uint32_t expected_len = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer + 1);
 		if (expected_len != m2.buffer_len)
 		{
 			std::cerr << "ERROR - SEND  (expected_len != m2.buffer_len)" << std::endl;
+			return -1;
 		}
 
 		// LOCK

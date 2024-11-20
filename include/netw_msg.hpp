@@ -17,6 +17,7 @@ namespace NETW_MSG
 const int MESSAGE_SIZE = 4 * 1024;
 const int MESSAGE_FACTOR = 64;
 
+// MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
 const int MESSAGE_HEADER = 1+4+32+20+1+4+2; // 64 bytes
 const int MESSAGE_MSGTYPE_START = 0;
 const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
@@ -316,21 +317,29 @@ struct MSG
 	size_t size();
 	uint8_t* get_buffer();
 
-	std::string get_data_as_string(bool with_padding = false);
+	std::string get_data_as_string();
 	bool is_same(MSG& msgin);
 
-	void make_encrypt_msg(MSG& msgin, const std::string& key);
-	void make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc);
+	bool make_encrypt_msg(MSG& msgin, const std::string& key);
+	bool make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc);
 
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 
-	void make_msg_with_crc(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad);
-	void make_msg_with_crc_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t pad);
+	void make_msg_with_crc_and_pad(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad);
+	void make_msg_with_crc_and_pad_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t pad);
 
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
 	bool parse(char* message_buffer, size_t len, std::string key, std::string previous_key = {}, std::string pending_key = {});
+
+	void make_with_padding(MSG& m);
+	void make_removing_padding(MSG& m);
+
+	static std::string add_padding(const std::string& sin);
+	static std::string remove_padding(const std::string& sin);
+
+	static std::string make_key_64(const std::string& keyin, const std::string& extend);
 
 	~MSG();
 

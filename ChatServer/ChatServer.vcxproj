@@ -53,11 +53,15 @@
     <ClInclude Include="..\include\netw_msg.hpp" />
     <ClInclude Include="..\include\random_engine.hpp" />
     <ClInclude Include="..\include\rng.h" />
+    <ClInclude Include="..\include\Salsa20.h" />
     <ClInclude Include="..\include\SHA256.h" />
     <ClInclude Include="..\include\string_util.hpp" />
     <ClInclude Include="..\include\vigenere.hpp" />
     <ClInclude Include="..\include\ysNodeV4.h" />
     <ClInclude Include="..\include\ysServer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\include\Salsa20.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

@@ -128,5 +128,13 @@
     <ClInclude Include="..\include\encdec_algo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Salsa20.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\include\Salsa20.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -46,7 +46,7 @@ namespace ysSocket {
 
 	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{
-		return std::string("ertyewrtyewrt654tg45y66u57u68itik96807iedhywt21t521t2134t3tvgtt3561365121");
+		return std::string("ertyewrtyewrt654tg45y66u57u68itik96807iedhywt21t521t2134t3tvgtt3"); // 64x
 	}
 
 	enum class STATE {
@@ -102,6 +102,7 @@ namespace ysSocket {
 		int challenge_attempt = 0;
 		std::string initial_key_hint;
 		std::string initial_key;
+		std::string initial_key64;
 
 		std::string previous_random_key;
 		std::string random_key;

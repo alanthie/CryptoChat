@@ -62,6 +62,7 @@ namespace ysSocket {
 
 		std::string get_DEFAULT_KEY() { return getDEFAULT_KEY(); }
 		std::string get_initial_key() { return initial_key; }
+		std::string get_initial_key64() { return initial_key64; }
 		std::string get_random_key()  { return random_key; }
 
 		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)

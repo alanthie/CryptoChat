@@ -82,10 +82,22 @@ namespace ysSocket {
 
 		const int N_SIZE_TEST = 10;
 		{
-			std::string key("key012345679");
+			std::string key("12345678901234561234567890123456");
 			if (this->check_default_encrypt(key) == false)
 			{
 				throw std::runtime_error("Default encryption not working");
+			}
+
+			key = "1234567890123456";
+			if (this->check_idea_encrypt(key) == false)
+			{
+				throw std::runtime_error("IDEA encryption not working");
+			}
+
+			key = "1234567890123456123456789012345612345678901234561234567890123456";
+			if (this->check_salsa_encrypt(key) == false)
+			{
+				throw std::runtime_error("Salsa20 encryption not working");
 			}
 
 			key = getDEFAULT_KEY();
@@ -153,20 +165,124 @@ namespace ysSocket {
 	{
 		NETW_MSG::MSG m, m2, m3;
 		m.make_msg(NETW_MSG::MSG_TEXT, "Hello Test", key);
-        std::string sm = m.get_data_as_string(true);
+        std::string sm = m.get_data_as_string();
 
         uint32_t crc1 = NETW_MSG::MSG::byteToUInt4((char*)m.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		uint32_t crc;
 		m2.make_encrypt_msg(m, key);
-		std::string sm2 = m2.get_data_as_string(true);
+		std::string sm2 = m2.get_data_as_string();
 		uint32_t crc2 = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		m3.make_decrypt_msg(m2, key, crc);
-		std::string sm3 = m3.get_data_as_string(true);
+		std::string sm3 = m3.get_data_as_string();
 		uint32_t crc3 = NETW_MSG::MSG::byteToUInt4((char*)m3.buffer+NETW_MSG::MESSAGE_CRC_START);
 
 		return m.is_same(m3);
+	}
+
+	bool ysServer::check_idea_encrypt(std::string& key)
+	{
+		NETW_MSG::MSG m, m2, m3;
+
+		std::string s0 = "Hello Test Hello Test jjjjjjjjjjj";
+		m.make_msg(NETW_MSG::MSG_TEXT, s0, key);
+
+		m2.make_with_padding(m);
+		m3.make_removing_padding(m2);
+		if (!m.is_same(m3))
+		{
+			return false;
+		}
+		
+		std::string ss0 = "DSAFDF FS Df";
+		std::string ss1 = NETW_MSG::MSG::add_padding(ss0);
+		std::string ss2 = NETW_MSG::MSG::remove_padding(ss1);
+		if (ss0 != ss2)
+		{
+			return false;
+		}
+
+		std::string s2 = m2.get_data_as_string();
+		cryptoAL::cryptodata data_temp;
+		data_temp.buffer.write((char*)s2.data(), s2.size());
+
+		cryptoAL::cryptodata data_temp_out;
+		bool r = NETW_MSG::encode_idea(data_temp, key.data(), key.size(), data_temp_out);
+		if (r)
+		{
+			std::string s3 = std::string(data_temp_out.buffer.getdata(), data_temp_out.buffer.size());
+
+			cryptoAL::cryptodata data_temp_out2;
+			r = NETW_MSG::decode_idea(data_temp_out, key.data(), key.size(), data_temp_out2);
+			if (!r)
+			{
+				return false;
+			}
+			else
+			{
+				std::string s4 = std::string(data_temp_out2.buffer.getdata(), data_temp_out2.buffer.size());
+				if (s4 == s2) return true;
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+		return r;
+	}
+
+	bool ysServer::check_salsa_encrypt(std::string& key)
+	{
+		NETW_MSG::MSG m, m2, m3;
+
+		std::string s0 = "Hello Test Hello Test jjjjjjjjjjj";
+		m.make_msg(NETW_MSG::MSG_TEXT, s0, key);
+
+		m2.make_with_padding(m);
+		m3.make_removing_padding(m2);
+		if (!m.is_same(m3))
+		{
+			return false;
+		}
+
+		std::string ss0 = "DSAFDF FS Df";
+		std::string ss1 = NETW_MSG::MSG::add_padding(ss0);
+		std::string ss2 = NETW_MSG::MSG::remove_padding(ss1);
+		if (ss0 != ss2)
+		{
+			return false;
+		}
+
+		std::string s2 = m2.get_data_as_string();
+		cryptoAL::cryptodata data_temp;
+		data_temp.buffer.write((char*)s2.data(), s2.size());
+
+		cryptoAL::cryptodata data_temp_out;
+		bool r = NETW_MSG::encode_salsa20(data_temp, key.data(), key.size(), data_temp_out);
+		if (r)
+		{
+			std::string s3 = std::string(data_temp_out.buffer.getdata(), data_temp_out.buffer.size());
+
+			cryptoAL::cryptodata data_temp_out2;
+			r = NETW_MSG::decode_salsa20(data_temp_out, key.data(), key.size(), data_temp_out2);
+			if (!r)
+			{
+				return false;
+			}
+			else
+			{
+				std::string s4 = std::string(data_temp_out2.buffer.getdata(), data_temp_out2.buffer.size());
+				if (s4 == s2) return true;
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+		return r;
 	}
 
 	void ysServer::set_key_hint()
@@ -177,6 +293,7 @@ namespace ysSocket {
 			auto iter = _cfg._map_challenges.begin();
 			initial_key_hint = iter->first;
 			initial_key = iter->second;
+			initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 
 			std::cout << std::endl;
 			std::cout << "INFO initial challenge set to : " << std::endl;
@@ -189,6 +306,7 @@ namespace ysSocket {
 			//cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 			initial_key_hint = "1th prime number\n1000th prime number";
 			initial_key = "27919";
+			initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 		}
 	}
 
@@ -356,7 +474,7 @@ namespace ysSocket {
 						else if (!new_client->initial_key_validation_done)
 							r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
 						else if (!new_client->random_key_validation_done)
-							r = m.parse(message_buffer, expected_len, new_client->initial_key);
+							r = m.parse(message_buffer, expected_len, new_client->initial_key64);
 						else
 							r = m.parse(message_buffer, expected_len, new_client->random_key, new_client->previous_random_key, new_client->pending_random_key);
 
@@ -377,6 +495,7 @@ namespace ysSocket {
 									sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
 
 									new_client->initial_key = initial_key;
+									new_client->initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 									new_client->initial_key_validation_done = true;
 
 									if (new_client->username.size() == 0)
@@ -384,8 +503,8 @@ namespace ysSocket {
 										if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << new_client->getSocketFd() << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your username : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 									}
 
 									if (new_client->hostname.size() == 0)
@@ -394,8 +513,8 @@ namespace ysSocket {
 											std::cout << "send MSG_CMD_REQU_HOSTNAME " << new_client->getSocketFd() << std::endl;
 										NETW_MSG::MSG m;
 										std::string s = "Please, provide your hostname : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 									}
 								}
 								else
@@ -440,9 +559,9 @@ namespace ysSocket {
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
-										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
 									new_client->previous_random_key = new_client->random_key;
 									new_client->random_key = new_client->pending_random_key;
@@ -519,8 +638,8 @@ namespace ysSocket {
 
 									NETW_MSG::MSG m;
 									std::string s = "Please, provide your username : ";
-									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 								}
 								else if (!new_client->random_key_validation_done)
 								{
@@ -561,9 +680,9 @@ namespace ysSocket {
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, new_client->pending_random_key,
-										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key);
+									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 								}
 								else
 								{
@@ -614,7 +733,7 @@ namespace ysSocket {
 				if (!client->initial_key_validation_done)
 					key = getDEFAULT_KEY();
 				else if (!client->random_key_validation_done)
-					key = client->initial_key;
+					key = client->initial_key64;
 				else
 					key = client->random_key;
 
@@ -639,7 +758,7 @@ namespace ysSocket {
 					if (!client->initial_key_validation_done)
 						key = getDEFAULT_KEY();
 					else if (!client->random_key_validation_done)
-						key = client->initial_key;
+						key = client->initial_key64;
 					else
 						key = client->random_key;
 
@@ -665,7 +784,7 @@ namespace ysSocket {
 					if (!client->initial_key_validation_done)
 						key = getDEFAULT_KEY();
 					else if (!client->random_key_validation_done)
-						key = client->initial_key;
+						key = client->initial_key64;
 					else
 						key = client->random_key;
 
@@ -730,9 +849,9 @@ namespace ysSocket {
 			client->pending_random_key = pending_random_key;
 
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, client->pending_random_key,
-				client->random_key_validation_done ? client->random_key : client->initial_key);
+				client->random_key_validation_done ? client->random_key : client->initial_key64);
 
-			sendMessageBuffer(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key);
+			sendMessageBuffer(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key64);
 		}
 	}
 

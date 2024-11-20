@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\Base64.cpp" />
     <ClCompile Include="..\src\crc32a.cpp" />
+    <ClCompile Include="..\src\encdec_algo.cpp" />
     <ClCompile Include="..\src\encrypt.cpp" />
     <ClCompile Include="..\src\menu_window.cpp" />
     <ClCompile Include="..\src\netw_msg.cpp" />
