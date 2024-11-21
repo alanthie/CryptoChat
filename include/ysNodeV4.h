@@ -111,6 +111,7 @@ namespace ysSocket {
 
 		std::string username;
 		std::string hostname;
+		std::string machine_id;
 		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 

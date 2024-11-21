@@ -29,9 +29,12 @@ namespace cryptochat
 
 			~chat_cli()
 			{
-				std::cout << "deleting chat_cli" << std::endl;
 				if (_chat_cli != nullptr)
+				{
+                    std::cout << "deleting chat_cli" << std::endl;
 					delete _chat_cli;
+					_chat_cli = nullptr;
+                }
 			}
 
 

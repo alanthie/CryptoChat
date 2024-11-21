@@ -63,7 +63,9 @@
 		<Unit filename="../src/Base64.cpp" />
 		<Unit filename="../src/SHA256.cpp" />
 		<Unit filename="../src/crc32a.cpp" />
+		<Unit filename="../src/encdec_algo.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
+		<Unit filename="../src/machineid.cpp" />
 		<Unit filename="../src/menu_window.cpp" />
 		<Unit filename="../src/netw_msg.cpp" />
 		<Unit filename="../src/vigenere.cpp" />

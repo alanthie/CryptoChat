@@ -168,12 +168,12 @@ namespace ysSocket {
         std::cout << "shutdown socket" << std::endl;
 		if (shutdown(this->m_socketFd, SHUT_RDWR) < 0) {
             std::cout << "could not shutdown socket" << std::endl;
-			throw std::runtime_error("Could not shutdown socket");
+			//throw std::runtime_error("Could not shutdown socket");
 		}
 
 		if (close(this->m_socketFd) < 0) {
             std::cout << "could not close socket" << std::endl;
-			throw std::runtime_error("Could not close socket");
+			//throw std::runtime_error("Could not close socket");
 		}
 #endif
 		this->m_state = STATE::CLOSED;
@@ -181,7 +181,7 @@ namespace ysSocket {
 
 	ysNodeV4::~ysNodeV4() {
         std::cout << "~ysNodeV4" << std::endl;
-		closeSocket(true);
+		//closeSocket(true);
 	}
 
 	bool ysNodeV4::add_file_to_send(const std::string& filename, const std::string& filename_key)

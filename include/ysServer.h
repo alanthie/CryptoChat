@@ -13,7 +13,8 @@
 #include <thread>
 #include <mutex>
 
-namespace ysSocket {
+namespace ysSocket
+{
 
 	class ysServer : protected ysNodeV4 {
 	protected:
@@ -35,11 +36,16 @@ namespace ysSocket {
 		std::vector<ysNodeV4*> v_client;
 		void closeClient();
 
+		void handle_new_client(ysNodeV4* new_client);
+		void handle_remove_client();
+		void handle_info_client(const int& t_socket);
+
 		// server
 		void createServer();
 		void bindServer();
 		void listenServer();
 
+		void server_test();
 		bool check_default_encrypt(std::string& key);
 		bool check_idea_encrypt(std::string& key);
 		bool check_salsa_encrypt(std::string& key);

@@ -23,6 +23,7 @@
 #include "../include/challenge.hpp"
 #include "../include/file_util.hpp"
 #include "../include/encdec_algo.hpp"
+#include "../include/machineid.h"
 
 #include <ciso646>
 #include <iostream>
@@ -552,6 +553,33 @@ namespace ysSocket {
 						{
 							std::stringstream ss; ss << "WARNING gethostname failed" << std::endl;
 							main_global::log(ss.str());
+						}
+					}
+					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_MACHINEID)
+					{
+						{
+                            std::stringstream ss;
+                            ss << "recv MSG_CMD_REQU_MACHINEID" << std::endl;
+                            main_global::log(ss.str());
+						}
+
+						std::string id = machineid::machineHash();
+						{
+							{
+                                std::stringstream ss;
+                                ss << "send MSG_CMD_RESP_MACHINEID : " << id<< std::endl;
+                                main_global::log(ss.str());
+							}
+							NETW_MSG::MSG m;
+
+							std::string key;
+							{
+								std::lock_guard l(_key_mutex);
+								key = rnd_valid ? random_key : initial_key64;
+							}
+
+							m.make_msg(NETW_MSG::MSG_CMD_RESP_MACHINEID, id, key);
+							this->sendMessageBuffer(this->m_socketFd, m, key);
 						}
 					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)

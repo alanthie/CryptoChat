@@ -50,6 +50,7 @@
 		<Unit filename="../include/crypto_const.hpp" />
 		<Unit filename="../include/data.hpp" />
 		<Unit filename="../include/encrypt.h" />
+		<Unit filename="../include/machineid.h" />
 		<Unit filename="../include/netw_msg.hpp" />
 		<Unit filename="../include/random_engine.hpp" />
 		<Unit filename="../include/rng.h" />
@@ -62,8 +63,11 @@
 		<Unit filename="../src/Base64.cpp" />
 		<Unit filename="../src/SHA256.cpp" />
 		<Unit filename="../src/crc32a.cpp" />
+		<Unit filename="../src/encdec_algo.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
+		<Unit filename="../src/machineid.cpp" />
 		<Unit filename="../src/netw_msg.cpp" />
+		<Unit filename="../src/srv_test.cpp" />
 		<Unit filename="../src/vigenere.cpp" />
 		<Unit filename="../src/ysChatServer.cpp" />
 		<Unit filename="../src/ysNodeV4.cpp" />
