@@ -21,6 +21,24 @@ namespace cryptochat
             size_t folder_index;
         };
 
+        struct repo_info
+        {
+            size_t counter = 0;
+            std::map<std::string, repo_userinfo> map_userinfo;
+
+            friend std::ostream& operator<<(std::ostream& out, Bits<repo_info& > my)
+            {
+                out << bits(my.t.counter) << bits(my.t.map_userinfo);
+                return (out);
+            }
+
+            friend std::istream& operator>>(std::istream& in, Bits<repo_info&> my)
+            {
+                in >> bits(my.t.counter) >> bits(my.t.map_userinfo);
+                return (in);
+            }
+        };
+
         class Repository
         {
         public:
@@ -28,34 +46,17 @@ namespace cryptochat
             const std::string USER_INFO = "userinfo.txt";
             std::string _root_path;
 
-            size_t counter = 0;
-            std::map<std::string, repo_userinfo> map_userinfo;
-
-            friend std::ostream& operator<<(std::ostream& out, Bits<Repository& > my)
-            {
-                out << bits(my.t.counter) << bits(my.t.map_userinfo);
-                return (out);
-            }
-
-            friend std::istream& operator>>(std::istream& in, Bits<Repository&> my)
-            {
-                in >> bits(my.t.counter) >> bits(my.t.map_userinfo);
-                return (in);
-            }
-
+            repo_info _repo_info;
 
             Repository() = default;
 
             std::string folder_name(const std::string& machineid, const std::string& in_host, const std::string& in_usr)
             {
                 std::string folder;
-                //std::string folder = _root_path + "/" + in_host + "_" + in_usr;
-                //std::string folder = _root_path + "/" + machineid;
-
-                if (map_userinfo.contains(machineid))
-                    folder = _root_path + "/" + "user_" + std::to_string(map_userinfo[machineid].folder_index);
+                if (_repo_info.map_userinfo.contains(machineid))
+                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.map_userinfo[machineid].folder_index);
                 else
-                    folder = _root_path + "/" + "user_" + std::to_string(counter);
+                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.counter);
 
                 return folder;
             }
@@ -70,9 +71,10 @@ namespace cryptochat
                     std::cerr << "WARNING repo info not found (creating...) " << filename << std::endl;
                 }
 
+                // REPO_INFO
                 {
                     std::ofstream outfile(filename, std::ios::binary);
-                    outfile << bits(*this);
+                    outfile << bits(_repo_info);
                 }
 
                 {
@@ -80,7 +82,7 @@ namespace cryptochat
                     std::ofstream outfile(filenameinfo);
 
                     std::stringstream ss;
-                    for (auto& c : map_userinfo)
+                    for (auto& c : _repo_info.map_userinfo)
                     {
                         ss << "Folder index: " + c.second.folder_index << " host: " + c.second.host + " username: " + c.second.usr + 
                             " machineid: " + c.second.machineid + "\n";
@@ -108,7 +110,7 @@ namespace cryptochat
                 try
                 {
                     std::ifstream in(filename);
-                    in >> bits(*this);
+                    in >> bits(_repo_info);
                     return true;;
                 }
                 catch (...)
@@ -160,17 +162,17 @@ namespace cryptochat
                 if (_root_path.size() == 0) 
                     return false;
 
-                if (map_userinfo.contains(machineid))
+                if (_repo_info.map_userinfo.contains(machineid))
                 {
                     bool changed = false;
-                    if (hostname.size() > 0 && map_userinfo[machineid].host.size() == 0)
+                    if (hostname.size() > 0 && _repo_info.map_userinfo[machineid].host.size() == 0)
                     {
-                        map_userinfo[machineid].host = hostname;
+                        _repo_info.map_userinfo[machineid].host = hostname;
                         changed = true;
                     }
-                    if (username.size() > 0 && map_userinfo[machineid].usr.size() == 0)
+                    if (username.size() > 0 && _repo_info.map_userinfo[machineid].usr.size() == 0)
                     {
-                        map_userinfo[machineid].usr = username;
+                        _repo_info.map_userinfo[machineid].usr = username;
                         changed = true;
                     }
 
@@ -201,9 +203,9 @@ namespace cryptochat
                     ur.machineid = machineid;
                     ur.host = hostname;
                     ur.usr = username;
-                    ur.folder_index = counter;
-                    map_userinfo[machineid] = ur;
-                    counter++;
+                    ur.folder_index = _repo_info.counter;
+                    _repo_info.map_userinfo[machineid] = ur;
+                    _repo_info.counter++;
 
                     r = save_repo();
 
