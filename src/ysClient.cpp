@@ -708,7 +708,7 @@ namespace ysSocket {
 		}));
 	}
 
-	
+
 	void ysClient::handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
 	{
 		if (map_userinfo.contains(in_id) == false)
@@ -834,15 +834,14 @@ namespace ysSocket {
         ysNodeV4(cfg._port),
         m_serverName(cfg._server),
         _cfg_cli(cfg),
-        _cfgfile(cfgfile),
-
-		_encryptor(4) // TEST
+        _cfgfile(cfgfile)
 	{
 		setDefault();
 		if (_repository.set_root(_cfg_cli._repo_root_path) == false)
 		{
 			// ...
 		}
+		 _encryptor = new cryptoAL::encryptor(3);
 	}
 
 	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {

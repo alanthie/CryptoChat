@@ -27,7 +27,7 @@ namespace ysSocket {
 	class ysClient : protected ysNodeV4
 	{
 	public:
-		cryptoAL::encryptor _encryptor; // TEST
+		cryptoAL::encryptor* _encryptor; // TEST
 
 	protected:
 		void setDefault();

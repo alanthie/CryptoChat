@@ -77,7 +77,8 @@ namespace cryptochat
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._username = entry;
 
 					// TODO...
-					_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
+					//_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
+					_cfg._repo_root_path = "/home/allaptop/dev/CryptoChat/test/cryptochat";
 					std::cout << "Repository (Default " + _cfg._repo_root_path + "): ";
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._repo_root_path = entry;
 					// validate...
