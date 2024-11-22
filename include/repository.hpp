@@ -63,11 +63,18 @@ namespace cryptochat
         public:
             const std::string REPO_INFO = "repoinfo.dat";
             const std::string USER_INFO = "userinfo.txt";
-            std::string _root_path;
+            const std::string FOLDER_ME = "me"; // private keys db
 
-            repo_info _repo_info;
+            std::string _root_path;
+            repo_info   _repo_info;
 
             Repository() = default;
+
+            std::string folder_me()
+            {
+                std::string folder = _root_path + "/" + FOLDER_ME;
+                return folder;
+            }
 
             std::string folder_name(const std::string& machineid, const std::string& in_host, const std::string& in_usr)
             {
@@ -81,14 +88,18 @@ namespace cryptochat
                 return folder;
             }
 
-            bool save_repo()
+            bool save_repo(std::string& serr)
             {
-                if (_root_path.size() == 0) return false;
+                if (_root_path.size() == 0)
+                {
+                    serr += "WARNING save_repo - empty repo root pathname ";
+                    return false;
+                }
 
                 std::string filename = _root_path + "/" + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
-                    std::cerr << "WARNING repo info not found (creating...) " << filename << std::endl;
+                    serr += "WARNING save_repo - repo info not found (creating...) " + filename;
                 }
 
                 // REPO_INFO
@@ -116,14 +127,18 @@ namespace cryptochat
                 return true;
             }
 
-            bool read_repo()
+            bool read_repo(std::string& serr)
             {
-                if (_root_path.size() == 0) return false;
+                if (_root_path.size() == 0)
+                {
+                    serr += "WARNING read_repo - empty repo root pathname ";
+                    return false;
+                }
 
                 std::string filename = _root_path + "/" + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
-                    std::cerr << "WARNING repo info not found " << filename << std::endl;
+                    serr += "WARNING read_repo - repo info not found (no user registered so far) " + filename;
                     return false;
                 }
 
@@ -131,13 +146,12 @@ namespace cryptochat
                 {
                     std::ifstream infile;
                     infile.open (filename, std::ios_base::in);
-                    infile >> bits(_repo_info.counter);
-                    infile >> bits(_repo_info.map_userinfo);
+                    infile >> bits(_repo_info);
                     infile.close();
                 }
                 catch (...)
                 {
-                    std::cerr << "WARNING repo info can not be read " << filename << std::endl;
+                    serr += "WARNING read_repo - repo info can not be read " + filename;
                     return false;
                 }
 
@@ -147,19 +161,34 @@ namespace cryptochat
             bool set_root(const std::string& root_path, std::string& serr)
             {
                 bool r = false;
-                if (root_path.size() == 0) return r;
+                if (root_path.size() == 0)
+                {
+                    serr += "ERROR set_root - empty repo root pathname ";
+                    return false;
+                }
 
                 if (file_util::fileexists(root_path))
                 {
-                    //check
+                    // check
                     if (std::filesystem::is_directory(root_path))
                     {
                         _root_path = root_path;
-                        r = read_repo();
+
+                        r = read_repo(serr);
+                        if (!r)
+                        {
+                            // ok may not exist at start
+                        }
+
+                        r = add_me(serr);
+                        if (!r)
+                        {
+                            return false;
+                        }
                     }
                     else
                     {
-                        serr = "WARNING repo root not a directory " + root_path;
+                        serr += "ERROR set_root - repo root not a directory " + root_path;
                         r = false;
                     }
                 }
@@ -173,7 +202,7 @@ namespace cryptochat
                         }
                         else
                         {
-                            serr = "WARNING can not create the directory " + root_path;
+                            serr += "ERROR set_root - can not create the repo root directory " + root_path;
                         }
                     }
                 }
@@ -188,10 +217,49 @@ namespace cryptochat
                 return file_util::fileexists(folder);
             }
 
-            bool add_user(const std::string& machineid, const std::string& hostname, const std::string& username)
+            bool add_me(std::string& serr)
             {
+                bool r = true;
                 if (_root_path.size() == 0)
+                {
+                    serr += "WARNING add_me - empty repo root pathname ";
                     return false;
+                }
+
+                std::string folder = folder_me();
+                if (file_util::fileexists(folder))
+                {
+                    if (std::filesystem::is_directory(folder))
+                        return true;
+
+                    serr += "WARNING add_me - me folder is not a directory " + folder;
+                    return false;
+                }
+
+                r = std::filesystem::create_directories(folder);
+                if (r)
+                {
+                    if (std::filesystem::is_directory(folder))
+                        return true;
+
+                    serr += "WARNING add_me - me folder is not a directory " + folder;
+                    return false;
+                }
+                else
+                {
+                    serr += "WARNING add_me - Unable to create me folder " + folder;
+                }
+                return r;
+            }
+
+            bool add_user(const std::string& machineid, const std::string& hostname, const std::string& username, std::string& serr)
+            {
+                bool r = true;
+                if (_root_path.size() == 0)
+                {
+                    serr += "WARNING add_user - empty repo root pathname ";
+                    return false;
+                }
 
                 if (_repo_info.map_userinfo.contains(machineid))
                 {
@@ -209,22 +277,25 @@ namespace cryptochat
 
                     if (changed)
                     {
-                        save_repo();
+                       r = save_repo(serr);
+                       if (!r)
+                       {
+                           return false;
+                       }
                     }
-
-                    // return....
                 }
-
 
                 std::string folder = folder_name(machineid, hostname, username);
                 if (file_util::fileexists(folder))
                 {
                     if (std::filesystem::is_directory(folder))
                         return true;
+
+                    serr += "WARNING add_user - user folder is not a directory " + folder;
                     return false;
                 }
 
-                bool r = std::filesystem::create_directories(folder);
+                r = std::filesystem::create_directories(folder);
                 if (r)
                 {
                     //...
@@ -238,15 +309,29 @@ namespace cryptochat
                     _repo_info.map_userinfo[machineid] = ur;
                     _repo_info.counter++;
 
-                    r = save_repo();
-
+                    r = save_repo(serr);
+                    if (r)
+                    {
 #ifdef _WIN32
-                    std::string filenamecfg = folder + "\\cfg.ini";
-                    r = make_default_crypto_cfg(filenamecfg, folder + "\\");
+                        std::string filenamecfg = folder + "\\cfg.ini";
+                        r = make_default_crypto_cfg(filenamecfg, folder + "\\");
+                        if (!r)
+                        {
+                            serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
+                        }
 #else
-                    std::string filenamecfg = folder + "/cfg.ini";
-                    r = make_default_crypto_cfg(filenamecfg, folder + "/");
+                        filenamecfg = folder + "/cfg.ini";
+                        r = make_default_crypto_cfg(filenamecfg, folder + "/");
+                        if (!r)
+                        {
+                            serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
+                        }
 #endif
+                    }
+                }
+                else
+                {
+                    serr += "WARNING add_user - Unable to create user folder " + folder;
                 }
                 return r;
 

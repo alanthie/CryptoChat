@@ -736,16 +736,19 @@ namespace ysSocket {
 			r = _repository.user_exist(in_id, in_host, in_usr);
 			if (r) return;
 
-			r = _repository.add_user(in_id, map_userinfo[in_id].host, map_userinfo[in_id].usr);
+			std::string serr;
+			r = _repository.add_user(in_id, map_userinfo[in_id].host, map_userinfo[in_id].usr, serr);
 			if (r)
 			{
-				// ...
-				std::stringstream ss; ss << "INFO - New user add to repository " << std::endl;
+				std::stringstream ss; 
+				ss << "INFO - New user add to repository " << std::endl;
 				main_global::log(ss.str());
 			}
 			else
 			{
-				std::stringstream ss; ss << "WARNING - Failed to add a new user to repository " << std::endl;
+				std::stringstream ss; 
+				ss << "WARNING - Failed to add a new user to repository " << std::endl;
+				ss << serr << std::endl;
 				main_global::log(ss.str());
 			}
 		}
@@ -841,9 +844,19 @@ namespace ysSocket {
 		std::string serr;
 		if (_repository.set_root(_cfg_cli._repo_root_path, serr) == false)
 		{
+			repository_root_set = true;
+
 			std::stringstream ss;
 			ss << serr << std::endl;
             main_global::log(ss.str());
+		}
+		else
+		{
+			repository_root_set = false;
+
+			std::stringstream ss;
+			ss << "INFO - Repository path set to : " << _cfg_cli._repo_root_path << std::endl;
+			main_global::log(ss.str());
 		}
 	}
 

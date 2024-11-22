@@ -61,7 +61,9 @@ namespace ysSocket {
 
         cryptochat::cfg::cfg_cli    _cfg_cli;
         const std::string&          _cfgfile;
+
 		cryptochat::db::Repository	_repository;
+		bool repository_root_set = false;
 
 		size_t file_counter = 0;
 
