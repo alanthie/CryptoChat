@@ -1,7 +1,7 @@
 /*
  * Author: Alain Lanthier
  */
-
+#include "../include/crypto_const.hpp"
 #include "../include/terminal.h"
 #include "../include/ysClient.h"
 #include "../include/data.hpp"

@@ -10,6 +10,8 @@
 #include <sstream>
 #include <limits>
 #include <csignal>
+
+#include "../include/crypto_const.hpp"
 #include "../include/ysClient.h"
 #include "../include/string_util.hpp"
 #include "../include/chat_cli.hpp"

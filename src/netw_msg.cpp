@@ -1,3 +1,4 @@
+#include "../include/crypto_const.hpp"
 #include "../include/netw_msg.hpp"
 #include "../include/main_global.hpp"
 #include "../include/crc32a.hpp"

@@ -14,6 +14,7 @@
 #include "ysNodeV4.h"
 #include "cfg_cli.hpp"
 #include "repository.hpp"
+#include "encryptor.hpp"
 
 namespace ysSocket {
 
@@ -25,6 +26,9 @@ namespace ysSocket {
 
 	class ysClient : protected ysNodeV4
 	{
+	public:
+		cryptoAL::encryptor _encryptor; // TEST
+
 	protected:
 		void setDefault();
 		std::string get_input(const std::string& q);

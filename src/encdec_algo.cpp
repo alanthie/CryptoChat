@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#include "../include/crypto_const.hpp"
 #include "../include/encdec_algo.hpp"
 #include "../include/main_global.hpp"
 #include "../include/data.hpp"
@@ -41,7 +42,7 @@ namespace NETW_MSG
         return r;
     }
 
-    bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next)
+    bool encode_idea(cryptoAL::cryptodata& data_temp, const char* key, uint32_t key_size, cryptoAL::cryptodata& data_temp_next, bool test)
     {
         bool r = true;
         char c;

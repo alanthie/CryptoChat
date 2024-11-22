@@ -19,10 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\include\AESa.cpp" />
+    <ClCompile Include="..\include\DES.cpp" />
+    <ClCompile Include="..\include\exclusive-lock-file.cpp" />
+    <ClCompile Include="..\include\SymAlg.cpp" />
     <ClCompile Include="..\src\Base64.cpp" />
     <ClCompile Include="..\src\crc32a.cpp" />
+    <ClCompile Include="..\src\crypto_file.cpp" />
+    <ClCompile Include="..\src\crypto_keymgr.cpp" />
     <ClCompile Include="..\src\encdec_algo.cpp" />
     <ClCompile Include="..\src\encrypt.cpp" />
+    <ClCompile Include="..\src\includes.cpp" />
     <ClCompile Include="..\src\machineid.cpp" />
     <ClCompile Include="..\src\menu_window.cpp" />
     <ClCompile Include="..\src\netw_msg.cpp" />
@@ -33,6 +40,7 @@
     <ClCompile Include="..\src\ysNodeV4.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\AESa.h" />
     <ClInclude Include="..\include\argparse.hpp" />
     <ClInclude Include="..\include\Base64.h" />
     <ClInclude Include="..\include\base_const.hpp" />
@@ -42,10 +50,13 @@
     <ClInclude Include="..\include\chat_cli.hpp" />
     <ClInclude Include="..\include\crc32a.hpp" />
     <ClInclude Include="..\include\crypto_const.hpp" />
+    <ClInclude Include="..\include\crypto_file.hpp" />
+    <ClInclude Include="..\include\crypto_keymgr.hpp" />
     <ClInclude Include="..\include\crypto_parsing.hpp" />
     <ClInclude Include="..\include\crypto_strutil.hpp" />
     <ClInclude Include="..\include\data.hpp" />
     <ClInclude Include="..\include\encrypt.h" />
+    <ClInclude Include="..\include\encryptor.hpp" />
     <ClInclude Include="..\include\file_util.hpp" />
     <ClInclude Include="..\include\IDEA.hpp" />
     <ClInclude Include="..\include\Menu.h" />
@@ -113,16 +124,33 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>&lt;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\cpp\curl\include;C:\Lib\libgmp_6.2.1-4_msvc17\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\cpp\curl\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\Lib\libgmp_6.2.1-4_msvc17\include;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>&lt;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\cpp\curl\include;C:\Lib\libgmp_6.2.1-4_msvc17\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\cpp\curl\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\Lib\libgmp_6.2.1-4_msvc17\include;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;gmp.lib;libgmp.lib;libcurl_a.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -131,7 +159,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -139,20 +167,21 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;gmp.lib;libgmp.lib;libcurl_a.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Ws2_32.lib;Iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;gmp.lib;libgmp.lib;libcurl_a.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -161,7 +190,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -170,7 +199,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Ws2_32.lib;Iphlpapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;gmp.lib;libgmp.lib;libcurl_a.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

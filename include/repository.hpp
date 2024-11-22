@@ -283,7 +283,9 @@ namespace cryptochat
 
                 std::ofstream outfile(filename);
                 outfile << ss.str();
+                return true;
             }
+
         };
     }
 }
