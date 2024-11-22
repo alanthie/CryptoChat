@@ -125,14 +125,16 @@ namespace ysSocket {
 
 	void ysServer::handle_new_client(ysNodeV4* new_client)
 	{
+		// send current list to this
+		handle_info_client(new_client->getSocketFd(), true);
 	}
     void ysServer::handle_remove_client()
     {
     }
-    void ysServer::handle_info_client(const int& t_socket)
+    void ysServer::handle_info_client(const int& t_socket, bool send_to_current_user_only)
     {
         // new hostname, username, machineid
-        std::string v = "User list : ";
+		std::string v;
 		{
 			std::lock_guard lck(vclient_mutex);
 			std::string s;
@@ -142,7 +144,12 @@ namespace ysSocket {
                 v+=s;
 			}
 		}
-		sendMessageAll(v, t_socket);
+
+		// MSG_CMD_INFO_USERLIST
+		if (send_to_current_user_only)
+			sendMessageOne(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
+		else
+			sendMessageAll(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
 		std::cout << std::endl << v << std::endl;
     }
 
@@ -537,6 +544,7 @@ namespace ysSocket {
 		}
 	}
 
+
 	void ysServer::sendMessageClients(const std::string& t_message)
 	{
 		std::lock_guard lck(vclient_mutex);
@@ -548,12 +556,9 @@ namespace ysSocket {
 				NETW_MSG::MSG  m;
 
 				std::string key;
-				if (!client->initial_key_validation_done)
-					key = getDEFAULT_KEY();
-				else if (!client->random_key_validation_done)
-					key = client->initial_key64;
-				else
-					key = client->random_key;
+				if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+				else if (!client->random_key_validation_done) key = client->initial_key64;
+				else key = client->random_key;
 
 				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
 				sendMessageBuffer(client->getSocketFd(), m, key);
@@ -562,6 +567,53 @@ namespace ysSocket {
 	}
 
 	// Relay message m
+	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type)
+	{
+		std::lock_guard lck(vclient_mutex);
+
+		for (auto& client : v_client)
+		{
+			if (client->getSocketFd() != t_socket)
+			{
+				if (client->getState() == STATE::OPEN)
+				{
+					std::string key;
+					if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done) key = client->initial_key64;
+					else key = client->random_key;
+
+					NETW_MSG::MSG m;
+					m.make_msg(msg_type, t_message, key);
+					sendMessageBuffer(client->getSocketFd(), m, key);
+				}
+			}
+		}
+	}
+
+	void ysServer::sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type)
+	{
+		std::lock_guard lck(vclient_mutex);
+
+		for (auto& client : v_client)
+		{
+			if (client->getSocketFd() == t_socket)
+			{
+				if (client->getState() == STATE::OPEN)
+				{
+					std::string key;
+					if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done) key = client->initial_key64;
+					else key = client->random_key; 
+
+					NETW_MSG::MSG m;
+					m.make_msg(msg_type, t_message, key);
+					sendMessageBuffer(client->getSocketFd(), m, key);
+				}
+				break;
+			}
+		}
+	}
+
 	void ysServer::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
 	{
 		std::lock_guard lck(vclient_mutex);
@@ -573,12 +625,9 @@ namespace ysSocket {
 				if (client->getState() == STATE::OPEN)
 				{
 					std::string key;
-					if (!client->initial_key_validation_done)
-						key = getDEFAULT_KEY();
-					else if (!client->random_key_validation_done)
-						key = client->initial_key64;
-					else
-						key = client->random_key;
+					if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done) key = client->initial_key64;
+					else key = client->random_key;
 
 					sendMessageBuffer(client->getSocketFd(), m, key);
 				}
@@ -590,28 +639,7 @@ namespace ysSocket {
 	// NETW_MSG::MSG_TEXT
 	void ysServer::sendMessageAll(const std::string& t_message, const int& t_socket)
 	{
-		std::lock_guard lck(vclient_mutex);
-
-		for (auto &client : v_client)
-		{
-			if (client->getSocketFd() != t_socket)
-			{
-				if (client->getState() == STATE::OPEN)
-				{
-					std::string key;
-					if (!client->initial_key_validation_done)
-						key = getDEFAULT_KEY();
-					else if (!client->random_key_validation_done)
-						key = client->initial_key64;
-					else
-						key = client->random_key;
-
-					NETW_MSG::MSG m;
-					m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
-					sendMessageBuffer(client->getSocketFd(), m, key);
-				}
-			}
-		}
+		sendMessageAll(t_message, t_socket, NETW_MSG::MSG_TEXT);
 	}
 
 	void ysServer::close_client(ysNodeV4* client,bool force)

@@ -582,6 +582,38 @@ namespace ysSocket {
 							this->sendMessageBuffer(this->m_socketFd, m, key);
 						}
 					}
+					else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_USERLIST)
+					{
+						{
+							std::stringstream ss;
+							ss << "recv MSG_CMD_INFO_USERLIST : " << std::endl;
+							ss << "recv " << str_message << std::endl;
+							main_global::log(ss.str());
+						}
+
+						//s=v_client[i]->machine_id+";"+v_client[i]->hostname+";"+v_client[i]->username+";";
+						std::string work = str_message;
+						std::vector<std::string> tokens = NETW_MSG::split(work, ";");
+
+						std::string in_id;
+						std::string in_host;
+						std::string in_usr;
+						int cnt = 0;
+						for (size_t i = 0; i < tokens.size(); i++)
+						{
+							if (cnt == 0) in_id = tokens[i];
+							else if (cnt == 1) in_host = tokens[i];
+							else if (cnt == 2) in_usr = tokens[i];
+							if (cnt == 2)
+							{
+								if (in_id.size() > 0 && in_host.size() > 0 && in_usr.size() > 0)
+									handle_info_client(in_id, in_host, in_usr);
+							}
+							cnt++;
+							if (cnt > 2) cnt = 0;
+						}
+
+					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
 						{
@@ -674,6 +706,49 @@ namespace ysSocket {
 		}));
 	}
 
+	
+	void ysClient::handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
+	{
+		if (map_userinfo.contains(in_id) == false)
+		{
+			userinfo ui;
+			ui.host = in_host;
+			ui.usr = in_usr;
+			map_userinfo[in_id] = ui;
+		}
+		else
+		{
+			if (in_host.size() > 0 && map_userinfo[in_id].host.size() == 0)
+				map_userinfo[in_id].host = in_host;
+			if (in_usr.size() > 0 && map_userinfo[in_id].usr.size() == 0)
+				map_userinfo[in_id].usr = in_usr;
+		}
+		handle_new_client(in_id, in_host, in_usr);
+	}
+
+	void ysClient::handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
+	{
+		bool r = false;
+
+		{
+			r = _repository.user_exist(in_id, in_host, in_usr);
+			if (r) return;
+
+			r = _repository.add_user(in_id, map_userinfo[in_id].host, map_userinfo[in_id].usr);
+			if (r)
+			{
+				// ...
+				std::stringstream ss; ss << "INFO - New user add to repository " << std::endl;
+				main_global::log(ss.str());
+			}
+			else
+			{
+				std::stringstream ss; ss << "WARNING - Failed to add a new user to repository " << std::endl;
+				main_global::log(ss.str());
+			}
+		}
+	}
+
 	void ysClient::client_UI()
 	{
 		int cnt = 0;
@@ -760,6 +835,10 @@ namespace ysSocket {
         _cfgfile(cfgfile)
 	{
 		setDefault();
+		if (_repository.set_root(_cfg_cli._repo_root_path) == false)
+		{
+			// ...
+		}
 	}
 
 	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {

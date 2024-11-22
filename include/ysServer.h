@@ -38,7 +38,7 @@ namespace ysSocket
 
 		void handle_new_client(ysNodeV4* new_client);
 		void handle_remove_client();
-		void handle_info_client(const int& t_socket);
+		void handle_info_client(const int& t_socket, bool send_to_current_user_only = false);
 
 		// server
 		void createServer();
@@ -55,9 +55,11 @@ namespace ysSocket
 
 		// Message
 		void sendMessageClients(const std::string& t_message);
-		void sendMessageAll(const std::string& t_message, const int& t_socket);
 
+		void sendMessageAll(const std::string& t_message, const int& t_socket);
+		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type);
 		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
+		void sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type);
 
 	public:
 		ysServer(cryptochat::cfg::cfg_srv cfg);

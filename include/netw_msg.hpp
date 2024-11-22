@@ -64,6 +64,7 @@ const uint8_t MSG_CMD_REQU_HOSTNAME = 22;
 const uint8_t MSG_CMD_RESP_HOSTNAME = 23;
 const uint8_t MSG_CMD_REQU_MACHINEID = 24;
 const uint8_t MSG_CMD_RESP_MACHINEID = 25;
+const uint8_t MSG_CMD_INFO_USERLIST = 26;
 
 
 const uint8_t MSG_FILE_FRAGMENT = 31;

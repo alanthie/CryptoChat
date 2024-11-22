@@ -26,6 +26,7 @@
     <ClCompile Include="..\src\includes.cpp" />
     <ClCompile Include="..\src\netw_msg.cpp" />
     <ClCompile Include="..\src\SHA256.cpp" />
+    <ClCompile Include="..\src\srv_test.cpp" />
     <ClCompile Include="..\src\vigenere.cpp" />
     <ClCompile Include="..\src\ysChatServer.cpp" />
     <ClCompile Include="..\src\ysNodeV4.cpp" />

@@ -52,12 +52,13 @@ namespace cryptochat
 			{
 				got_chat_cli_signal = 0;
 
-				bool ok = read_cfg(true);
+				bool ok = read_cfg(false);
 				if (ok)
 				{
 					std::cout << "Server : " << _cfg._server << std::endl;
 					std::cout << "Port : " << _cfg._port << std::endl;
 					std::cout << "Username : " << _cfg._username << std::endl;
+					std::cout << "Repository : " << _cfg._repo_root_path << std::endl;
 				}
 				else
 				{
@@ -75,9 +76,16 @@ namespace cryptochat
 					std::cout << "Username (Default user): ";
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._username = entry;
 
+					// TODO...
+					_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
+					std::cout << "Repository (Default " + _cfg._repo_root_path + "): ";
+					std::getline(std::cin, entry); if (!entry.empty()) _cfg._repo_root_path = entry;
+					// validate...
+
 					std::cout << "Server : " << _cfg._server << std::endl;
 					std::cout << "Port : " << _cfg._port << std::endl;
 					std::cout << "Username : " << _cfg._username << std::endl;
+					std::cout << "Repository : " << _cfg._repo_root_path << std::endl;
 
 					save_cfg();
 				}

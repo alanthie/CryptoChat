@@ -5,15 +5,23 @@
 #ifndef YSCLIENT_H
 #define YSCLIENT_H
 
-#include "ysNodeV4.h"
-#include "cfg_cli.hpp"
 #include <iostream>
 #include <functional>
 #include <thread>
 #include <mutex>
 #include <atomic>
 
+#include "ysNodeV4.h"
+#include "cfg_cli.hpp"
+#include "repository.hpp"
+
 namespace ysSocket {
+
+	struct userinfo
+	{
+		std::string host;
+		std::string usr;
+	};
 
 	class ysClient : protected ysNodeV4
 	{
@@ -49,6 +57,7 @@ namespace ysSocket {
 
         cryptochat::cfg::cfg_cli    _cfg_cli;
         const std::string&          _cfgfile;
+		cryptochat::db::Repository	_repository;
 
 		size_t file_counter = 0;
 
@@ -64,6 +73,10 @@ namespace ysSocket {
 		std::string get_initial_key() { return initial_key; }
 		std::string get_initial_key64() { return initial_key64; }
 		std::string get_random_key()  { return random_key; }
+
+		std::map<std::string, userinfo> map_userinfo; // machineid is key
+		void handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
+		void handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
 
 		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)
 		{

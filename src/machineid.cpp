@@ -2,24 +2,22 @@
 #include <sstream>
 #include <iostream>
 
-namespace machineid {
+namespace machineid 
+{
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <intrin.h>
-#include <iphlpapi.h>
 
 // we just need this for purposes of unique machine id. So any one or two mac's is
 // fine.
-u16 hashMacAddress(PIP_ADAPTER_INFO info) {
-	u16 hash = 0;
-	for (u32 i = 0; i < info->AddressLength; i++) {
+uint16_t hashMacAddress(PIP_ADAPTER_INFO info) {
+	uint16_t hash = 0;
+	for (uint32_t i = 0; i < info->AddressLength; i++) {
 		hash += (info->Address[i] << ((i & 1) * 8));
 	}
 	return hash;
 }
 
-void getMacHash(u16 &mac1, u16 &mac2) {
+void getMacHash(uint16_t&mac1, uint16_t&mac2)
+{
 	IP_ADAPTER_INFO AdapterInfo[32];
 	DWORD dwBufLen = sizeof(AdapterInfo);
 
@@ -35,28 +33,30 @@ void getMacHash(u16 &mac1, u16 &mac2) {
 	// sort the mac addresses. We don't want to invalidate
 	// both macs if they just change order.
 	if (mac1 > mac2) {
-		u16 tmp = mac2;
+		uint16_t tmp = mac2;
 		mac2 = mac1;
 		mac1 = tmp;
 	}
 }
 
-u16 getVolumeHash() {
+uint16_t getVolumeHash() {
 	DWORD serialNum = 0;
 
 	// Determine if this volume uses an NTFS file system.
-	GetVolumeInformation("c:\\", NULL, 0, &serialNum, NULL, NULL, NULL, 0);
-	u16 hash = (u16)((serialNum + (serialNum >> 16)) & 0xFFFF);
+	//If this parameter is NULL, the root of the current directory is used
+	//GetVolumeInformation("c:\\", NULL, 0, &serialNum, NULL, NULL, NULL, 0);
+	GetVolumeInformation(NULL, NULL, 0, &serialNum, NULL, NULL, NULL, 0);
+	uint16_t hash = (uint16_t)((serialNum + (serialNum >> 16)) & 0xFFFF);
 
 	return hash;
 }
 
-u16 getCpuHash() {
+uint16_t getCpuHash() {
 	int cpuinfo[4] = {0, 0, 0, 0};
 	__cpuid(cpuinfo, 0);
-	u16 hash = 0;
-	u16 *ptr = (u16 * )(&cpuinfo[0]);
-	for (u32 i = 0; i < 8; i++)
+	uint16_t hash = 0;
+	uint16_t*ptr = (uint16_t* )(&cpuinfo[0]);
+	for (uint32_t i = 0; i < 8; i++)
 		hash += ptr[i];
 
 	return hash;
