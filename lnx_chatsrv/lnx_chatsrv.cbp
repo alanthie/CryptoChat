@@ -15,6 +15,9 @@
 				<Compiler>
 					<Add option="-std=gnu++20" />
 					<Add option="-g" />
+					<Add option="-lcurl" />
+					<Add option="-lgmp" />
+					<Add option="-lgmpxx" />
 					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/13/include" />
 				</Compiler>
 			</Target>
@@ -26,9 +29,15 @@
 				<Option parameters="-cfg srvcfg.txt" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-lcurl" />
+					<Add option="-lgmp" />
+					<Add option="-lgmpxx" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lcurl" />
+					<Add option="-lgmp" />
+					<Add option="-lgmpxx" />
 				</Linker>
 			</Target>
 		</Build>
@@ -36,7 +45,15 @@
 			<Add option="-Wall" />
 			<Add option="-std=gnu++20" />
 			<Add option="-fexceptions" />
+			<Add option="-lcurl" />
+			<Add option="-lgmp" />
+			<Add option="-lgmpxx" />
 		</Compiler>
+		<Linker>
+			<Add option="-lcurl" />
+			<Add option="-lgmp" />
+			<Add option="-lgmpxx" />
+		</Linker>
 		<Unit filename="../include/Base64.h" />
 		<Unit filename="../include/IDEA.hpp" />
 		<Unit filename="../include/Menu.h" />
@@ -52,6 +69,7 @@
 		<Unit filename="../include/encrypt.h" />
 		<Unit filename="../include/machineid.h" />
 		<Unit filename="../include/netw_msg.hpp" />
+		<Unit filename="../include/qa/exclusive-lock-file.cpp" />
 		<Unit filename="../include/random_engine.hpp" />
 		<Unit filename="../include/rng.h" />
 		<Unit filename="../include/terminal.h" />
@@ -63,6 +81,8 @@
 		<Unit filename="../src/Base64.cpp" />
 		<Unit filename="../src/SHA256.cpp" />
 		<Unit filename="../src/crc32a.cpp" />
+		<Unit filename="../src/crypto_file.cpp" />
+		<Unit filename="../src/crypto_keymgr.cpp" />
 		<Unit filename="../src/encdec_algo.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
 		<Unit filename="../src/machineid.cpp" />

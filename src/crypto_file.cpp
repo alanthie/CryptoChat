@@ -2,14 +2,12 @@
 #include "../include/crypto_const.hpp"
 #include "../include/crypto_file.hpp"
 
-//static std::string cryptoAL::key_file::s_last_local_file = "";
-//static bool cryptoAL::key_file::s_use_last = false;
 
 namespace cryptoAL
 {
 namespace key_file
 {
-	int cryptoAL::key_file::getvideo(std::string url, std::string outfile, std::string options, [[maybe_unused]] bool verbose)
+	int getvideo(std::string url, std::string outfile, std::string options, [[maybe_unused]] bool verbose)
 	{
 		// youtube-dl 'https://www.bitchute.com/video/JjqRgjv5GJmW/'
 #ifdef _WIN32
@@ -27,7 +25,7 @@ namespace key_file
 		return r;
 	}
 
-	int cryptoAL::key_file::getlocal(std::string url, cryptodata& dataout, std::string options, [[maybe_unused]] bool verbose)
+	int getlocal(std::string url, cryptodata& dataout, std::string options, [[maybe_unused]] bool verbose)
 	{
 		options=options;
 		if (VERBOSE_DEBUG)
@@ -89,7 +87,7 @@ namespace key_file
 		return -1;
 	}
 
-	int cryptoAL::key_file::getftp( std::string url, std::string outfile,
+	int getftp( std::string url, std::string outfile,
 				std::string encryped_ftp_user,
 				std::string encryped_ftp_pwd,
 				std::string known_ftp_server,
@@ -189,12 +187,12 @@ namespace key_file
 		}
 	}
 
-	size_t cryptoAL::key_file::write(void *ptr, size_t size, size_t nmemb, FILE *stream)
+	size_t write(void *ptr, size_t size, size_t nmemb, FILE *stream)
 	{
 		return fwrite(ptr, size, nmemb, stream);
 	}
 
-	int cryptoAL::key_file::wget(const char *in, const char *out, [[maybe_unused]] bool verbose)
+	int wget(const char *in, const char *out, [[maybe_unused]] bool verbose)
 	{
 		if (VERBOSE_DEBUG)
 		{
