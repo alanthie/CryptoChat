@@ -100,7 +100,7 @@ namespace cryptochat
 
             friend std::ostream& operator<<(std::ostream& out, Bits<cfg_cli& > my)
             {
-                out << bits(my.t._server) << bits(my.t._port) << bits(my.t._username) 
+                out << bits(my.t._server) << bits(my.t._port) << bits(my.t._username)
 					<< bits(my.t._repo_root_path)
 					<< bits(my.t.map_challenges);
                 return (out);
@@ -108,7 +108,7 @@ namespace cryptochat
 
             friend std::istream& operator>>(std::istream& in, Bits<cfg_cli&> my)
             {
-                in  >> bits(my.t._server) >> bits(my.t._port) >> bits(my.t._username) 
+                in  >> bits(my.t._server) >> bits(my.t._port) >> bits(my.t._username)
 					>> bits(my.t._repo_root_path)
 					>> bits(my.t.map_challenges);
                 return (in);

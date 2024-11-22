@@ -837,11 +837,14 @@ namespace ysSocket {
         _cfgfile(cfgfile)
 	{
 		setDefault();
-		if (_repository.set_root(_cfg_cli._repo_root_path) == false)
+
+		std::string serr;
+		if (_repository.set_root(_cfg_cli._repo_root_path, serr) == false)
 		{
-			// ...
+			std::stringstream ss;
+			ss << serr << std::endl;
+            main_global::log(ss.str());
 		}
-		 _encryptor = new cryptoAL::encryptor(3);
 	}
 
 	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {

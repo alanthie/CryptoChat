@@ -779,6 +779,14 @@ struct ClientTerm
                     free(buf);
                     return NULL;
                 }
+                else if (c == Key::F3) // TEST
+                {
+                    set_edit_msg("");
+                    free(buf);
+
+                    main_global::shutdown();
+                    return NULL;
+                }
                 else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
                     if (buflen != 0) buf[--buflen] = '\0';

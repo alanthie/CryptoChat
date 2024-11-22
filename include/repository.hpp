@@ -2,7 +2,6 @@
 #ifndef Repository_H_INCLUDED
 #define Repository_H_INCLUDED
 
-
 #include <string>
 #include <map>
 #include "../include/file_util.hpp"
@@ -14,19 +13,39 @@ namespace cryptochat
     {
         struct repo_userinfo
         {
-            std::string machineid;
             std::string host;
             std::string usr;
             std::string folder;
             size_t folder_index;
+
+            friend std::ostream& operator<<(std::ostream& out, Bits<repo_userinfo&>  my)
+            {
+                out
+                << bits(my.t.host)
+                << bits(my.t.usr)
+                << bits(my.t.folder)
+                << bits(my.t.folder_index);
+                return (out);
+            }
+
+            friend std::istream& operator>>(std::istream& in, Bits<repo_userinfo&> my)
+            {
+                in
+                >> bits(my.t.host)
+                >> bits(my.t.usr)
+                >> bits(my.t.folder)
+                >> bits(my.t.folder_index);
+                return (in);
+            }
         };
 
-        struct repo_info
+        class repo_info
         {
+        public:
             size_t counter = 0;
             std::map<std::string, repo_userinfo> map_userinfo;
 
-            friend std::ostream& operator<<(std::ostream& out, Bits<repo_info& > my)
+            friend std::ostream& operator<<(std::ostream& out, Bits<repo_info&>  my)
             {
                 out << bits(my.t.counter) << bits(my.t.map_userinfo);
                 return (out);
@@ -53,11 +72,12 @@ namespace cryptochat
             std::string folder_name(const std::string& machineid, const std::string& in_host, const std::string& in_usr)
             {
                 std::string folder;
-                if (_repo_info.map_userinfo.contains(machineid))
-                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.map_userinfo[machineid].folder_index);
-                else
-                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.counter);
+//                if (_repo_info.map_userinfo.contains(machineid))
+//                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.map_userinfo[machineid].folder_index);
+//                else
+//                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.counter);
 
+                folder = _root_path + "/" + "user_" + machineid;
                 return folder;
             }
 
@@ -73,21 +93,25 @@ namespace cryptochat
 
                 // REPO_INFO
                 {
-                    std::ofstream outfile(filename, std::ios::binary);
-                    outfile << bits(_repo_info);
+                	std::ofstream out;
+					out.open(filename, std::ios_base::out);
+					out << bits(_repo_info);
+					out.close();
                 }
 
                 {
                     std::string filenameinfo = _root_path + "/" + USER_INFO;
-                    std::ofstream outfile(filenameinfo);
+                    std::ofstream outfile2(filenameinfo);
 
                     std::stringstream ss;
                     for (auto& c : _repo_info.map_userinfo)
                     {
-                        ss << "Folder index: " + c.second.folder_index << " host: " + c.second.host + " username: " + c.second.usr + 
-                            " machineid: " + c.second.machineid + "\n";
+                        ss
+                        << "Folder index: " + std::to_string(c.second.folder_index)
+                        << " host: " + c.second.host + " username: " + c.second.usr + "\n";
                     }
-                    outfile << ss.str();
+                    outfile2 << ss.str();
+                    outfile2.close();
                 }
                 return true;
             }
@@ -102,16 +126,14 @@ namespace cryptochat
                     std::cerr << "WARNING repo info not found " << filename << std::endl;
                     return false;
                 }
-                else
-                {
-
-                }
 
                 try
                 {
-                    std::ifstream in(filename);
-                    in >> bits(_repo_info);
-                    return true;;
+                    std::ifstream infile;
+                    infile.open (filename, std::ios_base::in);
+                    infile >> bits(_repo_info.counter);
+                    infile >> bits(_repo_info.map_userinfo);
+                    infile.close();
                 }
                 catch (...)
                 {
@@ -122,28 +144,37 @@ namespace cryptochat
                 return true;;
             }
 
-            bool set_root(const std::string& root_path) 
+            bool set_root(const std::string& root_path, std::string& serr)
             {
-                bool r = true;
+                bool r = false;
                 if (root_path.size() == 0) return r;
 
-                if (std::filesystem::is_directory(root_path))
+                if (file_util::fileexists(root_path))
                 {
-                    _root_path = root_path;
-                    r = read_repo();
-                }
-                else
-                {
-                    // create...
-                    bool r = std::filesystem::create_directories(root_path);
-                    if (r)
+                    //check
+                    if (std::filesystem::is_directory(root_path))
                     {
                         _root_path = root_path;
-                        r = save_repo();
+                        r = read_repo();
                     }
                     else
                     {
+                        serr = "WARNING repo root not a directory " + root_path;
                         r = false;
+                    }
+                }
+                else
+                {
+                    {
+                        bool r = std::filesystem::create_directories(root_path);
+                        if (r)
+                        {
+                            _root_path = root_path;
+                        }
+                        else
+                        {
+                            serr = "WARNING can not create the directory " + root_path;
+                        }
                     }
                 }
 
@@ -152,14 +183,14 @@ namespace cryptochat
 
             bool user_exist(const std::string& machineid, const std::string& in_host, const std::string& in_usr)
             {
-                if (_root_path.size() == 0) return false; 
+                if (_root_path.size() == 0) return false;
                 std::string folder = folder_name(machineid, in_host, in_usr);
                 return file_util::fileexists(folder);
             }
 
             bool add_user(const std::string& machineid, const std::string& hostname, const std::string& username)
             {
-                if (_root_path.size() == 0) 
+                if (_root_path.size() == 0)
                     return false;
 
                 if (_repo_info.map_userinfo.contains(machineid))
@@ -200,10 +231,10 @@ namespace cryptochat
                     // add a default url keys file
 
                     repo_userinfo ur;
-                    ur.machineid = machineid;
                     ur.host = hostname;
                     ur.usr = username;
                     ur.folder_index = _repo_info.counter;
+
                     _repo_info.map_userinfo[machineid] = ur;
                     _repo_info.counter++;
 
