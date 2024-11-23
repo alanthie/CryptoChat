@@ -145,6 +145,15 @@ namespace crypto_socket {
             return ui_dirty;
         }
 
+        std::string get_key()
+        {
+            std::lock_guard l(_key_mutex);
+
+            if (!key_valid)	return get_DEFAULT_KEY();
+            else if (!rnd_valid) return get_initial_key64();
+            return get_random_key();
+        }
+
 		static bool is_got_chat_cli_signal();
 
 		virtual ~crypto_client();
@@ -152,4 +161,4 @@ namespace crypto_socket {
 
 }
 
-#endif 
+#endif

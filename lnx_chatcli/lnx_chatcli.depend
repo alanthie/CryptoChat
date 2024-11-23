@@ -1230,7 +1230,7 @@
 	<intrin.h>
 	<iphlpapi.h>
 
-1732337824 /home/allaptop/dev/CryptoChat/include/crypto_client.hpp
+1732370189 /home/allaptop/dev/CryptoChat/include/crypto_client.hpp
 	<iostream>
 	<functional>
 	<thread>
@@ -1335,7 +1335,7 @@
 	"../include/crypto_parsing.hpp"
 	"../include/main_global.hpp"
 
-1732366072 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
+1732369894 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
 	<iostream>
 	<string>
 	<conio.h>
