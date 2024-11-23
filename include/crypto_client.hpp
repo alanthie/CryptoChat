@@ -14,6 +14,7 @@
 #include "socket_node.hpp"
 #include "cfg_cli.hpp"
 #include "repository.hpp"
+#include "cfg_crypto.hpp"
 #include "encryptor.hpp"
 #include "decryptor.hpp"
 
@@ -66,15 +67,17 @@ namespace crypto_socket {
         cryptochat::cfg::cfg_cli    _cfg_cli;
         const std::string&          _cfgfile;
 
+		// Repository of public/private keys of users
 		cryptochat::db::Repository	_repository;
 		bool repository_root_set = false;
 
+		// user index is machineid
+		std::map<std::string, cryptochat::cfg::cfg_crypto_params> map_active_user_to_crypto_cfg;
+		std::map<std::string, std::string> map_active_user_to_urls;
+
 		size_t file_counter = 0;
-
 		std::atomic<bool> ui_dirty = true;
-
 		int challenge_attempt = 0;
-
 		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 
@@ -95,9 +98,21 @@ namespace crypto_socket {
 		void handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
 		void handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
 
-		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)
+		bool crypto_encrypt(const std::string& to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
+
+		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key, const std::string& to_user = {})
 		{
-			return sendMessageBuffer(t_socketFd, m, key);
+			if (to_user.empty() == false)
+			{
+				NETW_MSG::MSG msgout;
+				bool r = crypto_encrypt(to_user, msgin, msgout);
+				if (r)
+				{
+					return sendMessageBuffer(t_socketFd, msgout, key);
+				}
+				// skip crypto encryption
+			}
+			return sendMessageBuffer(t_socketFd, msgin, key);
 		}
 
 		int get_socket() { return m_socketFd; }

@@ -255,7 +255,8 @@ namespace crypto_socket {
                         // socked should stop after next send or recv
                         NETW_MSG::MSG m;
 						m.make_msg(NETW_MSG::MSG_CMD_RESP_SHUTDOWN, "shutdown", key);
-                        this->sendMessageBuffer(this->m_socketFd, m, key);
+						send_message_buffer(this->m_socketFd, m, key);
+                        //this->sendMessageBuffer(this->m_socketFd, m, key);
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
@@ -283,7 +284,7 @@ namespace crypto_socket {
 
 							NETW_MSG::MSG m;
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, _cfg_cli.map_challenges[str_message], getDEFAULT_KEY());
-							this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+							this->send_message_buffer(this->m_socketFd, m, getDEFAULT_KEY());
 						}
 						else
 						{
@@ -396,7 +397,7 @@ namespace crypto_socket {
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
-									this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+									this->send_message_buffer(this->m_socketFd, m, getDEFAULT_KEY());
 								}
 							}
 						}
@@ -483,7 +484,7 @@ namespace crypto_socket {
 
 						NETW_MSG::MSG m;
                         m.make_msg(NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY, str_digest, key);
-                        this->sendMessageBuffer(this->m_socketFd, m, key);
+                        this->send_message_buffer(this->m_socketFd, m, key);
                     }
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID)
                     {
@@ -539,7 +540,7 @@ namespace crypto_socket {
                         std::string key = get_key();
 
                         m.make_msg(NETW_MSG::MSG_CMD_RESP_USERNAME, _cfg_cli._username, key);
-                        this->sendMessageBuffer(this->m_socketFd, m, key);
+                        this->send_message_buffer(this->m_socketFd, m, key);
                     }
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
 					{
@@ -562,7 +563,7 @@ namespace crypto_socket {
 							std::string key = get_key();
 
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_HOSTNAME, h, key);
-							this->sendMessageBuffer(this->m_socketFd, m, key);
+							this->send_message_buffer(this->m_socketFd, m, key);
 						}
 						else
 						{
@@ -732,7 +733,7 @@ namespace crypto_socket {
 		{
 			userinfo ui;
 			ui.host = in_host;
-			ui.usr = in_usr;
+			ui.usr = in_usr;	// TODO make unique.....
 			map_userinfo[in_id] = ui;
 		}
 		else
@@ -749,6 +750,7 @@ namespace crypto_socket {
 	{
 		bool r = false;
 
+		if (repository_root_set)
 		{
 			r = _repository.user_exist(in_id, in_host, in_usr);
 			if (r) return;
@@ -759,7 +761,40 @@ namespace crypto_socket {
 			{
 				std::stringstream ss;
 				ss << "INFO - New user add to repository " << std::endl;
-				main_global::log(ss.str());
+
+				cryptochat::cfg::cfg_crypto cc;
+				if (map_active_user_to_crypto_cfg.contains(in_id) == false)
+				{
+					std::string inifile = _repository.get_crypto_cfg_filename(in_id);
+					if (!inifile.empty())
+					{
+						r = cc.read(inifile, serr, false);
+						if (r)
+						{
+							map_active_user_to_crypto_cfg[in_id] = cc._p;
+						}
+						else
+						{
+							ss << "WARNING - cannot read " << inifile << std::endl;
+						}
+					}
+					else
+					{
+						r = false;
+						ss << "WARNING - no file " << inifile << std::endl;
+					}
+				}
+
+				if (r)
+				{
+					if (map_active_user_to_urls.contains(in_id) == false)
+					{
+						std::string  urls_folder = _repository.get_urls_folder(in_id);
+						std::string  urls_filename = urls_folder + cryptochat::db::Repository::file_separator() + cc._p.filename_urls;
+						map_active_user_to_urls[in_id] = urls_filename;
+					}
+				}
+
 			}
 			else
 			{
@@ -867,8 +902,8 @@ namespace crypto_socket {
 			main_global::log(ss.str());
 		}
 
-		cryptoAL::encryptor* _encryptor = new cryptoAL::encryptor(0); // TEST
-		cryptoAL::decryptor* _decryptor = new cryptoAL::decryptor(0); // TEST
+		cryptoAL::encryptor* _encryptor = nullptr;// = new cryptoAL::encryptor(0); // TEST
+		cryptoAL::decryptor* _decryptor = nullptr;// = new cryptoAL::decryptor(0); // TEST
 	}
 
 	void crypto_client::setOnMessage(const std::function<void(const std::string&)>& t_function) {
@@ -1032,12 +1067,110 @@ namespace crypto_socket {
 			bool r = m.make_next_file_fragment_to_send(binfile, key, true);
 			if (r)
 			{
-				send_status = sendMessageBuffer(t_socketFd, m, key);
+				send_status = send_message_buffer(t_socketFd, m, key);
 				msg_sent = true;
 				ui_dirty = true;
 			}
 		}
 
 		return msg_sent;
+	}
+
+	bool crypto_client::crypto_encrypt(const std::string& to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout)
+	{
+		bool r = false;
+		if (repository_root_set == false)
+			return false;
+
+		std::string dest_machineid;
+		for (auto a : map_userinfo)
+		{
+			if (a.second.usr == to_user) // TODO make user unique...
+			{
+				dest_machineid = a.first;
+				break;
+			}
+		}
+
+		if (dest_machineid.empty() == false)
+		{
+			if (map_active_user_to_crypto_cfg.contains(dest_machineid) && map_active_user_to_urls.contains(dest_machineid))
+			{
+				std::string msg_input = msgin.get_data_as_string();
+				cryptoAL::cryptodata din;
+				din.buffer.write(msg_input.data(), msg_input.size());
+				din.save_to_file(map_active_user_to_crypto_cfg[dest_machineid].filename_msg_data);
+
+				if (_encryptor != nullptr)
+				{
+					delete _encryptor;
+					_encryptor = nullptr;
+				}
+
+				// try catch...
+				_encryptor = new cryptoAL::encryptor(
+						{}, // std::string ifilename_cfg,
+						map_active_user_to_urls[dest_machineid],
+						map_active_user_to_crypto_cfg[dest_machineid].filename_msg_data,
+						map_active_user_to_crypto_cfg[dest_machineid].filename_full_puzzle,
+						{}, // map_active_user_to_crypto_cfg[dest_machineid].filename_partial_puzzle,   // OUTPUT (optional) FILE - unresolved formatted qa puzzle with checksum
+						map_active_user_to_crypto_cfg[dest_machineid].filename_full_puzzle,      // OUTPUT (optional) FILE - fullt resolved formatted puzzle with checksum
+						map_active_user_to_crypto_cfg[dest_machineid].filename_encrypted_data,   // OUTPUT (required) FILE - ENCRYPTED DATA
+						{}, // map_active_user_to_crypto_cfg[dest_machineid].staging,                   // Environment - staging path
+						map_active_user_to_crypto_cfg[dest_machineid].folder_local,              // Environment - local data keys file path
+						map_active_user_to_crypto_cfg[dest_machineid].folder_my_private_rsa,     // Environment - RSA database *.db path
+						map_active_user_to_crypto_cfg[dest_machineid].folder_other_public_rsa,   // Environment
+						map_active_user_to_crypto_cfg[dest_machineid].folder_my_private_ecc,
+						map_active_user_to_crypto_cfg[dest_machineid].folder_other_public_ecc,
+						map_active_user_to_crypto_cfg[dest_machineid].folder_my_private_hh,
+						map_active_user_to_crypto_cfg[dest_machineid].folder_other_public_hh,
+						map_active_user_to_crypto_cfg[dest_machineid].wbaes_my_private_path,
+						map_active_user_to_crypto_cfg[dest_machineid].wbaes_other_public_path,
+						false,                      // Flag - verbose
+						false,                      // Flag - keep staging files
+						map_active_user_to_crypto_cfg[dest_machineid].encryped_ftp_user,
+						map_active_user_to_crypto_cfg[dest_machineid].encryped_ftp_pwd,
+						map_active_user_to_crypto_cfg[dest_machineid].known_ftp_server,
+						1,		// map_active_user_to_crypto_cfg[dest_machineid].key_size_factor,          // Parameter - keys size multiplier
+						false,	// map_active_user_to_crypto_cfg[dest_machineid].use_gmp,                  // Flag - use gmp for big computation
+						false,	// map_active_user_to_crypto_cfg[dest_machineid].self_test,                // Flag - verify encryption
+						0,		// map_active_user_to_crypto_cfg[dest_machineid].shufflePerc,              // Parameter - shuffling percentage
+						false,	// autoflag
+						0 //map_active_user_to_crypto_cfg[dest_machineid].converter
+					);
+
+				r = _encryptor->encrypt(false);
+				if (r)
+				{
+					cryptoAL::cryptodata dout;
+					r = dout.read_from_file(map_active_user_to_crypto_cfg[dest_machineid].filename_encrypted_data);
+					if (r)
+					{
+						// padding
+						uint32_t len_data = dout.buffer.size();
+						uint32_t padding = NETW_MSG::MESSAGE_FACTOR - (len_data % NETW_MSG::MESSAGE_FACTOR); // 0-63
+						if (padding == 0) padding = 64;
+						char cpadding = (char)(uint8_t)padding;
+
+						char space[1]{ ' ' };
+						for (int i = 0; i < padding; i++) dout.buffer.write(&space[0], 1);
+
+						uint8_t digestkey[32];
+						memcpy(&digestkey[0], msgin.buffer + NETW_MSG::MESSAGE_KEYDIGEST_START, 32);
+
+						CRC32 chk;
+						chk.update((char*)msgin.buffer + NETW_MSG::MESSAGE_HEADER, msgin.buffer_len - NETW_MSG::MESSAGE_HEADER);
+						uint32_t crc = chk.get_hash();
+						uint8_t original_flag = msgin.buffer[NETW_MSG::MESSAGE_FLAG_START];
+
+						msgout.make_msg_with_crc_and_flag_buffer(
+							msgin.type_msg, dout.buffer.size(), (uint8_t*)dout.buffer.getdata(), digestkey, crc, 1);
+					}
+				}
+			}
+		}
+
+		return false; // TEST
+		//return r;
 	}
 }

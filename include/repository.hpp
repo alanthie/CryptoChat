@@ -76,16 +76,32 @@ namespace cryptochat
                 return folder;
             }
 
+            static std::string file_separator()
+            {
+#ifdef _WIN32
+                return "\\";
+#else
+                return "/";
+#endif
+            }
+            std::string get_user_folder(const std::string& machineid)
+            {
+                return _root_path + file_separator() + "user_" + machineid;
+            }
+
+            std::string get_crypto_cfg_filename(const std::string& machineid)
+            {
+                return get_user_folder(machineid) + file_separator() + "cfg.ini";
+            }
+
+            std::string get_urls_folder(const std::string& machineid)
+            {
+                return get_user_folder(machineid);
+            }
+
             std::string folder_name(const std::string& machineid, const std::string& in_host, const std::string& in_usr)
             {
-                std::string folder;
-//                if (_repo_info.map_userinfo.contains(machineid))
-//                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.map_userinfo[machineid].folder_index);
-//                else
-//                    folder = _root_path + "/" + "user_" + std::to_string(_repo_info.counter);
-
-                folder = _root_path + "/" + "user_" + machineid;
-                return folder;
+                return get_user_folder(machineid);
             }
 
             bool save_repo(std::string& serr)
@@ -96,7 +112,7 @@ namespace cryptochat
                     return false;
                 }
 
-                std::string filename = _root_path + "/" + REPO_INFO;
+                std::string filename = _root_path + file_separator() + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
                     serr += "WARNING save_repo - repo info not found (creating...) " + filename;
@@ -111,7 +127,7 @@ namespace cryptochat
                 }
 
                 {
-                    std::string filenameinfo = _root_path + "/" + USER_INFO;
+                    std::string filenameinfo = _root_path + file_separator() + USER_INFO;
                     std::ofstream outfile2(filenameinfo);
 
                     std::stringstream ss;
@@ -135,7 +151,7 @@ namespace cryptochat
                     return false;
                 }
 
-                std::string filename = _root_path + "/" + REPO_INFO;
+                std::string filename = _root_path + file_separator() + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
                     serr += "WARNING read_repo - repo info not found (no user registered so far) " + filename;
@@ -312,21 +328,21 @@ namespace cryptochat
                     r = save_repo(serr);
                     if (r)
                     {
-#ifdef _WIN32
-                        std::string filenamecfg = folder + "\\cfg.ini";
-                        r = make_default_crypto_cfg(filenamecfg, folder + "\\");
+                        std::string filenamecfg = folder + file_separator()  + "cfg.ini";
+                        r = make_default_crypto_cfg(filenamecfg, folder + file_separator());
                         if (!r)
                         {
                             serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
                         }
-#else
-                        std::string filenamecfg = folder + "/cfg.ini";
-                        r = make_default_crypto_cfg(filenamecfg, folder + "/");
-                        if (!r)
+                        else
                         {
-                            serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
+                            std::string filenameurls = folder + file_separator() + "urls.txt";
+                            r = make_default_urls(filenameurls, folder + file_separator());
+                            if (!r)
+                            {
+                                serr += "WARNING add_user - Unable to create file " + filenameurls + " in folder " + folder;
+                            }
                         }
-#endif
                     }
                 }
                 else
@@ -401,6 +417,31 @@ namespace cryptochat
 
                 std::ofstream outfile(filename);
                 outfile << ss.str();
+                outfile.close();
+                return true;
+            }
+
+            bool make_default_urls(const std::string& filename, const std::string& folder_url)
+            {
+                std::stringstream ss;
+
+                ss << ";\n";
+                ss << ";------------------------------------------------------------------------\n";
+                ss << "; URL keys source when encoding :\n";
+                ss << ";------------------------------------------------------------------------\n";
+                ss << "[r:]last=1,first=1,random=5;\n";
+                ss << ";\n";
+                ss << ";------------------------------------------------------------------------\n";
+                ss << "; GLOBAL parameters\n";
+                ss << ";------------------------------------------------------------------------\n";
+                ss << ";Repeat all keys generation N times producing more encoding rounds\n";
+                ss << "[repeat]1\n";
+                ss << ";\n";
+                ss << ";\n";
+
+                std::ofstream outfile(filename);
+                outfile << ss.str();
+                outfile.close();
                 return true;
             }
 

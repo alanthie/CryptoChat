@@ -105,6 +105,9 @@ namespace crypto_socket {
 			return -1;
 		}
 
+		// Cryto encryption...
+		//if (map_active_user_to_crypto_cfg.contains(in_id) == false)
+
 		// LOCK
 		std::lock_guard lck(get_send_mutex(t_socketFd));
 		r = send(t_socketFd, (char*)m2.buffer, (int)m2.buffer_len, 0);

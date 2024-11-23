@@ -22,7 +22,22 @@
     <ClCompile Include="..\include\AESa.cpp" />
     <ClCompile Include="..\include\DES.cpp" />
     <ClCompile Include="..\include\exclusive-lock-file.cpp" />
+    <ClCompile Include="..\include\qa\Bin2PNG\lodepng.cpp" />
+    <ClCompile Include="..\include\qa\ecc_point\ecc_curve.cpp" />
+    <ClCompile Include="..\include\qa\ecc_point\ecc_elgamal.cpp" />
+    <ClCompile Include="..\include\qa\RSA-GMP\RSAGMP.cpp" />
+    <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPPrime.cpp" />
+    <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPTest.cpp" />
+    <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPUtils.cpp" />
+    <ClCompile Include="..\include\qa\RSA_generate\bigint\BigInteger.cc" />
+    <ClCompile Include="..\include\qa\RSA_generate\bigint\BigIntegerAlgorithms.cc" />
+    <ClCompile Include="..\include\qa\RSA_generate\bigint\BigIntegerUtils.cc" />
+    <ClCompile Include="..\include\qa\RSA_generate\bigint\BigUnsigned.cc" />
+    <ClCompile Include="..\include\qa\RSA_generate\bigint\BigUnsignedInABase.cc" />
+    <ClCompile Include="..\include\qa\SystemProperties.cpp" />
     <ClCompile Include="..\include\SymAlg.cpp" />
+    <ClCompile Include="..\include\twofish.c" />
+    <ClCompile Include="..\include\twofish_cfb.c" />
     <ClCompile Include="..\src\Base64.cpp" />
     <ClCompile Include="..\src\chat_client_main.cpp" />
     <ClCompile Include="..\src\crc32a.cpp" />
@@ -46,6 +61,7 @@
     <ClInclude Include="..\include\base_const.hpp" />
     <ClInclude Include="..\include\Buffer.hpp" />
     <ClInclude Include="..\include\cfg_cli.hpp" />
+    <ClInclude Include="..\include\cfg_crypto.hpp" />
     <ClInclude Include="..\include\challenge.hpp" />
     <ClInclude Include="..\include\chat_cli.hpp" />
     <ClInclude Include="..\include\crc32a.hpp" />
@@ -53,6 +69,7 @@
     <ClInclude Include="..\include\crypto_file.hpp" />
     <ClInclude Include="..\include\crypto_keymgr.hpp" />
     <ClInclude Include="..\include\crypto_parsing.hpp" />
+    <ClInclude Include="..\include\crypto_png.hpp" />
     <ClInclude Include="..\include\crypto_strutil.hpp" />
     <ClInclude Include="..\include\data.hpp" />
     <ClInclude Include="..\include\decryptor.hpp" />
@@ -85,14 +102,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -147,6 +164,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +181,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,6 +198,7 @@
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;CURL_STATICLIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
