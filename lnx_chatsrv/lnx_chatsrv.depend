@@ -949,7 +949,7 @@
 	<stdexcept>
 	<algorithm>
 
-1732277423 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
+1732337824 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
 	<string>
 	<map>
 	"../include/c_plus_plus_serializer.h"
@@ -967,12 +967,12 @@
 	<mutex>
 	"../include/chat_cli.hpp"
 
-1732272468 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
+1732337824 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
 	<iostream>
 	<limits>
 	<csignal>
 	<chrono>
-	"../include/ysClient.h"
+	"../include/crypto_client.hpp"
 	"../include/cfg_cli.hpp"
 	"../include/string_util.hpp"
 	"../include/argparse.hpp"
@@ -1410,7 +1410,7 @@
 	"crypto_const.hpp"
 	"data.hpp"
 
-1732277206 /home/allaptop/dev/CryptoChat/include/repository.hpp
+1732338081 /home/allaptop/dev/CryptoChat/include/repository.hpp
 	<string>
 	<map>
 	"../include/file_util.hpp"
@@ -1631,4 +1631,93 @@
 	"../include/cfg_srv.hpp"
 	"../include/string_util.hpp"
 	"../include/encdec_algo.hpp"
+
+1732337824 /home/allaptop/dev/CryptoChat/include/crypto_client.hpp
+	<iostream>
+	<functional>
+	<thread>
+	<mutex>
+	<atomic>
+	"socket_node.hpp"
+	"cfg_cli.hpp"
+	"repository.hpp"
+	"encryptor.hpp"
+	"decryptor.hpp"
+
+1732337824 /home/allaptop/dev/CryptoChat/include/socket_node.hpp
+	"encrypt.h"
+	"random_engine.hpp"
+	"../include/netw_msg.hpp"
+	"../include/cfg_srv.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+	<cstring>
+	<stdexcept>
+	<vector>
+	<map>
+	<queue>
+	<mutex>
+	<atomic>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<errno.h>
+	"../include/netw_msg.hpp"
+
+1732337824 /home/allaptop/dev/CryptoChat/include/decryptor.hpp
+	"crypto_const.hpp"
+	"file_util.hpp"
+	"ecc_util.hpp"
+	<iostream>
+	<fstream>
+	"DES.h"
+	"AESa.h"
+	"Buffer.hpp"
+	"SHA256.h"
+	"crypto_file.hpp"
+	"data.hpp"
+	"puzzle.hpp"
+	"IDEA.hpp"
+	"crc32a.hpp"
+	"crypto_shuffle.hpp"
+	"crypto_history.hpp"
+	"crypto_cfg.hpp"
+	"crypto_png.hpp"
+	"qa/aes-whitebox/aes_whitebox.hpp"
+	"qa/menu/menu.h"
+	"qa/SystemProperties.hpp"
+	"crypto_dbmgr.hpp"
+	"hhkey_util.hpp"
+
+1732104143 /home/allaptop/dev/CryptoChat/include/qa/menu/menu.h
+	"../../crypto_cfg.hpp"
+	"../../crypto_parsing.hpp"
+	"menu_io.h"
+	<iostream>
+	<any>
+	<string>
+	<variant>
+	<vector>
+	<type_traits>
+	<optional>
+	<sstream>
+	<limits>
+	<cctype>
+	<filesystem>
+
+1731732827 /home/allaptop/dev/CryptoChat/include/qa/menu/menu_io.h
+	"../../crypto_cfg.hpp"
+	<iostream>
+	<any>
+	<string>
+	<variant>
+	<vector>
+	<type_traits>
+	<optional>
+	<sstream>
+	<limits>
+	<cctype>
+	<filesystem>
 

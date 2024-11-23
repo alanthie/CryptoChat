@@ -320,7 +320,7 @@ namespace cryptochat
                             serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
                         }
 #else
-                        filenamecfg = folder + "/cfg.ini";
+                        std::string filenamecfg = folder + "/cfg.ini";
                         r = make_default_crypto_cfg(filenamecfg, folder + "/");
                         if (!r)
                         {
