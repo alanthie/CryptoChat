@@ -28,9 +28,10 @@ namespace cryptochat
 			}
 			~chat_srv()
 			{
-				std::cout << "INFO - deleting chat_srv" << std::endl;
+                std::cout << "INFO - ~chat_srv()" << std::endl;
 				if (_chat_server != nullptr)
 				{
+                    std::cout << "INFO - deleting _chat_server" << std::endl;
 					delete _chat_server;
 					_chat_server = nullptr;
 				}

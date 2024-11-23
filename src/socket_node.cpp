@@ -142,7 +142,7 @@ namespace crypto_socket {
 #else
 		if (r == -1)
 		{
-			std::cerr << "ERROR - send failed with error: " << errno << "\n";
+			std::cerr << "ERROR - send failed with error: " << errno << " len:" << m2.buffer_len << "\n";
 		}
 		else if (r < (int)m2.buffer_len)
 		{
@@ -171,6 +171,7 @@ namespace crypto_socket {
 			//throw std::runtime_error("Could not shutdown socket");
 		}
 
+		std::cout << "close socket" << std::endl;
 		if (close(this->m_socketFd) < 0) {
             std::cout << "could not close socket" << std::endl;
 			//throw std::runtime_error("Could not close socket");

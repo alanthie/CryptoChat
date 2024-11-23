@@ -75,7 +75,7 @@ namespace crypto_socket {
 		else
 		{
 			// TODO ask user...
-			// 
+			//
 			// For KEYS: cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 			initial_key_hint = "1th prime number\n1000th prime number";
 			initial_key = "27919";
@@ -208,6 +208,7 @@ namespace crypto_socket {
 					if (new_client->getState() == STATE::CLOSED)
 					{
 						msg_ok = false;
+						std::cerr << "WARNING recv() - exiting a thread, client socket is STATE::CLOSED" << std::endl;
 						break;
 					}
 
@@ -223,6 +224,13 @@ namespace crypto_socket {
 
 					while (byte_recv < NETW_MSG::MESSAGE_HEADER)
 					{
+                        if (new_client->getState() == STATE::CLOSED)
+                        {
+                            msg_ok = false;
+                            std::cerr << "WARNING recv() - exiting a thread, client socket is STATE::CLOSED" << std::endl;
+                            break;
+                        }
+
 						len = recv(new_client->getSocketFd(), message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
 						if (len > 0)
 						{
@@ -247,6 +255,13 @@ namespace crypto_socket {
 
 					while (byte_recv < expected_len)
 					{
+                        if (new_client->getState() == STATE::CLOSED)
+                        {
+                            msg_ok = false;
+                            std::cerr << "WARNING recv() - exiting a thread, client socket is STATE::CLOSED" << std::endl;
+                            break;
+                        }
+
 						len = recv(new_client->getSocketFd(), message_buffer + byte_recv, NETW_MSG::MESSAGE_SIZE - byte_recv, 0);
 						if (len > 0)
 						{
@@ -461,12 +476,14 @@ namespace crypto_socket {
 
 				// connection closed. DELETING socket instance
 				{
+                    std::cerr << "INFO recv() - DELETING socket instance" << std::endl;
 					std::lock_guard lck(vclient_mutex);
 					this->v_client.erase(std::remove(this->v_client.begin(), this->v_client.end(), new_client));
 
 					// TODO
 					//this->m_nodeSize -= 1;
 				}
+
 				handle_remove_client();
 				this->showMessage(client_ip + ":" + client_port + " disconnected.");
 			}));
@@ -539,7 +556,7 @@ namespace crypto_socket {
 					std::string key;
 					if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
 					else if (!client->random_key_validation_done) key = client->initial_key64;
-					else key = client->random_key; 
+					else key = client->random_key;
 
 					NETW_MSG::MSG m;
 					m.make_msg(msg_type, t_message, key);
@@ -639,23 +656,29 @@ namespace crypto_socket {
 
 	void crypto_server::close_all_clients()
 	{
+        std::cout << "delete all clients" << std::endl;
 		std::lock_guard lck(vclient_mutex);
 		for (auto &client : v_client) {
 			delete client;
 		}
 	}
 
-	void crypto_server::join_all_recv_threads() {
+	void crypto_server::join_all_recv_threads()
+	{
+        std::cout << "join_all_recv_threads" << std::endl;
 		for (auto &thread : v_thread) {
 			if (thread.joinable()) {
 				thread.join();
 			}
 		}
+		std::cout << "join_all_recv_threads done" << std::endl;
 	}
 
 	void crypto_server::closeServer()
 	{
+        std::cout << "closeServer" << std::endl;
 		sendMessageClients("Server closed.");
+
 		this->close_all_clients();
 		this->closeSocket();
 		this->join_all_recv_threads();
@@ -665,6 +688,7 @@ namespace crypto_socket {
 	}
 
 	crypto_server::~crypto_server() {
+        std::cout << "~crypto_server" << std::endl;
 		this->closeServer();
 	}
 
