@@ -100,6 +100,7 @@ namespace crypto_socket {
 		virtual ~socket_node();
 	};
 
+
 	class client_node : public socket_node
 	{
 	public:

@@ -286,73 +286,7 @@ namespace crypto_socket {
 						{
 							if (m.type_msg == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
 							{
-								if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_KEY_HINT" << std::endl;
-								if (DEBUG_INFO) std::cout.flush();
-
-								std::string s = m.get_data_as_string();
-								if (s == initial_key)
-								{
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_VALID " << new_client->getSocketFd() << std::endl;
-
-									NETW_MSG::MSG m;
-									m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
-									sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
-
-									new_client->initial_key = initial_key;
-									new_client->initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
-									new_client->initial_key_validation_done = true;
-
-									if (new_client->username.size() == 0)
-									{
-										if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << new_client->getSocketFd() << std::endl;
-										NETW_MSG::MSG m;
-										std::string s = "Please, provide your username : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-									}
-
-									if (new_client->hostname.size() == 0)
-									{
-										if (DEBUG_INFO)
-											std::cout << "send MSG_CMD_REQU_HOSTNAME " << new_client->getSocketFd() << std::endl;
-										NETW_MSG::MSG m;
-										std::string s = "Please, provide your hostname : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-									}
-
-                                    if (new_client->machine_id.size() == 0)
-									{
-										if (DEBUG_INFO)
-											std::cout << "send MSG_CMD_REQU_MACHINEID " << new_client->getSocketFd() << std::endl;
-										NETW_MSG::MSG m;
-										std::string s = "Please, provide your id : ";
-										m.make_msg(NETW_MSG::MSG_CMD_REQU_MACHINEID, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-									}
-								}
-								else
-								{
-									std::cerr << "WARNING invalid initial_key recv " << new_client->getSocketFd() << " " << s << std::endl;
-									if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << new_client->getSocketFd() << std::endl;
-
-									NETW_MSG::MSG m;
-									m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_INVALID, "Initial key is INVALID", getDEFAULT_KEY());
-									sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
-
-									if (!new_client->initial_key_validation_done)
-									{
-										this->request_client_initial_key(new_client);
-									}
-
-									new_client->count_initial_key_validation++;
-									if (new_client->count_initial_key_validation >= 3)
-									{
-										// Kill client......
-										std::cerr << "WARNING client exceed number of challenge attempt limit - closing socket : " << new_client->getSocketFd() << " " << std::endl;
-										close_client(new_client);
-									}
-								}
+								handle_msg_MSG_CMD_RESP_KEY_HINT(m, new_client);
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_ACCEPT_RND_KEY)
 							{
@@ -734,4 +668,76 @@ namespace crypto_socket {
 		this->closeServer();
 	}
 
+
+
+	void crypto_server::handle_msg_MSG_CMD_RESP_KEY_HINT(NETW_MSG::MSG& m, client_node* new_client)
+	{
+		if (DEBUG_INFO) std::cout << "recv MSG_CMD_RESP_KEY_HINT" << std::endl;
+		if (DEBUG_INFO) std::cout.flush();
+
+		std::string s = m.get_data_as_string();
+		if (s == initial_key)
+		{
+			if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_VALID " << new_client->getSocketFd() << std::endl;
+
+			NETW_MSG::MSG m;
+			m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
+			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
+
+			new_client->initial_key = initial_key;
+			new_client->initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
+			new_client->initial_key_validation_done = true;
+
+			if (new_client->username.size() == 0)
+			{
+				if (DEBUG_INFO) std::cout << "send MSG_CMD_REQU_USERNAME " << new_client->getSocketFd() << std::endl;
+				NETW_MSG::MSG m;
+				std::string s = "Please, provide your username : ";
+				m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+			}
+
+			if (new_client->hostname.size() == 0)
+			{
+				if (DEBUG_INFO)
+					std::cout << "send MSG_CMD_REQU_HOSTNAME " << new_client->getSocketFd() << std::endl;
+				NETW_MSG::MSG m;
+				std::string s = "Please, provide your hostname : ";
+				m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+			}
+
+			if (new_client->machine_id.size() == 0)
+			{
+				if (DEBUG_INFO)
+					std::cout << "send MSG_CMD_REQU_MACHINEID " << new_client->getSocketFd() << std::endl;
+				NETW_MSG::MSG m;
+				std::string s = "Please, provide your id : ";
+				m.make_msg(NETW_MSG::MSG_CMD_REQU_MACHINEID, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+			}
+		}
+		else
+		{
+			std::cerr << "WARNING invalid initial_key recv " << new_client->getSocketFd() << " " << s << std::endl;
+			if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_KEY_INVALID " << new_client->getSocketFd() << std::endl;
+
+			NETW_MSG::MSG m;
+			m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_INVALID, "Initial key is INVALID", getDEFAULT_KEY());
+			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
+
+			if (!new_client->initial_key_validation_done)
+			{
+				this->request_client_initial_key(new_client);
+			}
+
+			new_client->count_initial_key_validation++;
+			if (new_client->count_initial_key_validation >= 3)
+			{
+				// Kill client......
+				std::cerr << "WARNING client exceed number of challenge attempt limit - closing socket : " << new_client->getSocketFd() << " " << std::endl;
+				close_client(new_client);
+			}
+		}
+	}
 }

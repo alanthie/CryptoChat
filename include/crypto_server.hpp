@@ -90,6 +90,8 @@ namespace crypto_socket
 		std::string initial_key;
 		std::string initial_key64;
 		std::string first_pending_random_key;
+
+		void handle_msg_MSG_CMD_RESP_KEY_HINT(NETW_MSG::MSG& m, client_node* new_client);
 	};
 
 }

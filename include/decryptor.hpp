@@ -37,6 +37,8 @@ private:
     decryptor() : cfg("") , dbmgr(cfg) {}
 
 public:
+    decryptor(int a) : cfg(""), dbmgr(cfg) {} // dummy
+
 	decryptor(  std::string ifilename_cfg,
 				std::string ifilename_puzzle,
                 std::string ifilename_encrypted_data,

@@ -2,9 +2,6 @@
  * Author: Alain Lanthier
  */
 
-//g++ -c crypto_client.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
-//g++ -o runclient crypto_client.o ysNodeV4.o ysServer.o ysChatClient.o  -std=c++17 -pthread
-
 #include <iostream>
 #include <string>
 #ifdef _WIN32
@@ -872,6 +869,9 @@ namespace crypto_socket {
 			ss << "INFO - Repository path set to : " << _cfg_cli._repo_root_path << std::endl;
 			main_global::log(ss.str());
 		}
+
+		cryptoAL::encryptor* _encryptor = new cryptoAL::encryptor(0); // TEST
+		cryptoAL::decryptor* _decryptor = new cryptoAL::decryptor(0); // TEST
 	}
 
 	void crypto_client::setOnMessage(const std::function<void(const std::string&)>& t_function) {
@@ -908,14 +908,14 @@ namespace crypto_socket {
 		}
 	}
 
-	crypto_client::~crypto_client() {
+	crypto_client::~crypto_client() 
+	{
         std::cout << "closing connection" << std::endl;
 		this->closeConnection();
+
+		if (_encryptor != nullptr) delete _encryptor; // TEST
+		if (_decryptor != nullptr) delete _decryptor; // TEST
 	}
-
-
-
-
 
 
 	bool crypto_client::add_file_to_send(const std::string& filename, const std::string& filename_key)

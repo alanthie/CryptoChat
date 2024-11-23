@@ -55,6 +55,7 @@
     <ClInclude Include="..\include\crypto_parsing.hpp" />
     <ClInclude Include="..\include\crypto_strutil.hpp" />
     <ClInclude Include="..\include\data.hpp" />
+    <ClInclude Include="..\include\decryptor.hpp" />
     <ClInclude Include="..\include\encrypt.h" />
     <ClInclude Include="..\include\encryptor.hpp" />
     <ClInclude Include="..\include\file_util.hpp" />

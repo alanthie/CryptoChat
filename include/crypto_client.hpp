@@ -15,6 +15,7 @@
 #include "cfg_cli.hpp"
 #include "repository.hpp"
 #include "encryptor.hpp"
+#include "decryptor.hpp"
 
 namespace crypto_socket {
 
@@ -29,7 +30,8 @@ namespace crypto_socket {
 		const int HISTORY_SIZE = 2000;
 
 	public:
-		cryptoAL::encryptor* _encryptor; // TEST
+		cryptoAL::encryptor* _encryptor = nullptr; // TEST
+		cryptoAL::decryptor* _decryptor = nullptr; // TEST
 
 	protected:
 		void setDefault();
@@ -150,4 +152,4 @@ namespace crypto_socket {
 
 }
 
-#endif /* YSCLIENT_H */
+#endif 
