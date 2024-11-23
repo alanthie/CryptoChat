@@ -134,9 +134,9 @@ namespace NETW_MSG
         CRC32 chk;
         chk.update((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
-        uint8_t original_padding = msgin.buffer[MESSAGE_PADDING_START];
+        uint8_t original_flag = msgin.buffer[MESSAGE_FLAG_START];
 
-        make_msg_with_crc_and_pad(msgin.type_msg, s_encrypted3, digestkey, crc, original_padding);
+        make_msg_with_crc_and_flag(msgin.type_msg, s_encrypted3, digestkey, crc, original_flag);
 
         delete[] digestkey;
 
@@ -195,7 +195,7 @@ namespace NETW_MSG
         MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
         memcpy(buffer + MESSAGE_KEYDIGEST_START, 	msgin.buffer + MESSAGE_KEYDIGEST_START, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, 	msgin.buffer + MESSAGE_SIGNATURE_START, 20);
-		memcpy(buffer + MESSAGE_PADDING_START, 		msgin.buffer + MESSAGE_PADDING_START, 1);
+		memcpy(buffer + MESSAGE_FLAG_START,	        msgin.buffer + MESSAGE_FLAG_START, 1);
 		memcpy(buffer + MESSAGE_CRC_START, 			msgin.buffer + MESSAGE_CRC_START, 4);
 		memcpy(buffer + MESSAGE_MISC_START, 		msgin.buffer + MESSAGE_MISC_START, 2);
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
@@ -237,9 +237,9 @@ namespace NETW_MSG
         delete[]digestkey;
     }
 
-    void MSG::make_msg_with_crc_and_pad_buffer( uint8_t t,
+    void MSG::make_msg_with_crc_and_flag_buffer( uint8_t t,
                         uint32_t len_data, uint8_t* data,
-                        uint8_t* digestkey, uint32_t crc, uint8_t pad_originaL)
+                        uint8_t* digestkey, uint32_t crc, uint8_t flag_originaL)
     {
         if (data == nullptr) return;
 
@@ -252,12 +252,12 @@ namespace NETW_MSG
         MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
-		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
+		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
 
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
 
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
-        memcpy(buffer + MESSAGE_PADDING_START, &pad_originaL, 1);
+        memcpy(buffer + MESSAGE_FLAG_START, &flag_originaL, 1);
     }
 
     void MSG::make_msg( uint8_t t,
@@ -265,7 +265,7 @@ namespace NETW_MSG
                         uint8_t* digestkey)
     {
         if (data == nullptr) return;
- 
+
         type_msg = t;
 
         buffer_len = len_data + MESSAGE_HEADER;// +padding;
@@ -275,7 +275,7 @@ namespace NETW_MSG
         MSG::uint4ToByte(buffer_len, (char*)buffer + 1);
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
-		memcpy(buffer + MESSAGE_PADDING_START, MESSAGE_LAST, 1+4+2);
+		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
 
         CRC32 chk;
@@ -288,7 +288,7 @@ namespace NETW_MSG
     {
         if (buffer_in == nullptr) return;
         if (len == 0) return;
- 
+
         buffer = new uint8_t[len]{ 0 };
         type_msg = buffer_in[0];
         buffer_len = (uint32_t)len;
@@ -299,9 +299,9 @@ namespace NETW_MSG
     {
         make_msg(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey);
     }
-    void MSG::make_msg_with_crc_and_pad(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad)
+    void MSG::make_msg_with_crc_and_flag(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t flag)
     {
-        make_msg_with_crc_and_pad_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, pad);
+        make_msg_with_crc_and_flag_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, flag);
     }
 
     bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)

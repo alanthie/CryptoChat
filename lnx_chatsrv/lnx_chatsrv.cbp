@@ -80,18 +80,18 @@
 		<Unit filename="../include/ysServer.h" />
 		<Unit filename="../src/Base64.cpp" />
 		<Unit filename="../src/SHA256.cpp" />
+		<Unit filename="../src/chat_server_main.cpp" />
 		<Unit filename="../src/crc32a.cpp" />
 		<Unit filename="../src/crypto_file.cpp" />
 		<Unit filename="../src/crypto_keymgr.cpp" />
+		<Unit filename="../src/crypto_server.cpp" />
 		<Unit filename="../src/encdec_algo.cpp" />
 		<Unit filename="../src/encrypt.cpp" />
 		<Unit filename="../src/machineid.cpp" />
 		<Unit filename="../src/netw_msg.cpp" />
+		<Unit filename="../src/socket_node.cpp" />
 		<Unit filename="../src/srv_test.cpp" />
 		<Unit filename="../src/vigenere.cpp" />
-		<Unit filename="../src/ysChatServer.cpp" />
-		<Unit filename="../src/ysNodeV4.cpp" />
-		<Unit filename="../src/ysServer.cpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

@@ -23,8 +23,8 @@ const int MESSAGE_MSGTYPE_START = 0;
 const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
 const int MESSAGE_KEYDIGEST_START = MESSAGE_LEN_START + 4;
 const int MESSAGE_SIGNATURE_START = MESSAGE_KEYDIGEST_START + 32;
-const int MESSAGE_PADDING_START = MESSAGE_SIGNATURE_START + 20;
-const int MESSAGE_CRC_START = MESSAGE_PADDING_START + 1;
+const int MESSAGE_FLAG_START = MESSAGE_SIGNATURE_START + 20; // flag == 0 if no extra crypto encoding
+const int MESSAGE_CRC_START = MESSAGE_FLAG_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 
 const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
@@ -330,8 +330,8 @@ struct MSG
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 
-	void make_msg_with_crc_and_pad(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t pad);
-	void make_msg_with_crc_and_pad_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t pad);
+	void make_msg_with_crc_and_flag(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t flag);
+	void make_msg_with_crc_and_flag_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t flag);
 
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
