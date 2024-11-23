@@ -34,15 +34,17 @@ static void signalHandler(int code)
 {
 	{
 		if (main_global_srv::global_srv != nullptr)
-		try
 		{
-			delete main_global_srv::global_srv;
-			main_global_srv::global_srv = nullptr;
+            try
+            {
+                delete main_global_srv::global_srv;
+                main_global_srv::global_srv = nullptr;
+            }
+            catch (...)
+            {
+            }
 		}
-		catch (...)
-		{
-		}
-  		exit(0);
+  		//exit(0);
 	}
 }
 

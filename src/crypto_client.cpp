@@ -245,13 +245,20 @@ namespace crypto_socket {
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_SHUTDOWN)
                     {
+                    	{
+							std::stringstream ss; ss << "recv MSG_CMD_REQU_SHUTDOWN" << std::endl;
+							main_global::log(ss.str(), true);
+						}
+
                         std::string key;
                         {
                             std::lock_guard l(_key_mutex);
                             if (!key_valid) key = getDEFAULT_KEY();
                             else key = rnd_valid ? random_key : initial_key64;
                         }
-                        main_global::shutdown();
+                        msg_ok = false;
+                        cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
+                        //main_global::shutdown(); // thread will join on itself
 
                         // socked should stop after next send or recv
                         NETW_MSG::MSG m;
@@ -730,6 +737,12 @@ namespace crypto_socket {
 
 				std::memset(message_buffer, '\0', sizeof (message_buffer));
 			}
+
+			{
+                std::stringstream ss;
+                ss << "recv thread done"<< std::endl;
+                main_global::log(ss.str(), true);
+			}
 			this->m_state = STATE::CLOSED;
 		}));
 	}
@@ -925,7 +938,7 @@ namespace crypto_socket {
 
 	crypto_client::~crypto_client()
 	{
-        std::cout << "closing connection" << std::endl;
+        std::cout << "~crypto_client -closing connection" << std::endl;
 		this->closeConnection();
 
 		if (_encryptor != nullptr) delete _encryptor; // TEST
