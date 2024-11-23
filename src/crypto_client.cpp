@@ -243,7 +243,22 @@ namespace crypto_socket {
 					if (m.type_msg != NETW_MSG::MSG_FILE_FRAGMENT)
 						str_message = m.get_data_as_string();
 
-                    if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
+                    if (m.type_msg == NETW_MSG::MSG_CMD_REQU_SHUTDOWN)
+                    {
+                        std::string key;
+                        {
+                            std::lock_guard l(_key_mutex);
+                            if (!key_valid) key = getDEFAULT_KEY();
+                            else key = rnd_valid ? random_key : initial_key64;
+                        }
+                        main_global::shutdown();
+
+                        // socked should stop after next send or recv
+                        NETW_MSG::MSG m;
+						m.make_msg(NETW_MSG::MSG_CMD_RESP_SHUTDOWN, "shutdown", key);
+                        this->sendMessageBuffer(this->m_socketFd, m, key);
+                    }
+                    else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_KEY_HINT)
                     {
                         challenge_attempt++;
 						{
@@ -523,7 +538,7 @@ namespace crypto_socket {
                         user_valid = true;
 
 						{
-                            std::stringstream ss; 
+                            std::stringstream ss;
 							ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
                             main_global::log(ss.str());
 						}
@@ -751,13 +766,13 @@ namespace crypto_socket {
 			r = _repository.add_user(in_id, map_userinfo[in_id].host, map_userinfo[in_id].usr, serr);
 			if (r)
 			{
-				std::stringstream ss; 
+				std::stringstream ss;
 				ss << "INFO - New user add to repository " << std::endl;
 				main_global::log(ss.str());
 			}
 			else
 			{
-				std::stringstream ss; 
+				std::stringstream ss;
 				ss << "WARNING - Failed to add a new user to repository " << std::endl;
 				ss << serr << std::endl;
 				main_global::log(ss.str());
@@ -908,7 +923,7 @@ namespace crypto_socket {
 		}
 	}
 
-	crypto_client::~crypto_client() 
+	crypto_client::~crypto_client()
 	{
         std::cout << "closing connection" << std::endl;
 		this->closeConnection();

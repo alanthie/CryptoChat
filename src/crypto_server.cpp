@@ -610,6 +610,21 @@ namespace crypto_socket {
 		}
 	}
 
+    void crypto_server::request_all_client_shutdown()
+	{
+        for (auto& client : v_client)
+		{
+            std::string key;
+            if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+            else if (!client->random_key_validation_done) key = client->initial_key64;
+            else key = client->random_key;
+
+			NETW_MSG::MSG m;
+			m.make_msg(NETW_MSG::MSG_CMD_REQU_SHUTDOWN, "shutdown", key);
+			sendMessageBuffer(client->getSocketFd(), m, key);
+		}
+	}
+
 	void crypto_server::request_client_initial_key(client_node* client)
 	{
 		if (!client->initial_key_validation_done)
@@ -656,6 +671,8 @@ namespace crypto_socket {
 
 	void crypto_server::close_all_clients()
 	{
+        request_all_client_shutdown();
+
         std::cout << "delete all clients" << std::endl;
 		std::lock_guard lck(vclient_mutex);
 		for (auto &client : v_client) {

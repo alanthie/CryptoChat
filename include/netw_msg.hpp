@@ -68,6 +68,8 @@ const uint8_t MSG_CMD_INFO_USERLIST = 26;
 
 
 const uint8_t MSG_FILE_FRAGMENT = 31;
+const uint8_t MSG_CMD_REQU_SHUTDOWN = 41;
+const uint8_t MSG_CMD_RESP_SHUTDOWN  = 42;
 
 struct MSG_FILE_FRAGMENT_HEADER
 {
