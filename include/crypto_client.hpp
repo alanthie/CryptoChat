@@ -2,8 +2,8 @@
  * Author: Alain Lanthier
  */
 
-#ifndef YSCLIENT_H
-#define YSCLIENT_H
+#ifndef crypto_client_H
+#define crypto_client_H
 
 #include <iostream>
 #include <functional>
@@ -11,12 +11,12 @@
 #include <mutex>
 #include <atomic>
 
-#include "ysNodeV4.h"
+#include "socket_node.hpp"
 #include "cfg_cli.hpp"
 #include "repository.hpp"
 #include "encryptor.hpp"
 
-namespace ysSocket {
+namespace crypto_socket {
 
 	struct userinfo
 	{
@@ -24,8 +24,10 @@ namespace ysSocket {
 		std::string usr;
 	};
 
-	class ysClient : protected ysNodeV4
+	class crypto_client : public client_node
 	{
+		const int HISTORY_SIZE = 2000;
+
 	public:
 		cryptoAL::encryptor* _encryptor; // TEST
 
@@ -67,8 +69,15 @@ namespace ysSocket {
 
 		size_t file_counter = 0;
 
+		std::atomic<bool> ui_dirty = true;
+
+		int challenge_attempt = 0;
+
+		size_t history_cnt = 0;
+		std::vector<NETW_MSG::netw_msg> vhistory;
+
 	public:
-		ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
+		crypto_client(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
 
 		void setOnMessage(const std::function<void(const std::string&) >& t_function);
 
@@ -110,49 +119,33 @@ namespace ysSocket {
 			}
 		}
 
-		bool add_file_to_send(const std::string& filename, const std::string& filename_key) {
-			return ysNodeV4::add_file_to_send(filename, filename_key);
-		}
-		bool add_file_to_recv(const std::string& filename, const std::string& filename_key)
-		{
-			return ysNodeV4::add_file_to_recv(filename, filename_key);
-		}
+		// client only
+		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_send;
+		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_recv;
+		std::mutex _map_file_to_send_mutex;
+		std::mutex _map_file_to_recv_mutex;
 
-		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
-		{
-			return ysNodeV4::get_info_file_to_send(filename_key, byte_processed, total_size, is_done);
-		}
-		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
-		{
-			return ysNodeV4::get_info_file_to_recv(filename_key, byte_processed, total_size, is_done);
-		}
+		bool add_file_to_send(const std::string& filename, const std::string& filename_key);
+		bool add_file_to_recv(const std::string& filename, const std::string& filename_key);
+		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
+		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
+		std::string get_file_to_send(const std::string& filename_key);
+		std::string get_file_to_recv(const std::string& filename_key);
 
-		std::string get_file_to_send(const std::string& filename_key)
-		{
-			return ysNodeV4::get_file_to_send(filename_key);
-		}
-		std::string get_file_to_recv(const std::string& filename_key)
-		{
-			return ysNodeV4::get_file_to_recv(filename_key);
-		}
-
-		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)
-		{
-			return ysNodeV4::send_next_pending_file_packet(t_socketFd, key, send_status);
-		}
+		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status);
 
         void set_ui_dirty(bool v = true)
         {
-            ysNodeV4::ui_dirty = v;
+            ui_dirty = v;
         }
         bool get_ui_dirty()
         {
-            return ysNodeV4::ui_dirty;
+            return ui_dirty;
         }
 
 		static bool is_got_chat_cli_signal();
 
-		virtual ~ysClient();
+		virtual ~crypto_client();
 	};
 
 }

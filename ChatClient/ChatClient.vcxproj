@@ -24,7 +24,9 @@
     <ClCompile Include="..\include\exclusive-lock-file.cpp" />
     <ClCompile Include="..\include\SymAlg.cpp" />
     <ClCompile Include="..\src\Base64.cpp" />
+    <ClCompile Include="..\src\chat_client_main.cpp" />
     <ClCompile Include="..\src\crc32a.cpp" />
+    <ClCompile Include="..\src\crypto_client.cpp" />
     <ClCompile Include="..\src\crypto_file.cpp" />
     <ClCompile Include="..\src\crypto_keymgr.cpp" />
     <ClCompile Include="..\src\encdec_algo.cpp" />
@@ -34,10 +36,8 @@
     <ClCompile Include="..\src\menu_window.cpp" />
     <ClCompile Include="..\src\netw_msg.cpp" />
     <ClCompile Include="..\src\SHA256.cpp" />
+    <ClCompile Include="..\src\socket_node.cpp" />
     <ClCompile Include="..\src\vigenere.cpp" />
-    <ClCompile Include="..\src\ysChatClient.cpp" />
-    <ClCompile Include="..\src\ysClient.cpp" />
-    <ClCompile Include="..\src\ysNodeV4.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\AESa.h" />
@@ -65,12 +65,12 @@
     <ClInclude Include="..\include\repository.hpp" />
     <ClInclude Include="..\include\rng.h" />
     <ClInclude Include="..\include\SHA256.h" />
+    <ClInclude Include="..\include\socket_node.hpp" />
     <ClInclude Include="..\include\string_util.hpp" />
     <ClInclude Include="..\include\terminal.h" />
     <ClInclude Include="..\include\terminal_base.h" />
     <ClInclude Include="..\include\vigenere.hpp" />
     <ClInclude Include="..\include\ysClient.h" />
-    <ClInclude Include="..\include\ysNodeV4.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

@@ -3,62 +3,64 @@
  **
  */
 
-#ifndef YSSERVER_H
-#define YSSERVER_H
+#ifndef crypto_server_H
+#define crypto_server_H
 
-#include "ysNodeV4.h"
+#include "socket_node.hpp"
 #include <vector>
 #include <functional>
 #include <algorithm>
 #include <thread>
 #include <mutex>
 
-// TODO
-//	ysNodeV4 ==> base_socket (only common socket functions)
-//  client : base_socket + client specifics
-//	server : base_socket + server specifics
-//	chat_client main() cryptochat::cli::chat_cli(cfg).run() // chat_cli handle a client
-//	chat_server main() cryptochat::srv::chat_srv(cfg).run() // chat_cli handle a server
-
-namespace ysSocket
+namespace crypto_socket
 {
-	class ysServer : protected ysNodeV4 {
+	const bool USE_BASE64_RND_KEY_GENERATOR = true;
+	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere
+
+	class crypto_server : protected socket_node {
 	protected:
 		void setDefault();
 
 		// message event function
 		std::function<void(const std::string& t_message) > m_onMessage = nullptr;
 		void showMessage(const std::string& t_message);
-
-		// One RECV thread per client
-		std::vector<std::thread> v_thread;
-		void joinThread();
-
 		std::mutex m_mu; // showMessage lock
 
-		// N clients
+		//--------------------------------------------
+		// N recv() threads vector
+		// One RECV thread per client
+		//--------------------------------------------
+		std::vector<std::thread> v_thread;
+		void join_all_recv_threads();
+
+		//--------------------------------------------
+		// N clients node vector
+		//--------------------------------------------
 		int m_nodeSize = 0;
 		std::mutex vclient_mutex;
-		std::vector<ysNodeV4*> v_client;
-		void closeClient();
+		std::vector<client_node*> v_client;
 
-		void handle_new_client(ysNodeV4* new_client);
+		void close_all_clients();
+
+		void handle_new_client(socket_node* new_client);
 		void handle_remove_client();
 		void handle_info_client(const int& t_socket, bool send_to_current_user_only = false);
 
-		// server
+		// server creation sequence
 		void createServer();
 		void bindServer();
 		void listenServer();
 		void set_key_hint();
 		void handle_accept();
 
+		// stratup tests
 		void server_test();
 		bool check_default_encrypt(std::string& key);
 		bool check_idea_encrypt(std::string& key);
 		bool check_salsa_encrypt(std::string& key);
 
-		// Message
+		// message sending
 		void sendMessageClients(const std::string& t_message);
 
 		void sendMessageAll(const std::string& t_message, const int& t_socket);
@@ -67,22 +69,29 @@ namespace ysSocket
 		void sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type);
 
 	public:
-		ysServer(cryptochat::cfg::cfg_srv cfg);
+		crypto_server(cryptochat::cfg::cfg_srv cfg);
 
 		void setOnMessage(const std::function<void(const std::string&) >& t_function);
 
 		void runServer();
 		void closeServer();
 
-		void request_client_initial_key(ysNodeV4* client);
-		void request_accept_rnd_key(ysNodeV4* client);
+		void request_client_initial_key(client_node* client);
+		void request_accept_rnd_key(client_node* client);
 
-		void close_client(ysNodeV4* client, bool force = false);
+		void close_client(client_node* client, bool force = false);
 
+		// config
 		cryptochat::cfg::cfg_srv _cfg;
-		virtual ~ysServer();
+
+		virtual ~crypto_server();
+
+		std::string initial_key_hint;
+		std::string initial_key;
+		std::string initial_key64;
+		std::string first_pending_random_key;
 	};
 
 }
 
-#endif /* YSSERVER_H */
+#endif 

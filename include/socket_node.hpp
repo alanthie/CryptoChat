@@ -1,8 +1,8 @@
 /*
  * Author: Alain Lanthier
  */
-#ifndef NODEV4_H
-#define NODEV4_H
+#ifndef socket_node_H
+#define socket_node_H
 
 #include "encrypt.h"
 #include "random_engine.hpp"
@@ -33,16 +33,12 @@ static WSAData wsaData;
 
 #include "../include/netw_msg.hpp"
 
-namespace ysSocket {
+namespace crypto_socket {
 
+	// TODO replace by dynamic verbose flag
 	//constexpr bool DEBUG_INFO = false;
+
 	constexpr int VERSION = 202411;
-
-	// UI history size
-	const int HISTORY_SIZE = 2000;
-
-	const bool USE_BASE64_RND_KEY_GENERATOR = true;
-	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere
 
 	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{
@@ -55,7 +51,7 @@ namespace ysSocket {
 	};
 
 
-	class ysNodeV4 {
+	class socket_node {
 	protected:
 		// Socket
 		int m_socketFd = -1;
@@ -72,8 +68,8 @@ namespace ysSocket {
 		void closeSocket(bool force = false);
 
 	public:
-		ysNodeV4();
-		ysNodeV4(const int& t_port);
+		socket_node();
+		socket_node(const int& t_port);
 
 		// Port
 		int getPort() const;
@@ -95,11 +91,30 @@ namespace ysSocket {
 		int getMessageSize() const;
 		void setMessageSize(const int& t_messageSize);
 
+		std::map<int, std::mutex> _send_mutex; //...only one per socket... no map needed
+		std::mutex& get_send_mutex(int sock)
+		{
+			return _send_mutex[sock]; // constructs it inside the map if doesn't exist
+		}
+
+		virtual ~socket_node();
+	};
+
+	class client_node : public socket_node
+	{
+	public:
+		client_node() : socket_node()
+		{
+		}
+
+		client_node(const int& t_port) : socket_node(t_port)
+		{
+		}
+
 		int count_initial_key_validation = 0;
 		bool initial_key_validation_done = false;
 		bool random_key_validation_done = false;
 
-		int challenge_attempt = 0;
 		std::string initial_key_hint;
 		std::string initial_key;
 		std::string initial_key64;
@@ -112,37 +127,8 @@ namespace ysSocket {
 		std::string username;
 		std::string hostname;
 		std::string machine_id;
-		size_t history_cnt = 0;
-		std::vector<NETW_MSG::netw_msg> vhistory;
-
-		std::map<int, std::mutex> _send_mutex; //...only one per socket... no map needed
-		std::mutex& get_send_mutex(int sock)
-		{
-			return _send_mutex[sock]; // constructs it inside the map if doesn't exist
-		}
-
-		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_send;
-		std::map<std::string, NETW_MSG::MSG_BINFILE> map_file_to_recv;
-
-		std::mutex _map_file_to_send_mutex;
-		std::mutex _map_file_to_recv_mutex;
-
-		std::atomic<bool> ui_dirty = true;
-
-		bool add_file_to_send(const std::string& filename, const std::string& filename_key);
-		bool add_file_to_recv(const std::string& filename, const std::string& filename_key);
-
-		bool get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
-		bool get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done);
-
-		std::string get_file_to_send(const std::string& filename_key);
-		std::string get_file_to_recv(const std::string& filename_key);
-
-		bool send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status);
-
-		virtual ~ysNodeV4();
 	};
 
 }
 
-#endif /* NODEV4_H */
+#endif

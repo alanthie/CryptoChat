@@ -2,14 +2,11 @@
  * Author: Alain Lanthier
  */
 
-//g++ -c ysClient.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
-//g++ -o runserver ysClient.o ysNodeV4.o ysServer.o ysChatServer.o  -std=c++17 -pthread
-
 #include <iostream>
 #include <limits>
 #include <csignal>
 #include <chrono>
-#include "../include/ysServer.h"
+#include "../include/crypto_server.hpp"
 #include "../include/chat_srv.hpp"
 #include "../include/cfg_srv.hpp"
 #include "../include/string_util.hpp"

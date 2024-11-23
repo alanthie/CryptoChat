@@ -2,9 +2,6 @@
  * Author: Alain Lanthier
  */
 
-// g++ -c ysClient.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
-//
-
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -12,7 +9,7 @@
 #include <csignal>
 
 #include "../include/crypto_const.hpp"
-#include "../include/ysClient.h"
+#include "../include/crypto_client.hpp"
 #include "../include/string_util.hpp"
 #include "../include/chat_cli.hpp"
 #include "../include/cfg_cli.hpp"

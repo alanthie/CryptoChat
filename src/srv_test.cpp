@@ -2,18 +2,17 @@
 #include <limits>
 #include <csignal>
 #include <chrono>
-#include "../include/ysServer.h"
+#include "../include/crypto_server.hpp"
 #include "../include/chat_srv.hpp"
 #include "../include/cfg_srv.hpp"
 #include "../include/string_util.hpp"
 #include "../include/encdec_algo.hpp"
-//#include "../include/crypto_parsing.hpp"
-//#include "../include/main_global.hpp"
 
-namespace ysSocket
+
+namespace crypto_socket
 {
 
-void ysServer::server_test()
+void crypto_server::server_test()
 {
     // TEST
     //{
@@ -120,7 +119,7 @@ void ysServer::server_test()
     }
 }
 
-bool ysServer::check_default_encrypt(std::string& key)
+bool crypto_server::check_default_encrypt(std::string& key)
 {
     NETW_MSG::MSG m, m2, m3;
     m.make_msg(NETW_MSG::MSG_TEXT, "Hello Test", key);
@@ -140,7 +139,7 @@ bool ysServer::check_default_encrypt(std::string& key)
     return m.is_same(m3);
 }
 
-bool ysServer::check_idea_encrypt(std::string& key)
+bool crypto_server::check_idea_encrypt(std::string& key)
 {
     NETW_MSG::MSG m, m2, m3;
 
@@ -192,7 +191,7 @@ bool ysServer::check_idea_encrypt(std::string& key)
     return r;
 }
 
-bool ysServer::check_salsa_encrypt(std::string& key)
+bool crypto_server::check_salsa_encrypt(std::string& key)
 {
     NETW_MSG::MSG m, m2, m3;
 

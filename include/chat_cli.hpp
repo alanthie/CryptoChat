@@ -10,7 +10,7 @@
 #include <limits>
 #include <csignal>
 #include <chrono>
-#include "../include/ysClient.h"
+#include "../include/crypto_client.hpp"
 #include "../include/cfg_cli.hpp"
 #include "../include/string_util.hpp"
 #include "../include/argparse.hpp"
@@ -95,12 +95,12 @@ namespace cryptochat
 				}
 
 				try {
-					_chat_cli = new ysSocket::ysClient(_cfg, _cfg_file);
+					_chat_cli = new crypto_socket::crypto_client(_cfg, _cfg_file);
 					_chat_cli->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_cli->connectServer();
 					_chat_cli->client_UI();
 
-					// The destructor of ysSocket::ysClient call closeConnection that join with the client threads
+					// The destructor of crypto_socket::crypto_client call closeConnection that join with the client threads
 
 				}
 				catch (const std::exception& e) 
@@ -119,7 +119,7 @@ namespace cryptochat
 
 			std::string					_cfg_file;
 			cryptochat::cfg::cfg_cli	_cfg;
-			ysSocket::ysClient*         _chat_cli = nullptr;
+			crypto_socket::crypto_client*         _chat_cli = nullptr;
 
 			static std::atomic<int> got_chat_cli_signal;
 		};

@@ -2,8 +2,8 @@
  * Author: Alain Lanthier
  */
 
-//g++ -c ysClient.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
-//g++ -o runclient ysClient.o ysNodeV4.o ysServer.o ysChatClient.o  -std=c++17 -pthread
+//g++ -c crypto_client.cpp ysNodeV4.cpp ysServer.cpp ysChatClient.cpp ysChatServer.cpp -std=c++17
+//g++ -o runclient crypto_client.o ysNodeV4.o ysServer.o ysChatClient.o  -std=c++17 -pthread
 
 #include <iostream>
 #include <string>
@@ -16,7 +16,7 @@
 #include <chrono>
 
 #include "../include/crypto_const.hpp"
-#include "../include/ysClient.h"
+#include "../include/crypto_client.hpp"
 #include "../include/crc32a.hpp"
 #include "../include/Menu.h"
 #include "../include/chat_cli.hpp" // std::atomic<int> cryptochat::cli::chat_cli::got_chat_cli_signal
@@ -31,11 +31,11 @@
 #include <iostream>
 #include <string>
 
-extern int main_client_ui(ysSocket::ysClient* netw_client);
+extern int main_client_ui(crypto_socket::crypto_client* netw_client);
 
-namespace ysSocket {
+namespace crypto_socket {
 
-	std::string ysClient::get_input(const std::string& q)
+	std::string crypto_client::get_input(const std::string& q)
 	{
 		std::cout << q << ": ";
 		std::string message;
@@ -49,23 +49,23 @@ namespace ysSocket {
 		return message;
 	}
 
-	bool ysClient::is_got_chat_cli_signal()
+	bool crypto_client::is_got_chat_cli_signal()
 	{
 		if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1) return true;
 		return false;
 	}
 
-	void ysClient::setDefault() {
+	void crypto_client::setDefault() {
 		inet_pton(AF_INET, this->m_serverName.c_str(), &this->m_socketInfo.sin_addr);
 	}
 
-	void ysClient::showMessage(const std::string& t_message) {
+	void crypto_client::showMessage(const std::string& t_message) {
 		if (this->m_onMessage != nullptr) {
 			this->m_onMessage(t_message);
 		}
 	}
 
-	void ysClient::_connectServer() {
+	void crypto_client::_connectServer() {
 		this->createSocket();
 
 		int r = connect(this->m_socketFd, reinterpret_cast<sockaddr*> (&this->m_socketInfo), this->m_addressLen);
@@ -81,7 +81,7 @@ namespace ysSocket {
 	}
 
 	// SEND FILE FRAGMENT THREAD
-	void ysClient::send_pending_file_packet_thread()
+	void crypto_client::send_pending_file_packet_thread()
 	{
 		this->m_send_thread = std::move(std::thread([=, this]
 		{
@@ -120,7 +120,7 @@ namespace ysSocket {
 	}
 
 	// RECV THREAD
-	void ysClient::recv_thread()
+	void crypto_client::recv_thread()
 	{
 		this->m_recv_thread = std::move(std::thread([=, this]
 		{
@@ -723,7 +723,7 @@ namespace ysSocket {
 	}
 
 
-	void ysClient::handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
+	void crypto_client::handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
 	{
 		if (map_userinfo.contains(in_id) == false)
 		{
@@ -742,7 +742,7 @@ namespace ysSocket {
 		handle_new_client(in_id, in_host, in_usr);
 	}
 
-	void ysClient::handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
+	void crypto_client::handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr)
 	{
 		bool r = false;
 
@@ -768,7 +768,7 @@ namespace ysSocket {
 		}
 	}
 
-	void ysClient::client_UI()
+	void crypto_client::client_UI()
 	{
 		int cnt = 0;
 		std::string message = "";
@@ -847,8 +847,8 @@ namespace ysSocket {
 		}
 	}
 
-	ysClient::ysClient(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile) :
-        ysNodeV4(cfg._port),
+	crypto_client::crypto_client(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile) :
+		client_node(cfg._port),
         m_serverName(cfg._server),
         _cfg_cli(cfg),
         _cfgfile(cfgfile)
@@ -874,11 +874,11 @@ namespace ysSocket {
 		}
 	}
 
-	void ysClient::setOnMessage(const std::function<void(const std::string&)>& t_function) {
+	void crypto_client::setOnMessage(const std::function<void(const std::string&)>& t_function) {
 		m_onMessage = t_function;
 	}
 
-	void ysClient::connectServer()
+	void crypto_client::connectServer()
 	{
 		this->_connectServer();
 		showMessage("Connection successfully....");
@@ -888,7 +888,7 @@ namespace ysSocket {
 		this->client_UI();
 	}
 
-	void ysClient::closeConnection() {
+	void crypto_client::closeConnection() {
         std::cout << "closing socket" << std::endl;
         try{
             this->closeSocket();
@@ -908,9 +908,142 @@ namespace ysSocket {
 		}
 	}
 
-	ysClient::~ysClient() {
+	crypto_client::~crypto_client() {
         std::cout << "closing connection" << std::endl;
 		this->closeConnection();
 	}
 
+
+
+
+
+
+	bool crypto_client::add_file_to_send(const std::string& filename, const std::string& filename_key)
+	{
+		std::lock_guard lck(_map_file_to_send_mutex);
+		if (!map_file_to_send.contains(filename_key))
+		{
+			map_file_to_send[filename_key] = NETW_MSG::MSG_BINFILE();
+
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
+			binfile.init(filename, filename_key, true);
+
+			ui_dirty = true;
+			return true;
+		}
+		return true; // already exist
+	}
+	bool crypto_client::add_file_to_recv(const std::string& filename, const std::string& filename_key)
+	{
+		std::lock_guard lck(_map_file_to_recv_mutex);
+		if (!map_file_to_recv.contains(filename_key))
+		{
+			map_file_to_recv[filename_key] = NETW_MSG::MSG_BINFILE();
+
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
+			binfile.init(filename, filename_key, false);
+
+			ui_dirty = true;
+			return true;
+		}
+		return true; // already exist
+	}
+
+	bool crypto_client::get_info_file_to_send(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
+	{
+		std::lock_guard lck(_map_file_to_send_mutex);
+		if (map_file_to_send.contains(filename_key))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
+			byte_processed = binfile.byte_send;
+			total_size = binfile.data_size_in_fragments();
+			is_done = binfile._is_processing_done;
+			return true;
+		}
+		return false;
+	}
+	bool crypto_client::get_info_file_to_recv(const std::string& filename_key, size_t& byte_processed, size_t& total_size, bool& is_done)
+	{
+		std::lock_guard lck(_map_file_to_recv_mutex);
+		if (map_file_to_recv.contains(filename_key))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
+			byte_processed = binfile.byte_recv;
+			//total_size = binfile.data_size_in_fragments();
+			total_size = binfile.total_size_read_from_fragment;
+			is_done = binfile._is_processing_done;
+			return true;
+		}
+		return false;
+	}
+
+	std::string crypto_client::get_file_to_send(const std::string& filename_key)
+	{
+		std::string r;
+		std::lock_guard lck(_map_file_to_send_mutex);
+		if (map_file_to_send.contains(filename_key))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_key];
+			if (binfile._file != nullptr)
+			{
+				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());
+			}
+		}
+		return r;
+	}
+	std::string crypto_client::get_file_to_recv(const std::string& filename_key)
+	{
+		std::string r;
+		std::lock_guard lck(_map_file_to_recv_mutex);
+		if (map_file_to_recv.contains(filename_key))
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_recv[filename_key];
+			if (binfile._file != nullptr)
+			{
+				r = std::string(binfile._file->buffer.getdata(), binfile._file->buffer.size());
+			}
+		}
+		return r;
+	}
+
+	bool crypto_client::send_next_pending_file_packet(const int& t_socketFd, const std::string& key, int& send_status)
+	{
+		send_status = 0;
+		bool msg_sent = false;
+
+		std::string filename_with_pending_processing;
+		{
+			std::lock_guard lck(_map_file_to_send_mutex);
+
+			if (map_file_to_send.size() == 0)
+				return false;
+
+			for (auto& [filename, binfile] : map_file_to_send)
+			{
+				if (binfile.has_unprocess_fragment())
+				{
+					filename_with_pending_processing = filename;
+					break;
+				}
+			}
+		}
+
+		if (filename_with_pending_processing.size() > 0)
+		{
+			NETW_MSG::MSG_BINFILE& binfile = map_file_to_send[filename_with_pending_processing];
+			NETW_MSG::MSG m;
+			bool r = m.make_next_file_fragment_to_send(binfile, key, true);
+			if (r)
+			{
+				send_status = sendMessageBuffer(t_socketFd, m, key);
+				msg_sent = true;
+				ui_dirty = true;
+			}
+		}
+
+		// delete file done and not in history....
+
+
+		return msg_sent;
+	}
 }

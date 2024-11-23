@@ -3,7 +3,7 @@
  */
 #include "../include/crypto_const.hpp"
 #include "../include/terminal.h"
-#include "../include/ysClient.h"
+#include "../include/crypto_client.hpp"
 #include "../include/data.hpp"
 #include "../include/string_util.hpp"
 #include "../include/file_util.hpp"
@@ -20,7 +20,7 @@ using Term::Key;
 struct ClientTerm
 {
     const int MAX_EXTRA_LINE_TO_DISPLAY = 40;
-    ysSocket::ysClient* netw_client = nullptr;
+    crypto_socket::crypto_client* netw_client = nullptr;
 
     // Updated by term.get_term_size(rows, cols);
     int nrows;
@@ -961,7 +961,7 @@ struct ClientTerm
     }
 };
 
-int main_client_ui(ysSocket::ysClient* netwclient)
+int main_client_ui(crypto_socket::crypto_client* netwclient)
 {
     try {
         Terminal term(true, false);

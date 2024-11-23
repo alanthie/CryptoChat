@@ -10,7 +10,7 @@
 #include <limits>
 #include <csignal>
 #include <chrono>
-#include "../include/ysServer.h"
+#include "../include/crypto_server.hpp"
 #include "../include/cfg_srv.hpp"
 #include "../include/string_util.hpp"
 #include "../include/argparse.hpp"
@@ -133,7 +133,7 @@ namespace cryptochat
 
 				try
 				{
-					_chat_server = new ysSocket::ysServer(_cfg);
+					_chat_server = new crypto_socket::crypto_server(_cfg);
 					_chat_server->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_server->runServer();
 				}
@@ -152,7 +152,7 @@ namespace cryptochat
 
 			std::string _cfg_file;
 			cryptochat::cfg::cfg_srv _cfg;
-			ysSocket::ysServer* _chat_server = nullptr;
+			crypto_socket::crypto_server* _chat_server = nullptr;
 
 		};
 
