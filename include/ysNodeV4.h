@@ -42,7 +42,7 @@ namespace ysSocket {
 	const int HISTORY_SIZE = 2000;
 
 	const bool USE_BASE64_RND_KEY_GENERATOR = true;
-	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere BUG
+	//AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // vigenere
 
 	[[maybe_unused]] static std::string getDEFAULT_KEY()
 	{

@@ -61,7 +61,7 @@ namespace ysSocket {
 	{
 		if (_cfg._map_challenges.size() > 0)
 		{
-			// pick one at random...
+			// TODO pick one at random...
 			auto iter = _cfg._map_challenges.begin();
 			initial_key_hint = iter->first;
 			initial_key = iter->second;
@@ -74,8 +74,9 @@ namespace ysSocket {
 		}
 		else
 		{
-			// ask user...
-			//cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			// TODO ask user...
+			// 
+			// For KEYS: cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 			initial_key_hint = "1th prime number\n1000th prime number";
 			initial_key = "27919";
 			initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
@@ -229,7 +230,7 @@ namespace ysSocket {
 						else
 						{
 							// closed or error
-							std::cerr << "ERROR - socket error or closed" << std::endl;
+							std::cerr << "WARNING recv() - socket error or closed" << std::endl;
 							msg_ok = false;
 							break;
 						}
@@ -238,7 +239,7 @@ namespace ysSocket {
 					expected_len = NETW_MSG::MSG::byteToUInt4(message_buffer + 1);
 					if (expected_len > NETW_MSG::MESSAGE_SIZE)
 					{
-						std::cerr << "ERROR - MSG has invalid expected len " << expected_len << " vs " << NETW_MSG::MESSAGE_SIZE << std::endl;
+						std::cerr << "WARNING recv() - MSG has invalid expected len " << expected_len << " vs " << NETW_MSG::MESSAGE_SIZE << std::endl;
 						msg_ok = false;
 						break;
 					}
@@ -253,7 +254,7 @@ namespace ysSocket {
 						else
 						{
 							// closed or error
-							std::cerr << "ERROR - socket error or closed" << std::endl;
+							std::cerr << "WARNING recv() - socket error or closed" << std::endl;
 							msg_ok = false;
 							break;
 						}

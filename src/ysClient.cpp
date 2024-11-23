@@ -402,9 +402,15 @@ namespace ysSocket {
                             key_valid = true;
 							if (initial_key_hint.size() > 0)
 							{
+								std::string serr;
 								_cfg_cli.map_challenges[initial_key_hint] = initial_key;
-								_cfg_cli.save_cfg(_cfgfile);
+
 								ss << "saving challenge answer" << std::endl;
+								bool ret = _cfg_cli.save_cfg(_cfgfile, serr);
+								if (ret == false)
+								{
+									ss << serr;
+								}
 
 								initial_key64 = initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 							}
@@ -508,12 +514,20 @@ namespace ysSocket {
                             if (r.size() == 0) r = "user_xyz";
                             _cfg_cli._username = r;
 
-                            _cfg_cli.save_cfg(_cfgfile);
+							std::string serr;
+							bool ret =  _cfg_cli.save_cfg(_cfgfile, serr);
+							if (!ret)
+							{
+								std::stringstream ss;
+								ss << serr << std::endl;
+								main_global::log(ss.str());
+							}
                         }
                         user_valid = true;
 
 						{
-                            std::stringstream ss; ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
+                            std::stringstream ss; 
+							ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
                             main_global::log(ss.str());
 						}
                         NETW_MSG::MSG m;
@@ -844,7 +858,7 @@ namespace ysSocket {
 		std::string serr;
 		if (_repository.set_root(_cfg_cli._repo_root_path, serr) == false)
 		{
-			repository_root_set = true;
+			repository_root_set = false;
 
 			std::stringstream ss;
 			ss << serr << std::endl;
@@ -852,7 +866,7 @@ namespace ysSocket {
 		}
 		else
 		{
-			repository_root_set = false;
+			repository_root_set = true;
 
 			std::stringstream ss;
 			ss << "INFO - Repository path set to : " << _cfg_cli._repo_root_path << std::endl;

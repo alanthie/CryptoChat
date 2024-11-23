@@ -63,7 +63,7 @@ namespace cryptochat
         public:
             const std::string REPO_INFO = "repoinfo.dat";
             const std::string USER_INFO = "userinfo.txt";
-            const std::string FOLDER_ME = "me"; // private keys db
+            const std::string FOLDER_ME = "me"; // client private keys db
 
             std::string _root_path;
             repo_info   _repo_info;

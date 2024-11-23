@@ -67,11 +67,12 @@ int main(int argc, char** argv)
 			return -1;
 		}
 
+		std::string serr;
         auto& cmd = program;
         auto cfg = cmd.get<std::string>("--cfg");
 
 		main_global::global_cli = new cryptochat::cli::chat_cli(cfg);
-        return main_global::global_cli->run();
+        return main_global::global_cli->run(serr);
 	}
 	catch (std::invalid_argument const& ex)
 	{

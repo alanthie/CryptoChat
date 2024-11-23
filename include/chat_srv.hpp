@@ -28,9 +28,12 @@ namespace cryptochat
 			}
 			~chat_srv()
 			{
-				std::cout << "deleting chat_srv" << std::endl;
-				if (_chat_server!=nullptr)
+				std::cout << "INFO - deleting chat_srv" << std::endl;
+				if (_chat_server != nullptr)
+				{
 					delete _chat_server;
+					_chat_server = nullptr;
+				}
 			}
 
 			bool read_cfg(bool create_if_not_exist)
@@ -40,15 +43,17 @@ namespace cryptochat
 
 				if (_cfg_file.size() == 0)
 				{
+					std::cerr << "WARNING read_cfg - cfg file name empty " << std::endl;
 				}
 				else if (file_util::fileexists(_cfg_file) == false)
 				{
-					std::cerr << "WARNING cfg file not found " << _cfg_file << std::endl;
+					std::cerr << "WARNING read_cfg - cfg file not found " << _cfg_file << std::endl;
 					if (create_if_not_exist)
 					{
 						_cfg.make_default();
-						std::ofstream outfile(_cfg_file, std::ios::binary);
+						std::ofstream outfile(_cfg_file, std::ios_base::out);
 						outfile << bits(_cfg);
+						outfile.close();
 						has_cfg_file = true;
 					}
 				}
@@ -62,12 +67,18 @@ namespace cryptochat
 					// READ _cfg
 					try
 					{
-						std::ifstream in(_cfg_file);
+						std::ifstream in(_cfg_file, std::ios_base::in);
 						in >> bits(_cfg);
+						in.close();
 						ret = true;
+					}
+					catch (const std::exception& e)
+					{
+						std::cerr << "WARNING read_cfg() - Exception thrown: " << e.what() << std::endl;
 					}
 					catch (...)
 					{
+						std::cerr << "WARNING read_cfg - Exception thrown " << std::endl;
 						ret = false;
 					}
 				}
@@ -78,17 +89,24 @@ namespace cryptochat
 			{
 				if (_cfg_file.size() == 0)
 				{
+					std::cerr << "WARNING save_cfg - cfg file name empty " << std::endl;
 					return false;
 				}
 
 				try
 				{
-					std::ofstream outfile(_cfg_file, std::ios::binary);
+					std::ofstream outfile(_cfg_file, std::ios_base::out);
 					outfile << bits(_cfg);
+					outfile.close();
 					return true;
+				}
+				catch (const std::exception& e)
+				{
+					std::cerr << "WARNING save_cfg() - Exception thrown: " << e.what() << std::endl;
 				}
 				catch (...)
 				{
+					std::cerr << "WARNING save_cfg - Exception thrown " << std::endl;
 				}
 				return false;
 
@@ -109,20 +127,23 @@ namespace cryptochat
 					bool r = save_cfg();
 					if (r == false)
 					{
-						std::cerr << "ERROR - Unable to save config" << std::endl;
+						std::cerr << "WARNING run() - Unable to save config" << std::endl;
 					}
 				}
 
 				try
 				{
-					//_chat_server = new ysSocket::ysServer(_cfg._port, _cfg._number_connection);
 					_chat_server = new ysSocket::ysServer(_cfg);
 					_chat_server->setOnMessage([](const std::string& t_message) {std::cout << t_message << std::endl; });
 					_chat_server->runServer();
 				}
 				catch (const std::exception& e)
 				{
-					std::cerr << e.what() << std::endl;
+					std::cerr << "WARNING run() - Exception thrown: " << e.what() << std::endl;
+				}
+				catch (...)
+				{
+					std::cerr << "WARNING run() - Exception " << std::endl;
 				}
 
 				std::this_thread::sleep_for(std::chrono::seconds(5));

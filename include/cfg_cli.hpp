@@ -21,7 +21,7 @@ namespace cryptochat
                 _server = "127.0.0.1";
                 _port = 14003;
                 _username = NETW_MSG::DEFAULT_USERNAME;
-				_repo_root_path = "./cryptochat";
+				_repo_root_path = "./cryptochat"; // should have a non relative path TODO...- not using default
             }
 
             cfg_cli(const std::string& srv, int port, int number_connection, const std::string& user, const std::string& repo_root_path)
@@ -32,22 +32,24 @@ namespace cryptochat
 				_repo_root_path = repo_root_path;
             }
 
-            bool read_cfg(const std::string& filename, bool create_if_not_exist)
+            bool read_cfg(const std::string& filename, bool create_if_not_exist, std::string& serr)
 			{
 				bool ret = false;
 				bool has_cfg_file = false;
 
 				if (filename.size() == 0)
 				{
+					serr += "WARNING read_cfg - cfg filename empty";
 				}
 				else if (file_util::fileexists(filename) == false)
 				{
-					std::cerr << "WARNING cfg file not found " << filename << std::endl;
+					serr += "WARNING read_cfg - cfg file not found: " + filename;
 					if (create_if_not_exist)
 					{
 						make_default();
-						std::ofstream outfile(filename, std::ios::binary);
+						std::ofstream outfile(filename, std::ios_base::out);
 						outfile << bits(*this);
+						outfile.close();
 						has_cfg_file = true;
 					}
 				}
@@ -61,33 +63,49 @@ namespace cryptochat
 					// READ _cfg
 					try
 					{
-						std::ifstream in(filename);
+						std::ifstream in(filename, std::ios_base::in);
 						in >> bits(*this);
+						in.close();
 						ret = true;
+					}
+					catch (const std::exception& e)
+					{
+						serr += "WARNING read_cfg - unable to read file " + filename + "\n";
+						serr += "Exception thrown: " + std::string(e.what()) + "\n";
 					}
 					catch (...)
 					{
-						ret = false;
+						serr += "WARNING read_cfg - unable to read file " + filename + "\n";
+						serr += "Exception thrown\n";
 					}
 				}
 				return ret;
 			}
 
-            bool save_cfg(const std::string& filename)
+            bool save_cfg(const std::string& filename, std::string& serr)
 			{
 				if (filename.size() == 0)
 				{
+					serr += "WARNING save_cfg - cfg file name empty: ";
 					return false;
 				}
 
 				try
 				{
-					std::ofstream outfile(filename, std::ios::binary);
+					std::ofstream outfile(filename, std::ios_base::out);
 					outfile << bits(*this);
+					outfile.close();
 					return true;
+				}
+				catch (const std::exception& e)
+				{
+					serr += "WARNING save_cfg - unable to save file " + filename + "\n";
+					serr += "Exception thrown: " + std::string(e.what()) + "\n";
 				}
 				catch (...)
 				{
+					serr += "WARNING save_cfg - unable to save file " + filename + "\n";
+					serr += "Exception thrown\n";
 				}
 				return false;
 			}

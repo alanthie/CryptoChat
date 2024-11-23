@@ -38,21 +38,21 @@ namespace cryptochat
 			}
 
 
-			bool read_cfg(bool create_if_not_exist)
+			bool read_cfg(bool create_if_not_exist, std::string& serr)
 			{
-                return _cfg.read_cfg(_cfg_file, create_if_not_exist);
+                return _cfg.read_cfg(_cfg_file, create_if_not_exist, serr);
 			}
 
-			bool save_cfg()
+			bool save_cfg(std::string& serr)
 			{
-                return _cfg.save_cfg(_cfg_file);
+                return _cfg.save_cfg(_cfg_file, serr);
 			}
 
-			int run()
+			int run(std::string& serr)
 			{
 				got_chat_cli_signal = 0;
 
-				bool ok = read_cfg(false);
+				bool ok = read_cfg(false, serr);
 				if (ok)
 				{
 					std::cout << "Server : " << _cfg._server << std::endl;
@@ -91,7 +91,7 @@ namespace cryptochat
 					std::cout << "Username : " << _cfg._username << std::endl;
 					std::cout << "Repository : " << _cfg._repo_root_path << std::endl;
 
-					bool r = save_cfg();
+					bool r = save_cfg(serr);
 				}
 
 				try {
@@ -103,11 +103,13 @@ namespace cryptochat
 					// The destructor of ysSocket::ysClient call closeConnection that join with the client threads
 
 				}
-				catch (const std::exception& e) {
-					std::cerr << e.what() << std::endl;
+				catch (const std::exception& e) 
+				{
+					std::cerr << "Exception thrown: " << e.what() << std::endl;
 				}
 				catch(...)
 				{
+					std::cerr << "Exception thrown" << std::endl;
 				}
 
 				// EXITING

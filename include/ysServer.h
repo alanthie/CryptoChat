@@ -13,9 +13,15 @@
 #include <thread>
 #include <mutex>
 
+// TODO
+//	ysNodeV4 ==> base_socket (only common socket functions)
+//  client : base_socket + client specifics
+//	server : base_socket + server specifics
+//	chat_client main() cryptochat::cli::chat_cli(cfg).run() // chat_cli handle a client
+//	chat_server main() cryptochat::srv::chat_srv(cfg).run() // chat_cli handle a server
+
 namespace ysSocket
 {
-
 	class ysServer : protected ysNodeV4 {
 	protected:
 		void setDefault();
@@ -44,14 +50,13 @@ namespace ysSocket
 		void createServer();
 		void bindServer();
 		void listenServer();
+		void set_key_hint();
+		void handle_accept();
 
 		void server_test();
 		bool check_default_encrypt(std::string& key);
 		bool check_idea_encrypt(std::string& key);
 		bool check_salsa_encrypt(std::string& key);
-
-		void set_key_hint();
-		void handle_accept();
 
 		// Message
 		void sendMessageClients(const std::string& t_message);
