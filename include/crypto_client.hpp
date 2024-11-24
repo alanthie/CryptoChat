@@ -24,6 +24,7 @@ namespace crypto_socket {
 	{
 		std::string host;
 		std::string usr;
+		//uint32_t user_index; // Key - 4 bytes - unique user id
 	};
 
 	class crypto_client : public client_node
@@ -33,6 +34,9 @@ namespace crypto_socket {
 	public:
 		cryptoAL::encryptor* _encryptor = nullptr; // TEST
 		cryptoAL::decryptor* _decryptor = nullptr; // TEST
+
+		std::string my_machineid;
+		uint32_t my_user_index = 0;
 
 	protected:
 		void setDefault();
@@ -72,8 +76,8 @@ namespace crypto_socket {
 		bool repository_root_set = false;
 
 		// user index is machineid
-		std::map<std::string, cryptochat::cfg::cfg_crypto_params> map_active_user_to_crypto_cfg;
-		std::map<std::string, std::string> map_active_user_to_urls;
+		std::map<uint32_t, cryptochat::cfg::cfg_crypto_params> map_active_user_to_crypto_cfg;
+		std::map<uint32_t, std::string> map_active_user_to_urls;
 
 		size_t file_counter = 0;
 		std::atomic<bool> ui_dirty = true;
@@ -94,15 +98,19 @@ namespace crypto_socket {
 		std::string get_initial_key64() { return initial_key64; }
 		std::string get_random_key()  { return random_key; }
 
-		std::map<std::string, userinfo> map_userinfo; // machineid is key
-		void handle_info_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
-		void handle_new_client(const std::string& in_id, const std::string& in_host, const std::string& in_usr);
+		std::map<uint32_t, userinfo> map_user_index_to_user; // user_index is key
+		void handle_info_client(uint32_t user_index, const std::string& in_host, const std::string& in_usr);
+		void handle_new_client( uint32_t user_index, const std::string& in_host, const std::string& in_usr);
 
-		bool crypto_encrypt(const std::string& to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
+		bool crypto_encrypt(uint32_t to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
+		bool crypto_decrypt(uint32_t from_user, char* buffer, uint32_t buffer_len, NETW_MSG::MSG& msgout);
 
-		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key, const std::string& to_user = {})
+		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key, uint32_t to_user = 0)
 		{
-			if (to_user.empty() == false)
+			// TEST
+			to_user = 1;
+
+			if (to_user!=0)
 			{
 				NETW_MSG::MSG msgout;
 				bool r = crypto_encrypt(to_user, msgin, msgout);
@@ -110,7 +118,6 @@ namespace crypto_socket {
 				{
 					return sendMessageBuffer(t_socketFd, msgout, key);
 				}
-				// skip crypto encryption
 			}
 			return sendMessageBuffer(t_socketFd, msgin, key);
 		}

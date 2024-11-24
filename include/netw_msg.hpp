@@ -18,7 +18,7 @@ const int MESSAGE_SIZE = 4 * 1024;
 const int MESSAGE_FACTOR = 64;
 
 // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
-const int MESSAGE_HEADER = 1+4+32+20+1+4+2; // 64 bytes
+const int MESSAGE_HEADER = 1+4+32+20+1+4+2 + 4+4+56; // 64 bytes + 8 (from, to) + 56 = 128
 const int MESSAGE_MSGTYPE_START = 0;
 const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
 const int MESSAGE_KEYDIGEST_START = MESSAGE_LEN_START + 4;
@@ -26,6 +26,9 @@ const int MESSAGE_SIGNATURE_START = MESSAGE_KEYDIGEST_START + 32;
 const int MESSAGE_FLAG_START = MESSAGE_SIGNATURE_START + 20; // flag == 0 if no extra crypto encoding
 const int MESSAGE_CRC_START = MESSAGE_FLAG_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
+const int MESSAGE_MISC_END = MESSAGE_MISC_START + 2;
+const int MESSAGE_FROM_START = MESSAGE_MISC_END + 1;
+const int MESSAGE_TO_START = MESSAGE_FROM_START + 4;
 
 const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
 const char MESSAGE_LAST[7 + 1]{0}; // in header
@@ -65,6 +68,7 @@ const uint8_t MSG_CMD_RESP_HOSTNAME = 23;
 const uint8_t MSG_CMD_REQU_MACHINEID = 24;
 const uint8_t MSG_CMD_RESP_MACHINEID = 25;
 const uint8_t MSG_CMD_INFO_USERLIST = 26;
+const uint8_t MSG_CMD_INFO_USERINDEX = 27;
 
 
 const uint8_t MSG_FILE_FRAGMENT = 31;

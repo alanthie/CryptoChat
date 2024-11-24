@@ -42,6 +42,8 @@ namespace crypto_socket {
 
 	void crypto_server::runServer()
 	{
+		read_map_machineid_to_user_index();
+
 		this->createServer();
 		this->bindServer();
 		this->listenServer();
@@ -134,14 +136,14 @@ namespace crypto_socket {
     }
     void crypto_server::handle_info_client(const int& t_socket, bool send_to_current_user_only)
     {
-        // new hostname, username, machineid
+        // new user_index, hostname, username
 		std::string v;
 		{
 			std::lock_guard lck(vclient_mutex);
 			std::string s;
 			for(size_t i=0; i<v_client.size();i++)
 			{
-                s=v_client[i]->machine_id+";"+v_client[i]->hostname+";"+v_client[i]->username+";";
+                s=std::to_string(v_client[i]->user_index) + ";" + v_client[i]->hostname + ";" + v_client[i]->username + ";";
                 v+=s;
 			}
 		}
@@ -374,6 +376,46 @@ namespace crypto_socket {
 								{
 									new_client->machine_id = id;
 									std::cout << "INFO client[" << new_client->getSocketFd() << "] id:" << new_client->machine_id << std::endl;
+
+									if (map_machineid_to_user_index.contains(id) == false)
+									{
+										new_client->user_index = next_user_index;
+										next_user_index++;
+										map_machineid_to_user_index[id] = new_client->user_index;
+										save_map_machineid_to_user_index();
+
+										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
+
+										NETW_MSG::MSG m;
+										std::string s = std::to_string(new_client->user_index);
+										m.make_msg(NETW_MSG::MSG_CMD_INFO_USERINDEX, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+
+										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
+										handle_info_client(new_client->getSocketFd());
+									}
+									else if (new_client->user_index == 0)
+									{
+										// TODO multiple instance on same machineid....
+										// map_machineid_to_user_index[id] => vector of user_index
+
+										new_client->user_index = next_user_index;
+										next_user_index++;
+
+										// save next_user_index
+										save_map_machineid_to_user_index();
+
+										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
+
+										NETW_MSG::MSG m;
+										std::string s = std::to_string(new_client->user_index);
+										m.make_msg(NETW_MSG::MSG_CMD_INFO_USERINDEX, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+
+										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
+										handle_info_client(new_client->getSocketFd());
+
+									}
 								}
 								handle_info_client(new_client->getSocketFd());
 							}
@@ -704,8 +746,10 @@ namespace crypto_socket {
 		this->v_thread.clear();
 	}
 
-	crypto_server::~crypto_server() {
+	crypto_server::~crypto_server()
+	{
         std::cout << "~crypto_server" << std::endl;
+		save_map_machineid_to_user_index();
 		this->closeServer();
 	}
 
@@ -780,5 +824,43 @@ namespace crypto_socket {
 				close_client(new_client);
 			}
 		}
+	}
+
+	bool crypto_server::read_map_machineid_to_user_index()
+	{
+		try
+		{
+			std::string filename = this->_cfg._machineid_filename;
+			std::ifstream infile;
+			infile.open(filename, std::ios_base::in);
+			infile >> bits(next_user_index);
+			infile >> bits(map_machineid_to_user_index);
+			infile.close();
+		}
+		catch (...)
+		{
+			//serr += "WARNING read_repo - repo info can not be read " + filename;
+			return false;
+		}
+		return save_map_machineid_to_user_index();
+	}
+
+	bool crypto_server::save_map_machineid_to_user_index()
+	{
+		try
+		{
+			std::string filename = this->_cfg._machineid_filename;
+			std::ofstream out;
+			out.open(filename, std::ios_base::out);
+			out << bits(next_user_index);
+			out << bits(map_machineid_to_user_index);
+			out.close();
+		}
+		catch (...)
+		{
+			//serr += "WARNING read_repo - repo info can not be read " + filename;
+			return false;
+		}
+		return true;
 	}
 }

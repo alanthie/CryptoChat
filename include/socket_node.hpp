@@ -128,6 +128,7 @@ namespace crypto_socket {
 		std::string username;
 		std::string hostname;
 		std::string machine_id;
+		uint32_t user_index = 0; // invalid, unique user number like an ip 1 to ffffffff
 	};
 
 }

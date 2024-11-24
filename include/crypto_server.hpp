@@ -92,6 +92,13 @@ namespace crypto_socket
 		std::string initial_key64;
 		std::string first_pending_random_key;
 
+		// to persist
+		uint32_t next_user_index = 1;
+		std::map<std::string, uint32_t> map_machineid_to_user_index;
+
+		bool read_map_machineid_to_user_index();
+		bool save_map_machineid_to_user_index();
+
 		void handle_msg_MSG_CMD_RESP_KEY_HINT(NETW_MSG::MSG& m, client_node* new_client);
 	};
 

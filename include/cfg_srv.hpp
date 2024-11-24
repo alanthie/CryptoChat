@@ -25,6 +25,7 @@ namespace cryptochat
                 _port = 14003;
                 _number_connection = 16;
                 _map_challenges["TFirst prime number\nT1000th prime number"] = "27919";
+                _machineid_filename = std::filesystem::current_path().string() + "/" + "machineid.dat";
             }
 
             cfg_srv(const std::string& srv, int port, int number_connection)
@@ -33,6 +34,7 @@ namespace cryptochat
                 _port = port;
                 _number_connection = number_connection;
                 _map_challenges["TFirst prime number;TFirst prime number;T1000th prime number"] = "227919";
+                _machineid_filename = std::filesystem::current_path().string() + "/" + "machineid.dat";
             }
 
             void print()
@@ -40,6 +42,7 @@ namespace cryptochat
                 int cnt=0;
                 std::cout << "Port : " << _port << std::endl;
                 std::cout << "Number of connection allowed : " << _number_connection << std::endl;
+                std::cout << "Machineid list filename : " << _machineid_filename << std::endl;
                 std::cout << "_extra_challenge_file : " << _extra_challenge_file << std::endl;
 
                 {
@@ -118,6 +121,16 @@ namespace cryptochat
                 std::getline(std::cin, entry); if (!entry.empty()) _number_connection = (int)NETW_MSG::str_to_ll(entry);
                 std::cout << std::endl;
 
+                std::cout << "Machineid list filename (Default: " << cfg_default._machineid_filename << ") : ";
+                _machineid_filename = cfg_default._machineid_filename;
+                std::getline(std::cin, entry); 
+                if (!entry.empty())
+                {
+                    // Validate file ........... TODO
+                    _machineid_filename = entry;
+                }
+                std::cout << std::endl;
+
                 int yes_no  = 0 ;
                 // cryptoAL_vigenere::AVAILABLE_CHARS for KEYS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
                 std::cout << "Number of default challenges: " << cfg_default._map_challenges.size() << std::endl;
@@ -157,6 +170,7 @@ namespace cryptochat
             int  _number_connection;
             std::map<std::string, std::string> _map_challenges;
             std::string _extra_challenge_file;
+            std::string _machineid_filename;
 
             friend std::ostream& operator<<(std::ostream& out, Bits<cfg_srv& > my)
             {

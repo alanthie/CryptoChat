@@ -198,6 +198,7 @@ namespace NETW_MSG
 		memcpy(buffer + MESSAGE_FLAG_START,	        msgin.buffer + MESSAGE_FLAG_START, 1);
 		memcpy(buffer + MESSAGE_CRC_START, 			msgin.buffer + MESSAGE_CRC_START, 4);
 		memcpy(buffer + MESSAGE_MISC_START, 		msgin.buffer + MESSAGE_MISC_START, 2);
+        memcpy(buffer + MESSAGE_MISC_END,           msgin.buffer + MESSAGE_MISC_END, 64);
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
 
         crc = MSG::byteToUInt4((char*)buffer + MESSAGE_CRC_START);
@@ -253,6 +254,8 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
+        char buff[64] = { 0 };
+        memcpy(buffer + MESSAGE_MISC_END, buff, 64);
 
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
 
@@ -276,6 +279,8 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
+        char buff[64] = { 0 };
+        memcpy(buffer + MESSAGE_MISC_END, buff, 64);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
 
         CRC32 chk;

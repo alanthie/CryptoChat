@@ -144,14 +144,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>&lt;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\cpp\curl\include;C:\Lib\libgmp_6.2.1-4_msvc17\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;C:\Lib\libgmp_6.2.1-4_msvc17\bin\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\cpp\curl\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\Lib\libgmp_6.2.1-4_msvc17\include;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\cpp\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;C:\Lib\libgmp_6.2.1-4_msvc17\lib\x64;C:\Lib\libgmp_6.2.1-4_msvc17\bin\x64;$(LibraryPath)</LibraryPath>
     <IncludePath>&lt;C:\cpp\Encryptions\src\qa\WinNTL-11_5_1\include;C:\cpp\wide-decimal;C:\cpp\wide-integer;C:\cpp\curl\include;C:\Lib\libgmp_6.2.1-4_msvc17\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

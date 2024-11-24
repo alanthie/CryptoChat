@@ -121,7 +121,7 @@ namespace cryptochat
  
             bool read(const std::string& inifile, std::string&  serr, bool verbose_mode)
             {
-                bool r = false;
+                bool r = true;
                 if (file_util::fileexists(inifile) == false)
                 {
                     serr += "ERROR config file not found:" + inifile + "\n";
