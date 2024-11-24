@@ -64,7 +64,9 @@ namespace crypto_socket {
 		// socket
 		void setSocketInfo();
 		void createSocket();
-		int  sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key);
+
+		int  sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key,
+                                uint8_t crypto_flag=0, uint8_t from_user=0, uint8_t to_user=0);
 		void closeSocket(bool force = false);
 
 	public:

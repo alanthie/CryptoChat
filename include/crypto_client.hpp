@@ -105,22 +105,8 @@ namespace crypto_socket {
 		bool crypto_encrypt(uint32_t to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
 		bool crypto_decrypt(uint32_t from_user, char* buffer, uint32_t buffer_len, NETW_MSG::MSG& msgout);
 
-		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key, uint32_t to_user = 0)
-		{
-			// TEST
-			to_user = 1;
-
-			if (to_user!=0)
-			{
-				NETW_MSG::MSG msgout;
-				bool r = crypto_encrypt(to_user, msgin, msgout);
-				if (r)
-				{
-					return sendMessageBuffer(t_socketFd, msgout, key);
-				}
-			}
-			return sendMessageBuffer(t_socketFd, msgin, key);
-		}
+		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key,
+             uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
 
 		int get_socket() { return m_socketFd; }
 

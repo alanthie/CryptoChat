@@ -81,10 +81,13 @@ namespace crypto_socket {
 		this->m_state = STATE::OPEN;
 	}
 
-	int socket_node::sendMessageBuffer(const int& t_socketFd, NETW_MSG::MSG& m, std::string key)
+	int socket_node::sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key,
+                                        uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
 		int r = 0;
 		NETW_MSG::MSG m2;
+		//uint8_t original_flag = m.buffer[NETW_MSG::MESSAGE_FLAG_START];
+
 		if (m2.make_encrypt_msg(m, key) == false)
 		{
 			// TODO...
@@ -105,8 +108,9 @@ namespace crypto_socket {
 			return -1;
 		}
 
-		// Cryto encryption...
-		//if (map_active_user_to_crypto_cfg.contains(in_id) == false)
+		m2.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
+		NETW_MSG::MSG::uint4ToByte(from_user, (char*)m2.buffer + NETW_MSG::MESSAGE_FROM_START);
+		NETW_MSG::MSG::uint4ToByte(to_user,   (char*)m2.buffer + NETW_MSG::MESSAGE_TO_START);
 
 		// LOCK
 		std::lock_guard lck(get_send_mutex(t_socketFd));

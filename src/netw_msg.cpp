@@ -254,13 +254,13 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
-        char buff[64] = { 0 };
-        memcpy(buffer + MESSAGE_MISC_END, buff, 64);
+        // add from, to...
 
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
 
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
-        memcpy(buffer + MESSAGE_FLAG_START, &flag_originaL, 1);
+        buffer[MESSAGE_FLAG_START] = flag_originaL;
+        //memcpy(buffer + MESSAGE_FLAG_START, &flag_originaL, 1);
     }
 
     void MSG::make_msg( uint8_t t,
@@ -279,14 +279,16 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
-        char buff[64] = { 0 };
-        memcpy(buffer + MESSAGE_MISC_END, buff, 64);
+        //har buff[64] = { 0 };
+        //memcpy(buffer + MESSAGE_MISC_END, buff, 64);
         memcpy(buffer + MESSAGE_HEADER, data, len_data);
 
         CRC32 chk;
         chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
+
+		// flag????????
     }
 
     void MSG::make_msg(uint8_t* buffer_in, size_t len)

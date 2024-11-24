@@ -295,6 +295,11 @@ namespace crypto_socket {
 							memcpy(message_previous_buffer, message_buffer + expected_len, byte_recv);
 						}
 
+						uint8_t original_flag = message_buffer[NETW_MSG::MESSAGE_FLAG_START];
+						uint32_t from_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_FROM_START);
+                        uint32_t to_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_TO_START);
+
+
 						// Parse message
 						NETW_MSG::MSG m;
 						bool r;
@@ -389,7 +394,8 @@ namespace crypto_socket {
 									{
 										new_client->user_index = next_user_index;
 										next_user_index++;
-										map_machineid_to_user_index[id] = new_client->user_index;
+										map_machineid_to_user_index[id].push_back({new_client->user_index, 1});
+										//map_machineid_to_user_index[id].at(0).status = 1;
 										save_map_machineid_to_user_index();
 
 										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
@@ -404,16 +410,35 @@ namespace crypto_socket {
 									}
 									else if (new_client->user_index == 0)
 									{
-										// TODO multiple instance on same machineid....
-										// map_machineid_to_user_index[id] => vector of user_index
-//
-//										new_client->user_index = next_user_index;
-//										next_user_index++;
+										// handle multiple instance on same machineid....
+										bool user_index_exist = false;
+										uint32_t user_index_found;
+										size_t idx=0;
+										for(size_t i=0;i<map_machineid_to_user_index.size(); i++)
+										{
+											if (map_machineid_to_user_index[id].at(i).status == 0)
+											{
+												user_index_exist = true;
+												user_index_found = map_machineid_to_user_index[id].at(i).index;
+												idx = i;
+												break;
+											}
+										}
 
-                                        new_client->user_index = map_machineid_to_user_index[id];
-
-										// save next_user_index
-										//save_map_machineid_to_user_index();
+										if (user_index_exist)
+										{
+											new_client->user_index = user_index_found;
+											map_machineid_to_user_index[id].at(idx).status = 1;
+											save_map_machineid_to_user_index();
+										}
+										else
+										{
+											new_client->user_index = next_user_index;
+											map_machineid_to_user_index[id].push_back({new_client->user_index, 1});
+											//map_machineid_to_user_index[id].at(map_machineid_to_user_index[id].size()-1).status = 1;
+											next_user_index++;
+											save_map_machineid_to_user_index();
+										}
 
 										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
 
@@ -436,14 +461,85 @@ namespace crypto_socket {
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE_FRAGMENT : " << std::endl;
 								if (DEBUG_INFO) std::cout << std::string((char*)m.buffer + NETW_MSG::MESSAGE_HEADER, 40) << std::endl;
 
-								sendMessageAll(m, new_client->getSocketFd());
+								// detect 1 to 1 message and keep crypto flag
+								bool send_to_one = false;
+								bool ok = true;
+								if (original_flag > 0) // 1 to 1 crypto msg
+								{
+                                    if (to_user != 0)
+                                    {
+                                        send_to_one = true;
+                                    }
+                                    else
+                                    {
+                                        // error
+                                        ok = false;
+                                        std::cerr << "WARNING recv(MSG_FILE_FRAGMENT) - crypto msg with to_user==0" << std::endl;
+                                    }
+								}
+								else
+								{
+                                    if (to_user != 0)
+                                    {
+                                        //m[NETW_MSG::MESSAGE_FLAG_START]  = original_flag;
+                                        send_to_one = true;
+                                    }
+								}
+
+								if (ok)
+								{
+                                    if (send_to_one == false)
+                                    {
+                                        sendMessageAll(m, new_client->getSocketFd());
+                                    }
+                                    else
+                                    {
+                                        this->sendMessageOne(m, new_client->getSocketFd(), original_flag, from_user, to_user);
+                                    }
+								}
 							}
 							// RELAY
 							else if (m.type_msg == NETW_MSG::MSG_FILE)
 							{
 								if (DEBUG_INFO) std::cout << "recv MSG_FILE : " << std::endl;
 								std::string s = m.get_data_as_string(); // filename
-								sendMessageAll(m, new_client->getSocketFd());
+
+								// detect 1 to 1 message and keep crypto flag
+								bool send_to_one = false;
+								bool ok = true;
+								if (original_flag > 0) // 1 to 1 crypto msg
+								{
+                                    if (to_user != 0)
+                                    {
+                                        send_to_one = true;
+                                    }
+                                    else
+                                    {
+                                        // error
+                                        ok = false;
+                                        std::cerr << "WARNING recv(MSG_FILE) - crypto msg with to_user==0" << std::endl;
+                                    }
+								}
+								else
+								{
+                                    if (to_user != 0)
+                                    {
+                                        //m[NETW_MSG::MESSAGE_FLAG_START]  = original_flag;
+                                        send_to_one = true;
+                                    }
+								}
+
+								if (ok)
+								{
+                                    if (send_to_one == false)
+                                    {
+                                        sendMessageAll(m, new_client->getSocketFd());
+                                    }
+                                    else
+                                    {
+                                        this->sendMessageOne(m, new_client->getSocketFd(), original_flag, from_user, to_user);
+                                    }
+								}
 							}
 							else if (m.type_msg == NETW_MSG::MSG_TEXT)
 							{
@@ -451,8 +547,42 @@ namespace crypto_socket {
 								if (new_client->username.size() > 0) username_display = " (" + new_client->username + ") ";
 								std::string message(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
 
-								this->sendMessageAll(message, new_client->getSocketFd());
-								//this->sendMessageClients(message);
+								// detect 1 to 1 message and keep crypto flag
+								bool send_to_one = false;
+								bool ok = true;
+								if (original_flag > 0) // 1 to 1 crypto msg
+								{
+                                    if (to_user != 0)
+                                    {
+                                        send_to_one = true;
+                                    }
+                                    else
+                                    {
+                                        // error
+                                        ok = false;
+                                        std::cerr << "WARNING recv(MSG_TEXT) - crypto msg with to_user==0" << std::endl;
+                                    }
+								}
+								else
+								{
+                                    if (to_user != 0)
+                                    {
+                                        //m[NETW_MSG::MESSAGE_FLAG_START]  = original_flag;
+                                        send_to_one = true;
+                                    }
+								}
+
+								if (ok)
+								{
+                                    if (send_to_one == false)
+                                    {
+                                        this->sendMessageAll(message, new_client->getSocketFd());
+                                    }
+                                    else
+                                    {
+                                        this->sendMessageOne(message, new_client->getSocketFd(), original_flag, from_user, to_user);
+                                    }
+								}
 
 								if (!new_client->initial_key_validation_done)
 								{
@@ -595,7 +725,12 @@ namespace crypto_socket {
 		}
 	}
 
-	void crypto_server::sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type)
+	void crypto_server::sendMessageOne(NETW_MSG::MSG& msg, const int& t_socket, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
+	{
+        sendMessageOne(msg.get_data_as_string(), t_socket, msg.type_msg, crypto_flag, from_user, to_user);
+	}
+
+	void crypto_server::sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
 		std::lock_guard lck(vclient_mutex);
 
@@ -612,7 +747,13 @@ namespace crypto_socket {
 
 					NETW_MSG::MSG m;
 					m.make_msg(msg_type, t_message, key);
-					sendMessageBuffer(client->getSocketFd(), m, key);
+
+					m.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
+					NETW_MSG::MSG::uint4ToByte(from_user, (char*)m.buffer + NETW_MSG::MESSAGE_FROM_START);
+					NETW_MSG::MSG::uint4ToByte(to_user,   (char*)m.buffer + NETW_MSG::MESSAGE_TO_START);
+
+					sendMessageBuffer(client->getSocketFd(), m, key,
+                                        crypto_flag, from_user, to_user);
 				}
 				break;
 			}
