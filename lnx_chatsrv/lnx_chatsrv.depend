@@ -117,7 +117,7 @@
 	<string>
 	<iostream>
 
-1731284755 /home/allaptop/dev/CryptoChat/include/base_const.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/base_const.hpp
 	<cstddef>
 	<map>
 	<string>
@@ -842,7 +842,7 @@
 	"../include/netw_msg.hpp"
 	"../include/main_global.hpp"
 
-1732363581 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
@@ -876,7 +876,7 @@
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1732091165 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/cfg_srv.hpp
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
 	"../include/string_util.hpp"
@@ -1410,7 +1410,7 @@
 	"crypto_const.hpp"
 	"data.hpp"
 
-1732338081 /home/allaptop/dev/CryptoChat/include/repository.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/repository.hpp
 	<string>
 	<map>
 	"../include/file_util.hpp"
@@ -1632,7 +1632,7 @@
 	"../include/string_util.hpp"
 	"../include/encdec_algo.hpp"
 
-1732337824 /home/allaptop/dev/CryptoChat/include/crypto_client.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/crypto_client.hpp
 	<iostream>
 	<functional>
 	<thread>
@@ -1641,10 +1641,11 @@
 	"socket_node.hpp"
 	"cfg_cli.hpp"
 	"repository.hpp"
+	"cfg_crypto.hpp"
 	"encryptor.hpp"
 	"decryptor.hpp"
 
-1732337824 /home/allaptop/dev/CryptoChat/include/socket_node.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/socket_node.hpp
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -1734,7 +1735,7 @@
 	"../include/crypto_parsing.hpp"
 	"../include/main_global.hpp"
 
-1732363929 /home/allaptop/dev/CryptoChat/include/crypto_server.hpp
+1732434761 /home/allaptop/dev/CryptoChat/include/crypto_server.hpp
 	"socket_node.hpp"
 	<vector>
 	<functional>
@@ -1756,4 +1757,11 @@
 	<iostream>
 	<mutex>
 	"../include/socket_node.hpp"
+
+1732434761 /home/allaptop/dev/CryptoChat/include/cfg_crypto.hpp
+	<string>
+	<map>
+	"../include/c_plus_plus_serializer.h"
+	"../include/file_util.hpp"
+	"../include/ini_parser.hpp"
 
