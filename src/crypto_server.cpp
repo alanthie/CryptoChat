@@ -143,17 +143,25 @@ namespace crypto_socket {
 			std::string s;
 			for(size_t i=0; i<v_client.size();i++)
 			{
-                s=std::to_string(v_client[i]->user_index) + ";" + v_client[i]->hostname + ";" + v_client[i]->username + ";";
-                v+=s;
+                if (v_client[i]->user_index > 0 && v_client[i]->hostname.size() > 0 && v_client[i]->username.size() > 0)
+                {
+                    s=std::to_string(v_client[i]->user_index) + ";" + v_client[i]->hostname + ";" + v_client[i]->username + ";";
+                    v+=s;
+                }
 			}
 		}
 
 		// MSG_CMD_INFO_USERLIST
-		if (send_to_current_user_only)
-			sendMessageOne(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
-		else
-			sendMessageAll(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
-		std::cout << std::endl << v << std::endl;
+		if (v.size() > 0)
+		{
+            if (send_to_current_user_only)
+                sendMessageOne(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
+            else
+                sendMessageAll(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
+
+            std::cout << std::endl << v << std::endl;
+        }
+
     }
 
 	void crypto_server::handle_accept()
@@ -398,12 +406,14 @@ namespace crypto_socket {
 									{
 										// TODO multiple instance on same machineid....
 										// map_machineid_to_user_index[id] => vector of user_index
+//
+//										new_client->user_index = next_user_index;
+//										next_user_index++;
 
-										new_client->user_index = next_user_index;
-										next_user_index++;
+                                        new_client->user_index = map_machineid_to_user_index[id];
 
 										// save next_user_index
-										save_map_machineid_to_user_index();
+										//save_map_machineid_to_user_index();
 
 										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
 

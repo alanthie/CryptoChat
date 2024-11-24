@@ -357,7 +357,7 @@ namespace cryptochat
                 ss << "filename_puzzle ="; ss << "\n";
                 ss << "filename_full_puzzle ="; ss << "\n";
                 ss << "filename_encrypted_data = msg.zip.encrypted"; ss << "\n";
-                ss << "filename_decrypted_data ="; ss << "\n";
+                ss << "filename_decrypted_data = msg.zip.decrypted";  ss << "\n";
                 ss << "keeping = 0"; ss << "\n";
                 ss << "folder_local = "             + folder_cfg + "other/local/"; ss << "\n";
                 ss << "folder_my_private_rsa = "    + folder_cfg + "me/"; ss << "\n";

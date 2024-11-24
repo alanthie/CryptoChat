@@ -1158,7 +1158,7 @@ namespace crypto_socket {
 						map_active_user_to_crypto_cfg[from_user].encryped_ftp_user,
 						map_active_user_to_crypto_cfg[from_user].encryped_ftp_pwd,
 						map_active_user_to_crypto_cfg[from_user].known_ftp_server,
-						false,	// use_gmp,    
+						false,	// use_gmp,
 						false,	// autoflag
 						false	//converter
 					);
@@ -1175,8 +1175,8 @@ namespace crypto_socket {
 						{
 							// un padding
 							// MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
-							uint32_t padding = dout.buffer.getdata()[dout.buffer.size() - 1];
-							dout.buffer.remove_last_n_char(padding);
+//							uint32_t padding = dout.buffer.getdata()[dout.buffer.size() - 1];
+//							dout.buffer.remove_last_n_char(padding);
 
 							// original header
 							uint8_t digestkey[32];
@@ -1241,13 +1241,13 @@ namespace crypto_socket {
 						user_folder + map_active_user_to_urls[to_user],
 						user_folder + map_active_user_to_crypto_cfg[to_user].filename_msg_data,
 						{}, // user_folder + map_active_user_to_crypto_cfg[to_user].filename_full_puzzle,
-						{}, // map_active_user_to_crypto_cfg[to_user].filename_partial_puzzle,  
-						{}, // user_folder + map_active_user_to_crypto_cfg[to_user].filename_full_puzzle,  
-						user_folder + map_active_user_to_crypto_cfg[to_user].filename_encrypted_data,  
-						{}, // map_active_user_to_crypto_cfg[to_user].staging,                   
-						map_active_user_to_crypto_cfg[to_user].folder_local,              
-						map_active_user_to_crypto_cfg[to_user].folder_my_private_rsa,    
-						map_active_user_to_crypto_cfg[to_user].folder_other_public_rsa, 
+						{}, // map_active_user_to_crypto_cfg[to_user].filename_partial_puzzle,
+						{}, // user_folder + map_active_user_to_crypto_cfg[to_user].filename_full_puzzle,
+						user_folder + map_active_user_to_crypto_cfg[to_user].filename_encrypted_data,
+						{}, // map_active_user_to_crypto_cfg[to_user].staging,
+						map_active_user_to_crypto_cfg[to_user].folder_local,
+						map_active_user_to_crypto_cfg[to_user].folder_my_private_rsa,
+						map_active_user_to_crypto_cfg[to_user].folder_other_public_rsa,
 						map_active_user_to_crypto_cfg[to_user].folder_my_private_ecc,
 						map_active_user_to_crypto_cfg[to_user].folder_other_public_ecc,
 						map_active_user_to_crypto_cfg[to_user].folder_my_private_hh,
@@ -1297,6 +1297,13 @@ namespace crypto_socket {
 
 							msgout.make_msg_with_crc_and_flag_buffer(
 								msgin.type_msg, dout.buffer.size(), (uint8_t*)dout.buffer.getdata(), digestkey, crc, 1);
+
+                            // decrypt test
+                            NETW_MSG::MSG msgout2;
+                            r = crypto_decrypt(
+                                1,
+                                (char*)msgout.buffer,msgout.buffer_len, msgout);
+
 						}
 					}
 				}

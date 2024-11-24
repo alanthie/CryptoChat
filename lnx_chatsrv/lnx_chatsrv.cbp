@@ -107,6 +107,12 @@
 		<Unit filename="../src/netw_msg.cpp" />
 		<Unit filename="../src/socket_node.cpp" />
 		<Unit filename="../src/srv_test.cpp" />
+		<Unit filename="../src/twofish.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/twofish_cfb.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../src/vigenere.cpp" />
 		<Extensions />
 	</Project>
