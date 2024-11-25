@@ -74,7 +74,7 @@ namespace crypto_socket {
 				{
 					std::stringstream ss;
 					ss << "Exiting thread send_pending_file_packet_thread " << std::endl;
-					main_global::log(ss.str(), true);
+					main_global::log(ss.str());
 					break;
 				}
 
@@ -125,7 +125,7 @@ namespace crypto_socket {
 				{
 					std::stringstream ss;
 					ss << " Exiting thread recv_thread " << std::endl;
-					main_global::log(ss.str(), true);
+					main_global::log(ss.str());
 					msg_ok = false;
 					break;
 				}
@@ -146,7 +146,7 @@ namespace crypto_socket {
 					{
 						std::stringstream ss;
 						ss << " Exiting thread recv_thread " << std::endl;
-						main_global::log(ss.str(), true);
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -161,7 +161,7 @@ namespace crypto_socket {
 						// closed or error
 						std::stringstream ss;
 						ss << "ERROR - socket error or closed" << std::endl;
-						main_global::log(ss.str(),true);
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -183,7 +183,7 @@ namespace crypto_socket {
 					{
 						std::stringstream ss;
 						ss << " Exiting thread recv_thread " << std::endl;
-						main_global::log(ss.str(), true);
+						main_global::log(ss.str());
 						msg_ok = false;
 						break;
 					}
@@ -234,7 +234,7 @@ namespace crypto_socket {
 				{
 					std::stringstream ss;
 					ss << "INFO recv - message_buffer expected_len = " << expected_len << std::endl;
-					main_global::log(ss.str(), true);
+					main_global::log(ss.str());
 				}
 
 				{
@@ -251,7 +251,7 @@ namespace crypto_socket {
 					{
 						std::stringstream ss;
 						ss << "After parsing - m.buffer_len= " << m.buffer_len << std::endl;
-						main_global::log(ss.str(), true);
+						main_global::log(ss.str());
 					}
 
 					if (original_flag > 0) // crypto
@@ -259,7 +259,7 @@ namespace crypto_socket {
 						std::stringstream ss;
 						ss << "INFO recv - CRYPTO flag = " << std::to_string((int)original_flag) << std::endl;
 						ss << "            from_user= " << from_user << "  to_user= " << to_user << std::endl;
-						main_global::log(ss.str(), true);
+						main_global::log(ss.str());
 					}
 
 					if (original_flag > 0) // crypto
@@ -270,13 +270,13 @@ namespace crypto_socket {
 						{
 							std::stringstream ss;
 							ss << "WARNING - Failed to decrypt recv message" << std::endl;
-							main_global::log(ss.str(), true);
+							main_global::log(ss.str());
 						}
 						else
 						{
 							std::stringstream ss;
 							ss << "crypto_decrypt ok" << std::endl;
-							main_global::log(ss.str(), true);
+							main_global::log(ss.str());
 						}
 					}
 				}
@@ -297,7 +297,7 @@ namespace crypto_socket {
                     	{
 							std::stringstream ss;
 							ss << "recv MSG_CMD_REQU_SHUTDOWN" << std::endl;
-							main_global::log(ss.str(), true);
+							main_global::log(ss.str());
 						}
 
                         std::string key = get_key();
@@ -371,7 +371,7 @@ namespace crypto_socket {
 								if (is_got_chat_cli_signal())
 								{
 									std::stringstream ss; ss << "Terminating menu" << std::endl;
-									main_global::log(ss.str(), true);
+									main_global::log(ss.str());
 									menu_abort = true;
 									break;
 								}
@@ -901,7 +901,7 @@ namespace crypto_socket {
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
 				std::stringstream ss; ss << " Exiting loop client_UI " << std::endl;
-				main_global::log(ss.str(), true);
+				main_global::log(ss.str());
 				break;
 			}
 

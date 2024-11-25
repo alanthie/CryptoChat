@@ -40,7 +40,7 @@
 	<stdio.h>
 	<ctype.h>
 
-1732523133 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1732531023 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/crypto_const.hpp"
 	"../include/terminal.h"
 	"../include/crypto_client.hpp"
@@ -49,7 +49,6 @@
 	"../include/file_util.hpp"
 	"../include/main_global.hpp"
 	<stdarg.h>
-	"../include/menuuser.hpp"
 
 1731644656 /home/allaptop/dev/CryptoChat/include/terminal.h
 	"terminal_base.h"
@@ -470,7 +469,7 @@
 	<fcntl.h>
 	<termios.h>
 
-1732517732 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+1732529228 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
@@ -480,7 +479,7 @@
 	"IDEA.hpp"
 	"../include/string_util.hpp"
 
-1732517732 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
+1732531937 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
 	"../include/crypto_const.hpp"
 	"../include/netw_msg.hpp"
 	"../include/main_global.hpp"

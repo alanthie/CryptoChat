@@ -100,7 +100,7 @@ namespace NETW_MSG
 
     bool MSG::make_encrypt_msg(MSG& msgin, const std::string& key)
     {
-        std::cout << "make_encrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
+        //std::cout << "make_encrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
 
         std::vector<char> vmsgin(msgin.buffer_len - MESSAGE_HEADER);
         for (size_t i = MESSAGE_HEADER; i < msgin.buffer_len; i++) vmsgin[i - MESSAGE_HEADER] = msgin.buffer[i];
@@ -140,7 +140,7 @@ namespace NETW_MSG
 
         make_msg_with_crc_and_flag(msgin.type_msg, s_encrypted3, digestkey, crc, original_flag);
 
-        std::cout << "make_encrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
+        //std::cout << "make_encrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
 
         delete[] digestkey;
 
@@ -159,7 +159,7 @@ namespace NETW_MSG
 
     bool MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc)
     {
-        std::cout << "make_decrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
+        //std::cout << "make_decrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
 
         std::string s = msgin.get_data_as_string(); // including padding space
         if ((s.size() % MESSAGE_FACTOR) != 0)
@@ -209,7 +209,7 @@ namespace NETW_MSG
 
         crc = MSG::byteToUInt4((char*)buffer + MESSAGE_CRC_START);
 
-        std::cout << "make_decrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
+        //std::cout << "make_decrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
 
         if (DEBUG_INFO)
         {

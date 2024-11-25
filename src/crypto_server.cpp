@@ -159,7 +159,7 @@ namespace crypto_socket {
             else
                 sendMessageAll(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
 
-            std::cout << std::endl << v << std::endl;
+            //std::cout << std::endl << v << std::endl;
         }
 
     }
@@ -344,7 +344,7 @@ namespace crypto_socket {
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
 									std::stringstream serr;
-									sendMessageBuffer(new_client->getSocketFd(), m, 
+									sendMessageBuffer(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
 									new_client->previous_random_key = new_client->random_key;
@@ -411,7 +411,7 @@ namespace crypto_socket {
 										std::string s = std::to_string(new_client->user_index);
 										m.make_msg(NETW_MSG::MSG_CMD_INFO_USERINDEX, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 										std::stringstream serr;
-										sendMessageBuffer(new_client->getSocketFd(), m, 
+										sendMessageBuffer(new_client->getSocketFd(), m,
 											new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
 										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
@@ -426,7 +426,7 @@ namespace crypto_socket {
 										{
 											if (v.status == 0)
 											{
-												user_index_exist = true;		
+												user_index_exist = true;
 												new_client->user_index = v.index;
 												v.status = 1;
 												break;
@@ -613,7 +613,7 @@ namespace crypto_socket {
 									std::string s = "Please, provide your username : ";
 									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 									std::stringstream serr;
-									sendMessageBuffer(new_client->getSocketFd(), m, 
+									sendMessageBuffer(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 								}
 								else if (!new_client->random_key_validation_done)
@@ -658,7 +658,7 @@ namespace crypto_socket {
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
 									std::stringstream serr;
-									sendMessageBuffer(new_client->getSocketFd(), m, 
+									sendMessageBuffer(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
 								}
 								else
@@ -1061,7 +1061,7 @@ namespace crypto_socket {
 			}
 		}
 		std::cout << "next_user_index: " << next_user_index << std::endl;
-		
+
 		save_map_machineid_to_user_index();
 		return true;
 	}
