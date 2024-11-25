@@ -838,7 +838,7 @@ struct ClientTerm
                 filename = ct.file_from_command(message);
                 try
                 {
-                    //test
+                    // TEST
                     //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
 
                     if (file_util::fileexists(filename))
@@ -902,38 +902,45 @@ struct ClientTerm
                 if (message.size() > 0)
                 {
                     std::string key;
-                    {
-                        std::lock_guard l(ct.netw_client->_key_mutex);
-
-                        if (!ct.netw_client->key_valid)
-                            key = ct.netw_client->get_DEFAULT_KEY();
-                        else if (!ct.netw_client->rnd_valid)
-                            key = ct.netw_client->get_initial_key64();
-                        else
-                            key = ct.netw_client->get_random_key();
-                    }
+                    key = ct.netw_client->get_key();
 
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_FILE, message, key);
 
-//                    uint8_t original_flag = (uint8_t)message_buffer[NETW_MSG::MESSAGE_FLAG_START];
-//                    uint32_t from_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_FROM_START);
-//                    uint32_t to_user   = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_TO_START);
-                    // TEST
+                    // TEST - TODO user must select a to_user....
                     uint8_t crypto_flag = 1;
                     uint32_t from_user = ct.netw_client->user_index;
-                    uint32_t to_user   = 1;
-
-                    ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key,
-                                                        crypto_flag, from_user, to_user);
-
-                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
-                    ct.netw_client->set_ui_dirty();
-
+                    for (auto& e : ct.netw_client->map_user_index_to_user)
                     {
+                        if (e.first != ct.netw_client->my_user_index)
+                        {
+                            ct.netw_client->chat_with_other_user_index = e.first; 
+
+                            std::stringstream ss;
+                            ss << "Chatting with : " << ct.netw_client->chat_with_other_user_index << std::endl;
+                            main_global::log(ss.str());
+                            break;
+                        }
+                    }
+                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
+   
+                    int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
+                                                                    crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
+
+                    if (ret != -1)
+                    {
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
+                        ct.netw_client->set_ui_dirty();
+
                         std::stringstream ss; ss << "send MSG_FILE : " << filename << std::endl;
                         main_global::log(ss.str());
                     }
+                    else
+                    {
+                        std::stringstream ss; ss << "WARNING - send MSG_FILE Failed : " << filename << std::endl;
+                        main_global::log(ss.str());
+                    }
+
                 }
             }
             else
@@ -941,27 +948,30 @@ struct ClientTerm
                 if (message.size() > 0)
                 {
                     std::string key;
-                    {
-                        std::lock_guard l(ct.netw_client->_key_mutex);
-
-                        if (!ct.netw_client->key_valid)
-                            key = ct.netw_client->get_DEFAULT_KEY();
-                        else if (!ct.netw_client->rnd_valid)
-                            key = ct.netw_client->get_initial_key64();
-                        else
-                            key = ct.netw_client->get_random_key();
-                    }
+                    key = ct.netw_client->get_key();
 
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_TEXT, message, key);
 
-                    // TEST
+                    // TEST - TODO user must select a to_user....
                     uint8_t crypto_flag = 1;
                     uint32_t from_user = ct.netw_client->user_index;
-                    uint32_t to_user   = 1;
+                    for (auto& e : ct.netw_client->map_user_index_to_user)
+                    {
+                        if (e.first != ct.netw_client->my_user_index)
+                        {
+                            ct.netw_client->chat_with_other_user_index = e.first;
+
+                            std::stringstream ss;
+                            ss << "Chatting with : " << ct.netw_client->chat_with_other_user_index << std::endl;
+                            main_global::log(ss.str());
+                            break;
+                        }
+                    }
+                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
 
                     ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key,
-                                                        crypto_flag, from_user, to_user);
+                                                        crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
 
                     ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
                     ct.netw_client->set_ui_dirty();

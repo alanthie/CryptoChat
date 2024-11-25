@@ -228,49 +228,69 @@ namespace crypto_socket {
 				uint32_t from_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_FROM_START);
                 uint32_t to_user   = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_TO_START);
 
-				{
-                    std::stringstream ss;
-                    ss << "INFO recv - CRYPTO flag = " << std::to_string((int)original_flag) << std::endl;
-                    ss << "            from_user= " << from_user << "  to_user= "<< to_user << std::endl;
-                    main_global::log(ss.str(), true);
-                }
-
 				NETW_MSG::MSG m;
 				bool r = true;
 
-				if (original_flag > 0) // crypto
 				{
-					NETW_MSG::MSG msgout;
-					r = crypto_decrypt(from_user, message_buffer, expected_len, msgout);
-					if (r)
-					{
-                        std::lock_guard l(_key_mutex);
-
-                        if (!key_valid)	        r = m.parse((char*)msgout.buffer, msgout.buffer_len, getDEFAULT_KEY());
-                        else if (!rnd_valid)    r = m.parse((char*)msgout.buffer, msgout.buffer_len, get_initial_key64());
-                        else                    r = m.parse((char*)msgout.buffer, msgout.buffer_len, random_key, previous_random_key, pending_random_key);
-					}
-					else
-					{
-                        std::stringstream ss;
-						ss << "WARNING - Failed to decrypt recv message" << std::endl;
-                        main_global::log(ss.str(), true);
-					}
+					std::stringstream ss;
+					ss << "INFO recv - message_buffer expected_len = " << expected_len << std::endl;
+					main_global::log(ss.str(), true);
 				}
-                else
+
 				{
 					std::lock_guard l(_key_mutex);
 
-					if (!key_valid)	        r = m.parse(message_buffer, expected_len, getDEFAULT_KEY());
-					else if (!rnd_valid)    r = m.parse(message_buffer, expected_len, get_initial_key64());
-					else                    r = m.parse(message_buffer, expected_len, random_key, previous_random_key, pending_random_key);
+					if (!key_valid)	        r = m.parse((char*)message_buffer, expected_len, getDEFAULT_KEY());
+					else if (!rnd_valid)    r = m.parse((char*)message_buffer, expected_len, get_initial_key64());
+					else                    r = m.parse((char*)message_buffer, expected_len, random_key, previous_random_key, pending_random_key);
+				}
+
+				NETW_MSG::MSG msgout;
+				if (r)
+				{
+					{
+						std::stringstream ss;
+						ss << "After parsing - m.buffer_len= " << m.buffer_len << std::endl;
+						main_global::log(ss.str(), true);
+					}
+
+					if (original_flag > 0) // crypto
+					{
+						std::stringstream ss;
+						ss << "INFO recv - CRYPTO flag = " << std::to_string((int)original_flag) << std::endl;
+						ss << "            from_user= " << from_user << "  to_user= " << to_user << std::endl;
+						main_global::log(ss.str(), true);
+					}
+
+					if (original_flag > 0) // crypto
+					{
+						r = crypto_decrypt(from_user, (char*)m.buffer, m.buffer_len, msgout);
+
+						if (!r)
+						{
+							std::stringstream ss;
+							ss << "WARNING - Failed to decrypt recv message" << std::endl;
+							main_global::log(ss.str(), true);
+						}
+						else
+						{
+							std::stringstream ss;
+							ss << "crypto_decrypt ok" << std::endl;
+							main_global::log(ss.str(), true);
+						}
+					}
 				}
 
                 if (r == true)
                 {
 					std::string str_message;
 					if (m.type_msg != NETW_MSG::MSG_FILE_FRAGMENT)
-						str_message = m.get_data_as_string();
+					{
+						if (original_flag > 0)
+							str_message = msgout.get_data_as_string();
+						else
+							str_message = m.get_data_as_string();
+					}
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_SHUTDOWN)
                     {
@@ -626,8 +646,10 @@ namespace crypto_socket {
 							NETW_MSG::MSG m;
 							std::string key = get_key();
 
+							std::stringstream serr;
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_MACHINEID, my_machineid, key);
-							this->sendMessageBuffer(this->m_socketFd, m, key);
+							this->sendMessageBuffer(this->m_socketFd, m, key, serr);
+							main_global::log(serr.str());
 						}
 					}
 					else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_USERINDEX)
@@ -690,7 +712,7 @@ namespace crypto_socket {
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
 						{
-                            std::stringstream ss; ss << "recv MSG_TEXT : " << m.get_data_as_string() << std::endl;
+                            std::stringstream ss; ss << "recv MSG_TEXT : " << str_message << std::endl;
                             main_global::log(ss.str());
 						}
 
@@ -703,7 +725,7 @@ namespace crypto_socket {
 					{
 						{
                             std::stringstream ss;
-                            ss << "recv MSG_FILE : " << m.get_data_as_string() << std::endl;
+                            ss << "recv MSG_FILE : " << str_message << std::endl;
                             main_global::log(ss.str());
 						}
 
@@ -890,8 +912,10 @@ namespace crypto_socket {
 				if (message.size() == 0) message = "hello";
 
 				NETW_MSG::MSG m;
+				std::stringstream serr;
 				m.make_msg(NETW_MSG::MSG_TEXT, message, getDEFAULT_KEY());
-				this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY());
+				this->sendMessageBuffer(this->m_socketFd, m, getDEFAULT_KEY(), serr);
+				main_global::log(serr.str());
 
 				std::string s = m.get_data_as_string();
 				add_to_history(false, NETW_MSG::MSG_TEXT, s);
@@ -927,7 +951,9 @@ namespace crypto_socket {
                         main_global::log(ss.str());
 					}
 
-					this->sendMessageBuffer(this->m_socketFd, m, key);
+					std::stringstream serr;
+					this->sendMessageBuffer(this->m_socketFd, m, key,serr);
+					main_global::log(serr.str());
 
 					std::string s = m.get_data_as_string();
 					add_to_history(false, NETW_MSG::MSG_TEXT, s);
@@ -965,8 +991,8 @@ namespace crypto_socket {
 			main_global::log(ss.str());
 		}
 
-		cryptoAL::encryptor* _encryptor = nullptr;// = new cryptoAL::encryptor(0); // TEST
-		cryptoAL::decryptor* _decryptor = nullptr;// = new cryptoAL::decryptor(0); // TEST
+		cryptoAL::encryptor* _encryptor = nullptr;
+		cryptoAL::decryptor* _decryptor = nullptr;
 	}
 
 	void crypto_client::setOnMessage(const std::function<void(const std::string&)>& t_function) {
@@ -1008,8 +1034,8 @@ namespace crypto_socket {
         std::cout << "~crypto_client -closing connection" << std::endl;
 		this->closeConnection();
 
-		if (_encryptor != nullptr) delete _encryptor; // TEST
-		if (_decryptor != nullptr) delete _decryptor; // TEST
+		if (_encryptor != nullptr) delete _encryptor;
+		if (_decryptor != nullptr) delete _decryptor;
 	}
 
 
@@ -1139,44 +1165,30 @@ namespace crypto_socket {
 		return msg_sent;
 	}
 
-	// called when new message received
-	//  uint8_t original_flag = message_buffer[NETW_MSG::MESSAGE_FLAG_START];
-	//  if (original_flag > 0) // crypto message
+	// called when new message received and crypto flag on
 	bool crypto_client::crypto_decrypt(uint32_t from_user, char* buffer, uint32_t buffer_len, NETW_MSG::MSG& msgout)
 	{
 		bool r = false;
+		std::stringstream ss;
+
 		if (repository_root_set == false)
 		{
-            std::stringstream ss;
             ss << "WARNING crypto_decrypt() - repository_root_set == false)" << std::endl;
             main_global::log(ss.str());
 			return false;
         }
 
         {
-            std::stringstream ss;
-            ss << "INFO crypto_decrypt(...)" << std::endl;
-            main_global::log(ss.str());
+            ss << "crypto_decrypt(...)" << std::endl;
+			ss << "crypto_decrypt msgin.buffer_len: " << buffer_len << std::endl;
         }
 
 		if (from_user == 0) // crypto is between two specific user
 		{
-            // WARNING...
-            {
-                std::stringstream ss;
-                ss << "WARNING crypto_decrypt - invalid user from_user==0" << std::endl;
-                main_global::log(ss.str());
-            }
-
-            // TEST
-            from_user = 1;
+            ss << "WARNING crypto_decrypt - invalid user from_user==0 - msg not decrypted" << std::endl;
 		}
 
-        if (map_active_user_to_crypto_cfg.contains(from_user) == false)
-        {
-            // we can receive an encrypyed messgae with no keys shared
-        }
-
+		if (from_user != 0)
 		{
 			if (map_active_user_to_crypto_cfg.contains(from_user) && map_active_user_to_urls.contains(from_user))
 			{
@@ -1186,6 +1198,7 @@ namespace crypto_socket {
 				std::string user_folder = _repository.get_user_folder(from_user) + cryptochat::db::Repository::file_separator();
 				bool r = din.save_to_file(user_folder + map_active_user_to_crypto_cfg[from_user].filename_encrypted_data);
 
+				ss << "crypto_encrypt filename_encrypted_data.buffer.size(): " << din.buffer.size() << std::endl;
 				if (r)
 				{
 					if (_decryptor != nullptr)
@@ -1223,10 +1236,8 @@ namespace crypto_socket {
 				else
 				{
                     {
-                        std::stringstream ss;
                         ss  << "WARNING crypto_decrypt - invalid file "
                             << user_folder + map_active_user_to_crypto_cfg[from_user].filename_encrypted_data << std::endl;
-                        main_global::log(ss.str());
                     }
 				}
 
@@ -1240,15 +1251,17 @@ namespace crypto_socket {
 						if (r)
 						{
                             {
-                                std::stringstream ss;
-                                ss << "CRYPTO deryption ok" << std::endl;
-                                main_global::log(ss.str());
+								ss << "CRYPTO decryption ok" << std::endl;
+								ss << "crypto_decrypt filename_decrypted_data.buffer.size(): " << dout.buffer.size() << std::endl;
                             }
 
 							// un padding
 							// MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
-//							uint32_t padding = dout.buffer.getdata()[dout.buffer.size() - 1];
-//							dout.buffer.remove_last_n_char(padding);
+							uint32_t padding = (uint32_t)dout.buffer.getdata()[dout.buffer.size() - 1];
+							dout.buffer.remove_last_n_char(padding);
+
+							ss << "un padding: " << padding << std::endl;
+							ss << "crypto_decrypt filename_decrypted_data.buffer.size(): " << dout.buffer.size() << std::endl;
 
 							// original header
 							uint8_t digestkey[32];
@@ -1258,7 +1271,7 @@ namespace crypto_socket {
 							memcpy(&chk[0], buffer + NETW_MSG::MESSAGE_CRC_START, 4);
 							uint32_t crc = NETW_MSG::MSG::byteToUInt4((char*)buffer + NETW_MSG::MESSAGE_CRC_START);
 
-							uint8_t original_flag = buffer[NETW_MSG::MESSAGE_FLAG_START];
+							//uint8_t original_flag = buffer[NETW_MSG::MESSAGE_FLAG_START];
 
 							uint32_t to_user = this->user_index;
 							NETW_MSG::MSG::uint4ToByte(from_user, (char*)buffer + NETW_MSG::MESSAGE_FROM_START);
@@ -1267,35 +1280,31 @@ namespace crypto_socket {
 							msgout.make_msg_with_crc_and_flag_buffer(
 								dout.buffer.getdata()[0], dout.buffer.size(), (uint8_t*)dout.buffer.getdata(), digestkey, crc, 0);
 
+							main_global::log(ss.str());
                             return true;
 						}
 						else
 						{
 						    {
-                                std::stringstream ss;
                                 ss << "WARNING crypto_decrypt - invalid file "
                                 << user_folder + map_active_user_to_crypto_cfg[from_user].filename_decrypted_data<<std::endl;
-                                main_global::log(ss.str());
                             }
 						}
 					}
 					else
                     {
                         {
-                            std::stringstream ss;
                             ss << "WARNING crypto_decrypt - decryptor->decrypt() failed" << std::endl;
-                            main_global::log(ss.str());
                         }
                     }
 				}
 			}
 			else
             {
-                std::stringstream ss;
                 ss << "WARNING crypto_decrypt - no (map_active_user_to_crypto_cfg.contains(from_user) && map_active_user_to_urls.contains(from_user))" << std::endl;
-                main_global::log(ss.str());
             }
 		}
+		main_global::log(ss.str());
 		return r;
 	}
 
@@ -1303,19 +1312,22 @@ namespace crypto_socket {
                                             uint8_t crypto_flag, uint8_t from_user, uint8_t to_user )
     {
         bool ok = true;
+		std::stringstream ss;
 
-        // TEST
-        if (msgin.type_msg == NETW_MSG::MSG_TEXT)
-            to_user = 1;
+        // TEST TODO - Prevent this error - user process_prompt must select a destination user
+		if (msgin.type_msg == NETW_MSG::MSG_TEXT || msgin.type_msg == NETW_MSG::MSG_FILE)
+		{
+			if (crypto_flag > 0 && to_user == 0)
+			{
+				ss << "WARNING - send_message_buffer - CRYPTO encryption with to_user==0 " << std::endl;
+				ok = false;
+			}
+		}
 
         // crypto private/public keys works on one to one only
         if (crypto_flag > 0)
         {
-            {
-                std::stringstream ss;
-                ss << "CRYPTO encryption" << std::endl;
-                main_global::log(ss.str());
-            }
+            ss << "send_message_buffer - with crypto flag on" << std::endl;
 
             if (to_user != 0)
             {
@@ -1323,33 +1335,35 @@ namespace crypto_socket {
                 bool r = crypto_encrypt(to_user, msgin, msgout);
                 if (r)
                 {
-                    return sendMessageBuffer(t_socketFd, msgout, key, crypto_flag, from_user, to_user );
+					auto ret = sendMessageBuffer(t_socketFd, msgout, key, ss, crypto_flag, from_user, to_user );
+					main_global::log(ss.str());
+					return ret;
                 }
                 else
                 {
                     // SKIP crypto encryption on error (urls keys may be empty, ...)
                     {
-                        std::stringstream ss;
                         ss << "WARNING - CRYPTO encryption FAILED " << std::endl;
-                        main_global::log(ss.str());
                     }
                     crypto_flag = 0;
                 }
             }
             else
             {
-                std::stringstream ss;
-                ss << "ERROR - CRYPTO encryption with to_user==0 " << std::endl;
-                main_global::log(ss.str());
-
+                ss << "ERROR - send_message_buffer crypto encryption with to_user==0 " << std::endl;
                 ok = false;
             }
         }
 
         if (ok)
         {
-            return sendMessageBuffer(t_socketFd, msgin, key, crypto_flag, from_user, to_user );
+            auto ret = sendMessageBuffer(t_socketFd, msgin, key, ss,crypto_flag, from_user, to_user );
+			main_global::log(ss.str());
+			return  ret;
         }
+
+		main_global::log(ss.str());
+		return 0;
     }
 
 	bool crypto_client::crypto_encrypt(uint32_t to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout)
@@ -1357,6 +1371,9 @@ namespace crypto_socket {
 		bool r = false;
 		if (repository_root_set == false)
 			return false;
+
+		std::stringstream ss;
+		ss << "crypto_encrypt msgin.buffer_len: " << msgin.buffer_len << std::endl;
 
 		if (to_user >  0)
 		{
@@ -1369,6 +1386,8 @@ namespace crypto_socket {
 				std::string user_folder = _repository.get_user_folder(to_user) + cryptochat::db::Repository::file_separator();
 				bool r = din.save_to_file(user_folder + map_active_user_to_crypto_cfg[to_user].filename_msg_data);
 
+				ss << "crypto_encrypt filename_msg_data.buffer.size(): " << din.buffer.size() << std::endl;
+
 				if (r)
 				{
 					// padding
@@ -1377,7 +1396,13 @@ namespace crypto_socket {
 					if (padding == 0) padding = 64;
 					char cpadding = (char)(uint8_t)padding;
 					char space[1]{ ' ' };
-					for (int i = 0; i < padding; i++) din.buffer.write(&space[0], 1);
+					for (int i = 0; i < padding - 1; i++) din.buffer.write(&space[0], 1);
+					din.buffer.write(&cpadding, 1);
+
+					ss << "crypto_encrypt padding: :" << padding << std::endl;
+					bool r = din.save_to_file(user_folder + map_active_user_to_crypto_cfg[to_user].filename_msg_data);
+					ss << "crypto_encrypt filename_msg_data.buffer.size(): " << din.buffer.size() << std::endl;
+
 
 					if (_encryptor != nullptr)
 					{
@@ -1420,10 +1445,8 @@ namespace crypto_socket {
 				else
                 {
                     {
-                        std::stringstream ss;
                         ss << "WARNING crypto_encrypt - invalid file "
                         << user_folder + user_folder + map_active_user_to_crypto_cfg[to_user].filename_msg_data<<std::endl;
-                        main_global::log(ss.str());
                     }
                 }
 
@@ -1436,6 +1459,8 @@ namespace crypto_socket {
 						r = dout.read_from_file(user_folder + map_active_user_to_crypto_cfg[to_user].filename_encrypted_data);
 						if (r)
 						{
+							ss << "crypto_encrypt filename_encrypted_data.buffer.size(): " << dout.buffer.size() << std::endl;
+
 							// original header
 							uint8_t digestkey[32];
 							memcpy(&digestkey[0], msgin.buffer + NETW_MSG::MESSAGE_KEYDIGEST_START, 32);
@@ -1456,39 +1481,35 @@ namespace crypto_socket {
                             uint8_t new_flag = msgout.buffer[NETW_MSG::MESSAGE_FLAG_START];
                             if (new_flag == 0)
                             {
-                                std::stringstream ss;
                                 ss << "ERROR crypto_encrypt - invalid crypto flag (0)" <<std::endl;
-                                main_global::log(ss.str());
                             }
 
-                            // decrypt test
+                            // TEST
                             //NETW_MSG::MSG msgout2;
                             //r = crypto_decrypt(1,(char*)msgout.buffer,msgout.buffer_len, msgout2);
 
+							main_global::log(ss.str());
                             return true;
 						}
                         else
                         {
                             {
-                                std::stringstream ss;
                                 ss << "WARNING crypto_encrypt - invalid file "
                                 << user_folder + map_active_user_to_crypto_cfg[to_user].filename_encrypted_data<<std::endl;
-                                main_global::log(ss.str());
                             }
                         }
 					}
 					else
                     {
                         {
-                            std::stringstream ss;
                             ss << "WARNING crypto_encrypt - encryptor->encrypt() failed" << std::endl;
-                            main_global::log(ss.str());
                         }
                     }
 				}
 			}
 		}
 
+		main_global::log(ss.str());
 		return r;
 	}
 }

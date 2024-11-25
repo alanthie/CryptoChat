@@ -100,6 +100,8 @@ namespace NETW_MSG
 
     bool MSG::make_encrypt_msg(MSG& msgin, const std::string& key)
     {
+        std::cout << "make_encrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
+
         std::vector<char> vmsgin(msgin.buffer_len - MESSAGE_HEADER);
         for (size_t i = MESSAGE_HEADER; i < msgin.buffer_len; i++) vmsgin[i - MESSAGE_HEADER] = msgin.buffer[i];
 
@@ -138,12 +140,14 @@ namespace NETW_MSG
 
         make_msg_with_crc_and_flag(msgin.type_msg, s_encrypted3, digestkey, crc, original_flag);
 
+        std::cout << "make_encrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
+
         delete[] digestkey;
 
         if (DEBUG_INFO)
         {
             std::stringstream ss;
-            ss << "Encrypt ["
+            ss << "make_encrypt_msg ["
                 + file_util::get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
                 + file_util::get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
                 + "]" << std::endl;
@@ -155,6 +159,8 @@ namespace NETW_MSG
 
     bool MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc)
     {
+        std::cout << "make_decrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
+
         std::string s = msgin.get_data_as_string(); // including padding space
         if ((s.size() % MESSAGE_FACTOR) != 0)
         {
@@ -203,10 +209,12 @@ namespace NETW_MSG
 
         crc = MSG::byteToUInt4((char*)buffer + MESSAGE_CRC_START);
 
+        std::cout << "make_decrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
+
         if (DEBUG_INFO)
         {
             std::stringstream ss;
-            ss << "Decrypt ["
+            ss << "make_decrypt_msg ["
                 + file_util::get_summary_hex((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER) + "]=>["
                 + file_util::get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
                 << std::endl;

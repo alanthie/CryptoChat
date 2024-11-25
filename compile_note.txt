@@ -1,0 +1,62 @@
+curl package: https://curl.se/windows/
+win build from Src: https://github.com/curl/curl/tree/master/winbuild
+linux : sudo apt-get install libcurl4-gnutls-dev
+-lcurl
+-lgmp
+-lgmpxx
+
+#ifdef _WIN32
+//https://github.com/ckormanyos/wide-integer
+#define WIDE_INTEGER_NAMESPACE WIDE_INTEGER_NS
+#include <math\wide_integer\uintwide_t.h>
+// TODO what size top use for RSA big prime [2x biggest prime = 2xMaxRSAbits/8] ==> using GMP and BigUnsigned lib
+//Width2 must be 2^n times 1...63 (with n >= 3), while being 16, 24, 32 or larger, and exactly divisible by limb count'
+using uint2048_t = WIDE_INTEGER_NS::math::wide_integer::uintwide_t<2048U, std::uint32_t>;
+using uinteger_t = uint2048_t;
+#else
+// BUG in modulo for big number
+// https://github.com/Kronuz/uinteger_t
+#include "uinteger_t.hh"
+#endif
+
+//https://github.com/ckormanyos/wide-decimal
+#include <math/wide_decimal/decwide_t.h>
+using dec101_t = math::wide_decimal::decwide_t<INT32_C(100), std::uint32_t, void>;
+
+https://gmplib.org/
+win=>libgmp_6.2.1-4_msvc17 in src
+linux: sudo apt-get install libgmp-dev
+
+https://pari.math.u-bordeaux.fr/download.html
+(not used) pari-2.17.0.tar.gz
+
+========================
+NTL linux
+https://github.com/libntl/ntl
+   % gunzip ntl-xxx.tar.gz
+   % tar xf ntl-xxx.tar
+   % cd ntl-xxx/src
+   % ./configure 
+   % make
+   % make check
+   % sudo make install
+   /usr/local/lib/libntl.a 
+   //LINKER LIB: -lntl -lpthread -lgmp
+========================
+NTL window 
+https://github.com/libntl/ntl
+download zip: https://libntl.org/download.html
+
+Also in directory "include/NTL" is a file called "config.h". 
+You can edit this file to override some of NTL's default options for basic configuration and performance. 
+Again, the defaults should be good for Windows with MSVC++. 
+
+//use inncode: https://github.com/balena/aes-whitebox
+C:\cpp\Encryptions\src\qa\menu\wbaes_menu.cpp
+========================
+
+
+https://github.com/J08nY/ecgen
+
+https://github.com/CasualYT31/SystemProperties
+

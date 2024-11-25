@@ -80,7 +80,7 @@ namespace cryptochat
 #ifdef _WIN32
 					_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
 #else
-					_cfg._repo_root_path = "/home/allaptop/dev/CryptoChat/test/cryptochat";
+					_cfg._repo_root_path = "/home/allaptop/dev/test/cryptochat";
 #endif
 					std::cout << "Repository (Default " + _cfg._repo_root_path + "): ";
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._repo_root_path = entry;

@@ -25,7 +25,11 @@ namespace cryptochat
                 _port = 14003;
                 _number_connection = 16;
                 _map_challenges["TFirst prime number\nT1000th prime number"] = "27919";
-                _machineid_filename = std::filesystem::current_path().string() + "/" + "machineid.dat";
+#ifdef _WIN32
+                _machineid_filename = "C:\\cpp\\test\\machineid.dat";
+#else
+                _machineid_filename = "/home/allaptop/dev/test/machineid.dat";
+#endif
             }
 
             cfg_srv(const std::string& srv, int port, int number_connection)

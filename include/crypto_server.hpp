@@ -67,8 +67,8 @@ namespace crypto_socket
 		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type);
 		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
 
-		void sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
-        void sendMessageOne(NETW_MSG::MSG& msg, const int& t_socket, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
+		void sendMessageOne(const std::string& t_message,	const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
+        void sendMessageOne(NETW_MSG::MSG& msg,				const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
 
 	public:
 		crypto_server(cryptochat::cfg::cfg_srv cfg);
@@ -99,7 +99,7 @@ namespace crypto_socket
 		struct user_index_status
 		{
             uint32_t index;
-            int status = 0; // offline
+            int status; // 0 = offline
 
             friend std::ostream& operator<<(std::ostream& out, Bits<user_index_status&>  my)
             {
@@ -115,7 +115,7 @@ namespace crypto_socket
                 return (in);
             }
 		};
-		std::map<std::string, std::vector<user_index_status>> map_machineid_to_user_index;
+		std::map<std::string, std::vector<user_index_status> > map_machineid_to_user_index;
 
 		bool read_map_machineid_to_user_index();
 		bool save_map_machineid_to_user_index();

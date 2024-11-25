@@ -37,6 +37,7 @@ namespace crypto_socket {
 
 		std::string my_machineid;
 		uint32_t my_user_index = 0;
+		uint32_t chat_with_other_user_index = 0;
 
 	protected:
 		void setDefault();

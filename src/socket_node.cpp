@@ -81,9 +81,11 @@ namespace crypto_socket {
 		this->m_state = STATE::OPEN;
 	}
 
-	int socket_node::sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key,
+	int socket_node::sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key, std::stringstream& serr,
                                         uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
+		serr << "sendMessageBuffer - entry m.buffer_len " << m.buffer_len << "\n";
+
 		int r = 0;
 		NETW_MSG::MSG m2;
 		//uint8_t original_flag = m.buffer[NETW_MSG::MESSAGE_FLAG_START];
@@ -91,20 +93,22 @@ namespace crypto_socket {
 		if (m2.make_encrypt_msg(m, key) == false)
 		{
 			// TODO...
-			std::cerr << "ERROR - make_encrypt_msg FAILED\n";
+			serr << "ERROR - make_encrypt_msg FAILED\n";
 			return -1;
 		}
 
 		if (m2.buffer_len >= NETW_MSG::MESSAGE_SIZE)
 		{
-			std::cerr << "WARNING - sending too much data\n";
+			serr << "WARNING - sending too much data\n";
 			return -1;
 		}
+
+		serr << "sendMessageBuffer - after m2.buffer_len " << m2.buffer_len << "\n";
 
 		uint32_t expected_len = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer + 1);
 		if (expected_len != m2.buffer_len)
 		{
-			std::cerr << "ERROR - SEND  (expected_len != m2.buffer_len)" << std::endl;
+			serr << "ERROR - SEND  (expected_len != m2.buffer_len)" << std::endl;
 			return -1;
 		}
 
@@ -118,11 +122,11 @@ namespace crypto_socket {
 
 #ifdef _WIN32
 		if (r == SOCKET_ERROR) {
-			std::cerr << "ERROR - send failed with error: %d\n", WSAGetLastError();
+			serr << "ERROR - send failed with error: %d\n", WSAGetLastError();
 		}
 		else if (r < m2.buffer_len)
 		{
-			std::cerr << "WARNING - NOT all data send\n";
+			serr << "WARNING - NOT all data send\n";
 
 			int bytes_sent = r;
 			while (bytes_sent < m2.buffer_len)
@@ -130,30 +134,30 @@ namespace crypto_socket {
 				int bytes_s0 = send(t_socketFd, (char*)m2.buffer + bytes_sent, m2.buffer_len - bytes_sent, 0);
 
 				if (bytes_s0 == SOCKET_ERROR) {
-					std::cerr << "ERROR - send failed with error: %d\n", WSAGetLastError();
+					serr << "ERROR - send failed with error: %d\n", WSAGetLastError();
 					return SOCKET_ERROR;
 				}
 
 				bytes_sent += bytes_s0;
 			}
-			std::cerr << "INFO - All data send\n";
+			serr << "INFO - All data send\n";
 		}
 		else if (r == m2.buffer_len)
 		{
 		}
 		else if (r > m2.buffer_len)
 		{
-			std::cerr << "WARNING - Excess data send\n";
+			serr << "WARNING - Excess data send\n";
 		}
 
 #else
 		if (r == -1)
 		{
-			std::cerr << "ERROR - send failed with error: " << errno << " len:" << m2.buffer_len << "\n";
+			serr << "ERROR - send failed with error: " << errno << " len:" << m2.buffer_len << "\n";
 		}
 		else if (r < (int)m2.buffer_len)
 		{
-			std::cerr << "WARNING - NOT all data send from sendMessageBuffer\n";
+			serr << "WARNING - NOT all data send from sendMessageBuffer\n";
 		}
 #endif
 		return r;

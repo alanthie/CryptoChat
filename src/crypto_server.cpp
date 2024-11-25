@@ -182,7 +182,8 @@ namespace crypto_socket {
 			{
 				NETW_MSG::MSG  m;
 				m.make_msg(NETW_MSG::MSG_TEXT, "Server is full.", getDEFAULT_KEY());
-				sendMessageBuffer(temp_socket, m, getDEFAULT_KEY());
+				std::stringstream serr;
+				sendMessageBuffer(temp_socket, m, getDEFAULT_KEY(), serr);
 #ifdef _WIN32
 				closesocket(temp_socket);
 #else
@@ -299,6 +300,9 @@ namespace crypto_socket {
 						uint32_t from_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_FROM_START);
                         uint32_t to_user = NETW_MSG::MSG::byteToUInt4(message_buffer + NETW_MSG::MESSAGE_TO_START);
 
+						new_client->user_index;
+						std::cout << "recv msg (from:" << new_client->user_index << ") type:" << std::to_string((int)message_buffer[0]) <<
+									 " crypto:" << std::to_string((int)original_flag) << " from_user: " << from_user << " to_user:" << to_user << std::endl;
 
 						// Parse message
 						NETW_MSG::MSG m;
@@ -339,7 +343,9 @@ namespace crypto_socket {
 									m.make_msg(NETW_MSG::MSG_CMD_INFO_RND_KEY_VALID, "Random key is valid",
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+									std::stringstream serr;
+									sendMessageBuffer(new_client->getSocketFd(), m, 
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
 									new_client->previous_random_key = new_client->random_key;
 									new_client->random_key = new_client->pending_random_key;
@@ -395,15 +401,18 @@ namespace crypto_socket {
 										new_client->user_index = next_user_index;
 										next_user_index++;
 										map_machineid_to_user_index[id].push_back({new_client->user_index, 1});
-										//map_machineid_to_user_index[id].at(0).status = 1;
 										save_map_machineid_to_user_index();
+
+										std::cout << "New machineid added, user= " << new_client->user_index << std::endl;
 
 										if (DEBUG_INFO) std::cout << "send MSG_CMD_INFO_USERINDEX " << new_client->getSocketFd() << std::endl;
 
 										NETW_MSG::MSG m;
 										std::string s = std::to_string(new_client->user_index);
 										m.make_msg(NETW_MSG::MSG_CMD_INFO_USERINDEX, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										std::stringstream serr;
+										sendMessageBuffer(new_client->getSocketFd(), m, 
+											new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
 										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
 										handle_info_client(new_client->getSocketFd());
@@ -412,30 +421,26 @@ namespace crypto_socket {
 									{
 										// handle multiple instance on same machineid....
 										bool user_index_exist = false;
-										uint32_t user_index_found;
-										size_t idx=0;
-										for(size_t i=0;i<map_machineid_to_user_index.size(); i++)
+
+										for (auto& v : map_machineid_to_user_index[id])
 										{
-											if (map_machineid_to_user_index[id].at(i).status == 0)
+											if (v.status == 0)
 											{
-												user_index_exist = true;
-												user_index_found = map_machineid_to_user_index[id].at(i).index;
-												idx = i;
+												user_index_exist = true;		
+												new_client->user_index = v.index;
+												v.status = 1;
 												break;
 											}
 										}
 
 										if (user_index_exist)
 										{
-											new_client->user_index = user_index_found;
-											map_machineid_to_user_index[id].at(idx).status = 1;
-											save_map_machineid_to_user_index();
+											//save_map_machineid_to_user_index();
 										}
 										else
 										{
 											new_client->user_index = next_user_index;
 											map_machineid_to_user_index[id].push_back({new_client->user_index, 1});
-											//map_machineid_to_user_index[id].at(map_machineid_to_user_index[id].size()-1).status = 1;
 											next_user_index++;
 											save_map_machineid_to_user_index();
 										}
@@ -445,7 +450,9 @@ namespace crypto_socket {
 										NETW_MSG::MSG m;
 										std::string s = std::to_string(new_client->user_index);
 										m.make_msg(NETW_MSG::MSG_CMD_INFO_USERINDEX, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-										sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+										std::stringstream serr;
+										sendMessageBuffer(new_client->getSocketFd(), m,
+											new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
 										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
 										handle_info_client(new_client->getSocketFd());
@@ -494,7 +501,7 @@ namespace crypto_socket {
                                     }
                                     else
                                     {
-                                        this->sendMessageOne(m, new_client->getSocketFd(), original_flag, from_user, to_user);
+                                        this->sendMessageOne(m, new_client->getSocketFd(), NETW_MSG::MSG_FILE_FRAGMENT, original_flag, from_user, to_user);
                                     }
 								}
 							}
@@ -537,16 +544,12 @@ namespace crypto_socket {
                                     }
                                     else
                                     {
-                                        this->sendMessageOne(m, new_client->getSocketFd(), original_flag, from_user, to_user);
+                                        this->sendMessageOne(m, new_client->getSocketFd(), NETW_MSG::MSG_FILE, original_flag, from_user, to_user);
                                     }
 								}
 							}
 							else if (m.type_msg == NETW_MSG::MSG_TEXT)
 							{
-								std::string username_display;
-								if (new_client->username.size() > 0) username_display = " (" + new_client->username + ") ";
-								std::string message(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
-
 								// detect 1 to 1 message and keep crypto flag
 								bool send_to_one = false;
 								bool ok = true;
@@ -567,7 +570,6 @@ namespace crypto_socket {
 								{
                                     if (to_user != 0)
                                     {
-                                        //m[NETW_MSG::MESSAGE_FLAG_START]  = original_flag;
                                         send_to_one = true;
                                     }
 								}
@@ -576,11 +578,26 @@ namespace crypto_socket {
 								{
                                     if (send_to_one == false)
                                     {
+										std::string message;
+										std::string username_display;
+										if (new_client->username.size() > 0) username_display = " (" + new_client->username + ") ";
+										message = std::string(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
+
                                         this->sendMessageAll(message, new_client->getSocketFd());
                                     }
                                     else
                                     {
-                                        this->sendMessageOne(message, new_client->getSocketFd(), original_flag, from_user, to_user);
+										if (original_flag > 0)
+											this->sendMessageOne(m, new_client->getSocketFd(), NETW_MSG::MSG_TEXT, original_flag, new_client->user_index, to_user);
+										else
+										{
+											std::string message;
+											std::string username_display;
+											if (new_client->username.size() > 0) username_display = " (" + new_client->username + ") ";
+											message = std::string(client_ip + ":" + client_port + username_display + "> " + m.get_data_as_string());
+
+											this->sendMessageOne(message, new_client->getSocketFd(), NETW_MSG::MSG_TEXT, original_flag, new_client->user_index, to_user);
+										}
                                     }
 								}
 
@@ -595,7 +612,9 @@ namespace crypto_socket {
 									NETW_MSG::MSG m;
 									std::string s = "Please, provide your username : ";
 									m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+									std::stringstream serr;
+									sendMessageBuffer(new_client->getSocketFd(), m, 
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 								}
 								else if (!new_client->random_key_validation_done)
 								{
@@ -638,7 +657,9 @@ namespace crypto_socket {
 									m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, new_client->pending_random_key,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 
-									sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+									std::stringstream serr;
+									sendMessageBuffer(new_client->getSocketFd(), m, 
+										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
 								}
 								else
 								{
@@ -696,7 +717,8 @@ namespace crypto_socket {
 				else key = client->random_key;
 
 				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
-				sendMessageBuffer(client->getSocketFd(), m, key);
+				std::stringstream serr;
+				sendMessageBuffer(client->getSocketFd(), m, key, serr);
 			}
 		}
 	}
@@ -719,24 +741,51 @@ namespace crypto_socket {
 
 					NETW_MSG::MSG m;
 					m.make_msg(msg_type, t_message, key);
-					sendMessageBuffer(client->getSocketFd(), m, key);
+					std::stringstream serr;
+					sendMessageBuffer(client->getSocketFd(), m, key, serr);
 				}
 			}
 		}
 	}
 
-	void crypto_server::sendMessageOne(NETW_MSG::MSG& msg, const int& t_socket, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
+	void crypto_server::sendMessageOne(NETW_MSG::MSG& m, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
 	{
-        sendMessageOne(msg.get_data_as_string(), t_socket, msg.type_msg, crypto_flag, from_user, to_user);
+        //sendMessageOne(msg.get_data_as_string(), t_socket, msg_type, crypto_flag, from_user, to_user);
+		std::lock_guard lck(vclient_mutex);
+
+		for (auto& client : v_client)
+		{
+			if (client->user_index == in_to_user)
+			{
+				if (client->getState() == STATE::OPEN)
+				{
+					std::string key;
+					if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
+					else if (!client->random_key_validation_done) key = client->initial_key64;
+					else key = client->random_key;
+
+					//NETW_MSG::MSG m;
+					//m.make_msg(msg_type, t_message, key);
+
+					m.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
+					NETW_MSG::MSG::uint4ToByte(in_from_user, (char*)m.buffer + NETW_MSG::MESSAGE_FROM_START);
+					NETW_MSG::MSG::uint4ToByte(in_to_user, (char*)m.buffer + NETW_MSG::MESSAGE_TO_START);
+
+					std::stringstream serr;
+					sendMessageBuffer(client->getSocketFd(), m, key, serr, crypto_flag, in_from_user, in_to_user);
+				}
+				break;
+			}
+		}
 	}
 
-	void crypto_server::sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
+	void crypto_server::sendMessageOne(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
 	{
 		std::lock_guard lck(vclient_mutex);
 
 		for (auto& client : v_client)
 		{
-			if (client->getSocketFd() == t_socket)
+			if (client->user_index == in_to_user)
 			{
 				if (client->getState() == STATE::OPEN)
 				{
@@ -749,11 +798,11 @@ namespace crypto_socket {
 					m.make_msg(msg_type, t_message, key);
 
 					m.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
-					NETW_MSG::MSG::uint4ToByte(from_user, (char*)m.buffer + NETW_MSG::MESSAGE_FROM_START);
-					NETW_MSG::MSG::uint4ToByte(to_user,   (char*)m.buffer + NETW_MSG::MESSAGE_TO_START);
+					NETW_MSG::MSG::uint4ToByte(in_from_user, (char*)m.buffer + NETW_MSG::MESSAGE_FROM_START);
+					NETW_MSG::MSG::uint4ToByte(in_to_user,   (char*)m.buffer + NETW_MSG::MESSAGE_TO_START);
 
-					sendMessageBuffer(client->getSocketFd(), m, key,
-                                        crypto_flag, from_user, to_user);
+					std::stringstream serr;
+					sendMessageBuffer(client->getSocketFd(), m, key, serr, crypto_flag, in_from_user, in_to_user);
 				}
 				break;
 			}
@@ -775,7 +824,8 @@ namespace crypto_socket {
 					else if (!client->random_key_validation_done) key = client->initial_key64;
 					else key = client->random_key;
 
-					sendMessageBuffer(client->getSocketFd(), m, key);
+					std::stringstream serr;
+					sendMessageBuffer(client->getSocketFd(), m, key, serr);
 				}
 
 			}
@@ -814,7 +864,8 @@ namespace crypto_socket {
 
 			NETW_MSG::MSG m;
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_SHUTDOWN, "shutdown", key);
-			sendMessageBuffer(client->getSocketFd(), m, key);
+			std::stringstream serr;
+			sendMessageBuffer(client->getSocketFd(), m, key, serr);
 		}
 	}
 
@@ -827,7 +878,8 @@ namespace crypto_socket {
 			NETW_MSG::MSG m;
 			std::string s = initial_key_hint;
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
-			sendMessageBuffer(client->getSocketFd(), m, getDEFAULT_KEY());
+			std::stringstream serr;
+			sendMessageBuffer(client->getSocketFd(), m, getDEFAULT_KEY(),serr);
 		}
 	}
 
@@ -857,8 +909,8 @@ namespace crypto_socket {
 
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY, client->pending_random_key,
 				client->random_key_validation_done ? client->random_key : client->initial_key64);
-
-			sendMessageBuffer(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key64);
+			std::stringstream serr;
+			sendMessageBuffer(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key64, serr);
 		}
 	}
 
@@ -918,7 +970,8 @@ namespace crypto_socket {
 
 			NETW_MSG::MSG m;
 			m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_VALID, "Initial key is valid", getDEFAULT_KEY());
-			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
+			std::stringstream serr;
+			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY(),serr);
 
 			new_client->initial_key = initial_key;
 			new_client->initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
@@ -930,7 +983,8 @@ namespace crypto_socket {
 				NETW_MSG::MSG m;
 				std::string s = "Please, provide your username : ";
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				std::stringstream serr;
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 			}
 
 			if (new_client->hostname.size() == 0)
@@ -940,7 +994,8 @@ namespace crypto_socket {
 				NETW_MSG::MSG m;
 				std::string s = "Please, provide your hostname : ";
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				std::stringstream serr;
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
 			}
 
 			if (new_client->machine_id.size() == 0)
@@ -950,7 +1005,8 @@ namespace crypto_socket {
 				NETW_MSG::MSG m;
 				std::string s = "Please, provide your id : ";
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_MACHINEID, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
-				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
+				std::stringstream serr;
+				sendMessageBuffer(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
 			}
 		}
 		else
@@ -960,7 +1016,8 @@ namespace crypto_socket {
 
 			NETW_MSG::MSG m;
 			m.make_msg(NETW_MSG::MSG_CMD_INFO_KEY_INVALID, "Initial key is INVALID", getDEFAULT_KEY());
-			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY());
+			std::stringstream serr;
+			sendMessageBuffer(new_client->getSocketFd(), m, getDEFAULT_KEY(), serr);
 
 			if (!new_client->initial_key_validation_done)
 			{
@@ -990,10 +1047,23 @@ namespace crypto_socket {
 		}
 		catch (...)
 		{
-			//serr += "WARNING read_repo - repo info can not be read " + filename;
+			std::cerr << "WARNING map_machineid can not be read " << this->_cfg._machineid_filename;
 			return false;
 		}
-		return save_map_machineid_to_user_index();
+
+		std::cout << "read_map_machineid_to_user_index " << std::endl;
+		for (auto &e : map_machineid_to_user_index)
+		{
+			for (auto& v : e.second)
+			{
+				v.status = 0;
+				std::cout << "Known user: " << v.index << std::endl;
+			}
+		}
+		std::cout << "next_user_index: " << next_user_index << std::endl;
+		
+		save_map_machineid_to_user_index();
+		return true;
 	}
 
 	bool crypto_server::save_map_machineid_to_user_index()
