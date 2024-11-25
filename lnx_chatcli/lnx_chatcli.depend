@@ -1017,7 +1017,7 @@
 	"../include/file_util.hpp"
 	"../include/c_plus_plus_serializer.h"
 
-1732253316 /home/allaptop/dev/CryptoChat/include/encryptor.hpp
+1732535659 /home/allaptop/dev/CryptoChat/include/encryptor.hpp
 	"crypto_const.hpp"
 	<iostream>
 	<fstream>
@@ -1336,7 +1336,7 @@
 	"../include/crypto_parsing.hpp"
 	"../include/main_global.hpp"
 
-1732517732 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
+1732534447 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
 	<iostream>
 	<string>
 	<conio.h>
@@ -1430,7 +1430,7 @@
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1732517732 source:/home/allaptop/dev/CryptoChat/src/crypto_server.cpp
+1732533614 source:/home/allaptop/dev/CryptoChat/src/crypto_server.cpp
 	"../include/challenge.hpp"
 	"../include/crc32a.hpp"
 	"../include/SHA256.h"

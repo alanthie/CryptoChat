@@ -1452,7 +1452,8 @@ namespace crypto_socket {
 
 				if (r)
 				{
-					r = _encryptor->encrypt(true);
+                    std::stringstream serr;
+					r = _encryptor->encrypt(serr, true);
 					if (r)
 					{
 						cryptoAL::cryptodata dout;

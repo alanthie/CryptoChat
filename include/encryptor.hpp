@@ -233,7 +233,7 @@ public:
 	//-------------------------------------------------
 	// encryption key are generate using input of various sources
 	//-------------------------------------------------
-    bool read_file_urls(std::string filename)
+    bool read_file_urls(std::stringstream& serr, std::string filename)
     {
         bool r = true;
         r = urls_data.read_from_file(filename);
@@ -316,7 +316,7 @@ public:
 							{
 								if (s.size() >= URL_MAX_SIZE)
 								{
-									std::cerr 	<< "WARNING input url key line too long (reduce number of recursion) - line skipped " << s
+									serr 	<< "WARNING input url key line too long (reduce number of recursion) - line skipped " << s
 												<< ", max size of all keys : " << URL_MAX_SIZE
 												<< ", current size of all keys : " << s.size()
 												<< std::endl;
@@ -351,13 +351,13 @@ public:
 	//----------------------
 	// Making keys
 	//----------------------
-    bool make_urlkey_from_url(size_t i)
+    bool make_urlkey_from_url(std::stringstream& serr, size_t i)
 	{
 		bool r = true;
 
         if(std::filesystem::is_directory(staging)==false)
         {
-            std::cerr << "ERROR staging is not a folder: " << staging << std::endl;
+            serr << "ERROR staging is not a folder: " << staging << std::endl;
             return false;
         }
 
@@ -456,7 +456,7 @@ public:
             rc = key_file::getvideo(s.data(), file.data(), "", verbose);
             if (rc!= 0)
             {
-                std::cerr << "ERROR with getvideo using youtube-dl, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
+                serr << "ERROR with getvideo using youtube-dl, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
                 r = false;
             }
         }
@@ -466,7 +466,7 @@ public:
             rc = key_file::getlocal(local_url.data(), dataout_local, "", verbose);
             if (rc!= 0)
             {
-                std::cerr << "ERROR with get local file, error code: " << rc << " url: " << local_url <<  " file: " << file << std::endl;
+                serr << "ERROR with get local file, error code: " << rc << " url: " << local_url <<  " file: " << file << std::endl;
                 r = false;
             }
         }
@@ -479,7 +479,7 @@ public:
                         "", verbose);
             if (rc!= 0)
             {
-                std::cerr << "ERROR with getvideo using youtube-dl, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
+                serr << "ERROR with getvideo using youtube-dl, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
                 r = false;
             }
         }
@@ -493,7 +493,7 @@ public:
             std::vector<std::string> v = parsing::split(s, ";");
             if (v.size() < 1)
             {
-                std::cerr << "ERROR histo url bad format - missing histo key name: " << s << std::endl;
+                serr << "ERROR histo url bad format - missing histo key name: " << s << std::endl;
                 r = false;
             }
             else
@@ -529,12 +529,12 @@ public:
                     }
                     else
                     {
-                        std::cerr << "ERROR no histo key: " << seq << std::endl;
+                        serr << "ERROR no histo key: " << seq << std::endl;
                     }
                 }
                 else
                 {
-                    std::cerr << "ERROR histo key no numerical: " << v[0] << std::endl;
+                    serr << "ERROR histo key no numerical: " << v[0] << std::endl;
                 }
             }
         }
@@ -545,7 +545,7 @@ public:
 
             if (v.size() < 1)
             {
-                std::cerr << "ERROR rsa url bad format - missing rsa key name: " << s << std::endl;
+                serr << "ERROR rsa url bad format - missing rsa key name: " << s << std::endl;
                 r = false;
             }
             else
@@ -622,7 +622,7 @@ public:
                		}
 					else
 					{
-						std::cerr << "ERROR rsa_key not found: " << rsa_key_at_iter << "  in " << local_rsa_db << std::endl;
+						serr << "ERROR rsa_key not found: " << rsa_key_at_iter << "  in " << local_rsa_db << std::endl;
 						break;
 					}
 
@@ -643,7 +643,7 @@ public:
 						}
 						if (new_URL.size() >= URL_MAX_SIZE)
 						{
-							std::cerr 	<< "ERROR resursive rsa too long: " << new_URL
+							serr 	<< "ERROR resursive rsa too long: " << new_URL
 										<< ", max size of all keys : " << URL_MAX_SIZE
 										<< ", current size of all keys : " << new_URL.size()
 										<< std::endl;
@@ -666,7 +666,7 @@ public:
 
             if (v.size() < 1)
             {
-                std::cerr << "ERROR ecc url bad format - missing ecc key name: " << s << std::endl;
+                serr << "ERROR ecc url bad format - missing ecc key name: " << s << std::endl;
                 r = false;
             }
             else
@@ -714,7 +714,7 @@ public:
 					r = ecc_util::get_ecc_key(ecc_key_at_iter, local_ecc_other_db, key_other);
 					if (r==false)
 					{
-                        std::cerr << "ERROR public ecc key not found: " << ecc_key_at_iter << std::endl;
+                        serr << "ERROR public ecc key not found: " << ecc_key_at_iter << std::endl;
 					}
 					else if (VERBOSE_DEBUG)
                     {
@@ -726,7 +726,7 @@ public:
                         r = ecc_util::get_compatible_ecc_key(local_ecc_my_db, key_other, key_mine);
                         if (r==false)
                         {
-                            std::cerr << "ERROR private compatible ecc key not found for public key: " << ecc_key_at_iter << std::endl;
+                            serr << "ERROR private compatible ecc key not found for public key: " << ecc_key_at_iter << std::endl;
                         }
                         else if (VERBOSE_DEBUG)
                         {
@@ -805,7 +805,7 @@ public:
                		}
 					else
 					{
-						std::cerr << "ERROR ecc_key not found: " << ecc_key_at_iter << "  in " << local_ecc_other_db << std::endl;
+						serr << "ERROR ecc_key not found: " << ecc_key_at_iter << "  in " << local_ecc_other_db << std::endl;
 						break;
 					}
 
@@ -826,7 +826,7 @@ public:
 						}
 						if (new_URL.size() >= URL_MAX_SIZE)
 						{
-							std::cerr 	<< "ERROR resursive ecc too long: " << new_URL
+							serr 	<< "ERROR resursive ecc too long: " << new_URL
 										<< ", max size of all keys : " << URL_MAX_SIZE
 										<< ", current size of all keys : " << new_URL.size()<< std::endl;
 							r = false;
@@ -848,7 +848,7 @@ public:
             {
 				// TODO
 				// if detach from web allow access to copy of web file...
-                std::cerr << "ERROR with wget, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
+                serr << "ERROR with wget, error code: " << rc << " url: " << s <<  " file: " << file << std::endl;
                 r = false;
             }
         }
@@ -1025,7 +1025,7 @@ public:
             }
             else
             {
-                std::cerr << "ERROR reading file : " << file << std::endl;
+                serr << "ERROR reading file : " << file << std::endl;
             }
 		}
 
@@ -1857,7 +1857,8 @@ public:
 	//------------------------------------------
 	// encode() data_temp => data_temp_next
 	//------------------------------------------
-    bool encode( size_t iter, size_t NITER, uint16_t crypto_algo, uint32_t crypto_flags, uint32_t shufflePerc,
+    bool encode( std::stringstream& serr,
+                 size_t iter, size_t NITER, uint16_t crypto_algo, uint32_t crypto_flags, uint32_t shufflePerc,
                  cryptodata& data_temp, const char* key, uint32_t key_size, cryptodata& data_temp_next,
 				 const std::string wbaes_keyname = "")
 	{
@@ -1870,7 +1871,7 @@ public:
 
 			if (r == false)
 			{
-				std::cerr << "ERROR with shuffle of data " <<  iter << std::endl;
+				serr << "ERROR with shuffle of data " <<  iter << std::endl;
 				return false;
 			}
 		}
@@ -1883,12 +1884,12 @@ public:
 		{
             if (iter-1 >= vurlkey.size())
             {
-                std::cerr << "ERROR mismatch iter out of range " <<  iter-1 << std::endl;
+                serr<< "ERROR mismatch iter out of range " <<  iter-1 << std::endl;
 				return false;
             }
             else if ((crypto_algo < 1) && (crypto_algo >= (uint16_t)CRYPTO_ALGO::ALGO_LIMIT_MARKER))
             {
-                std::cerr << "WARNING mismatch algo at iter (using default) " <<  iter-1 << std::endl;
+                serr << "WARNING mismatch algo at iter (using default) " <<  iter-1 << std::endl;
             }
 
             CRYPTO_ALGO aesalgo = wbaes_algo_from_uint16(crypto_algo);
@@ -1928,7 +1929,7 @@ public:
 		return r;
 	}
 
-    bool encrypt(bool allow_empty_url = false)
+    bool encrypt(std::stringstream& serr, bool allow_empty_url = false)
     {
         bool r = true;
 
@@ -1940,7 +1941,7 @@ public:
 
         if (filename_msg_data.size() ==  0)
         {
-            std::cerr << "ERROR empty msg_data filename " <<  std::endl;
+            serr << "ERROR empty msg_data filename " <<  std::endl;
             return false;
         }
 
@@ -1948,14 +1949,14 @@ public:
         {
             if (file_util::fileexists(filename_puzzle) == false)
             {
-                std::cerr << "ERROR missing puzzle file: " << filename_puzzle <<  std::endl;
+                serr << "ERROR missing puzzle file: " << filename_puzzle <<  std::endl;
                 return false;
             }
         }
 
         if (file_util::fileexists(filename_msg_data) == false)
         {
-            std::cerr << "ERROR missing msg file: " << filename_msg_data <<  std::endl;
+            serr << "ERROR missing msg file: " << filename_msg_data <<  std::endl;
             return false;
         }
 
@@ -1964,9 +1965,9 @@ public:
         {
             if (file_util::fileexists(filename_urls))
             {
-                if (read_file_urls(filename_urls) == false)
+                if (read_file_urls(serr, filename_urls) == false)
                 {
-                    std::cerr << "ERROR " << "reading urls: " << filename_urls << std::endl;
+                    serr << "ERROR " << "reading urls: " << filename_urls << std::endl;
                     return false;
                 }
 
@@ -1974,7 +1975,7 @@ public:
                 {
                     if (vurlkey.size() == 0)
                     {
-                        std::cerr << "ERROR " << "url empty in file: " << filename_urls << std::endl;
+                        serr << "ERROR " << "url empty in file: " << filename_urls << std::endl;
                         return false;
                     }
                 }
@@ -1988,12 +1989,12 @@ public:
         {
             if (puz.read_from_file(filename_puzzle, true) == false)
             {
-                std::cerr << "ERROR " << " reading puzzle file: " << filename_puzzle << std::endl;
+                serr << "ERROR " << " reading puzzle file: " << filename_puzzle << std::endl;
                 return false;
             }
             if (puz.puz_data.buffer.size() == 0)
             {
-                std::cerr << "ERROR " << "puzzle file empty: " << filename_puzzle << std::endl;
+                serr << "ERROR " << "puzzle file empty: " << filename_puzzle << std::endl;
                 return false;
             }
         }
@@ -2005,7 +2006,7 @@ public:
 
 		if (puz.is_all_answered() == false)
         {
-            std::cerr << "ERROR " << "puzzle not fully answered " << std::endl;
+            serr << "ERROR " << "puzzle not fully answered " << std::endl;
             return false;
         }
 
@@ -2014,7 +2015,7 @@ public:
         {
             if (puz.save_to_file(filename_full_puzzle) == false)
             {
-                std::cerr << "ERROR " << "saving full puzzle: " << filename_full_puzzle << std::endl;
+                serr<< "ERROR " << "saving full puzzle: " << filename_full_puzzle << std::endl;
                 return false;
             }
         }
@@ -2025,14 +2026,14 @@ public:
         puz.make_key(puz_key_full);
         if (puz_key_full.size()== 0)
         {
-            std::cerr << "ERROR " << "reading puzzle key in file: " << filename_full_puzzle << std::endl;
+            serr << "ERROR " << "reading puzzle key in file: " << filename_full_puzzle << std::endl;
             return false;
         }
 
         // removal of answer
         if (puz.make_partial() == false)
         {
-            std::cerr << "ERROR " << "making partial puzzle" << std::endl;
+            serr<< "ERROR " << "making partial puzzle" << std::endl;
             return false;
         }
 
@@ -2042,7 +2043,7 @@ public:
         puz.make_key(qa_puz_key);
         if (qa_puz_key.size()== 0)
         {
-            std::cerr << "ERROR " << "making qa puzzle key" << std::endl;
+            serr << "ERROR " << "making qa puzzle key" << std::endl;
             return false;
         }
 
@@ -2051,7 +2052,7 @@ public:
         {
             if (puz.save_to_file(filename_partial_puzzle) == false)
             {
-                std::cerr << "ERROR " << "saving puzzle: " << filename_partial_puzzle << std::endl;
+                serr << "ERROR " << "saving puzzle: " << filename_partial_puzzle << std::endl;
                 return false;
             }
         }
@@ -2059,7 +2060,7 @@ public:
         // -----------------------
         // DATA prepare
         // -----------------------
-        r = pre_encode(filename_msg_data, msg_data);
+        r = pre_encode(serr, filename_msg_data, msg_data);
         if (r==false)
         {
             return r;
@@ -2099,14 +2100,14 @@ public:
                 std::cout << "\nencryptor making keys - iteration: " << i << std::endl;
             }
 
-            if (make_urlkey_from_url(i) == false)
+            if (make_urlkey_from_url(serr,i) == false)
             {
-                std::cerr << "ERROR " << "extracting url info, url index: " << i << std::endl;
+                serr << "ERROR " << "extracting url info, url index: " << i << std::endl;
                 return false;
             }
             if (make_urlinfo_with_padding(i) == false)
             {
-                std::cerr << "ERROR " << "making url info, url index: " << i <<std::endl;
+                serr << "ERROR " << "making url info, url index: " << i <<std::endl;
                 return false;
             }
 
@@ -2130,7 +2131,7 @@ public:
                 if (is_aes)
                 {
                     // TODO - overriden...
-                    std::cerr << "ERROR " << " whitebox AES cannot be the first key" << std::endl;
+                    serr << "ERROR " << " whitebox AES cannot be the first key" << std::endl;
                     return false;
                 }
             }
@@ -2160,7 +2161,7 @@ public:
                 if (is_aes && is_aes2 && (keyname==keyname2))
                 {
 					if (vurlkey[i-1].crypto_algo == vurlkey[i].crypto_algo)
-                    	std::cerr << "WARNING " << " should not use same AES key consecutively: " << keyname2 << std::endl;
+                    	serr<< "WARNING " << " should not use same AES key consecutively: " << keyname2 << std::endl;
                 }
             }
         }
@@ -2172,7 +2173,7 @@ public:
         //--------------------------------
         if (msg_data.copy_buffer_to(data_temp)== false)
         {
-            std::cerr << "ERROR " << "reading copying msg file: " << filename_msg_data <<std::endl;
+            serr << "ERROR " << "reading copying msg file: " << filename_msg_data <<std::endl;
             return false;
         }
 
@@ -2220,7 +2221,7 @@ public:
                 // Update urlinfo
                 if (make_urlinfo_with_padding(i-1) == false)
                 {
-                    std::cerr << "ERROR " << "making url info - url index: " << i-1 <<std::endl;
+                    serr<< "ERROR " << "making url info - url index: " << i-1 <<std::endl;
                     return false;
                 }
 
@@ -2247,7 +2248,7 @@ public:
 					// Update urlinfo
 					if (make_urlinfo_with_padding(i-1) == false)
 					{
-						std::cerr << "ERROR " << "making url info - url index: " << i-1 <<std::endl;
+						serr << "ERROR " << "making url info - url index: " << i-1 <<std::endl;
 						return false;
 					}
 
@@ -2279,7 +2280,7 @@ public:
                 // TODO ...
             }
 
-            encode( i, vurlkey.size(), vurlkey[i].crypto_algo,
+            encode( serr, i, vurlkey.size(), vurlkey[i].crypto_algo,
 					vurlkey[i].crypto_flags, vurlkey[i].shuffle_perc,
                     data_temp,
                     &vurlkey[i].get_buffer()->getdata()[0], vurlkey[i].key_size,
@@ -2300,7 +2301,7 @@ public:
             // Update urlinfo
             if (make_urlinfo_with_padding(vurlkey.size()-1) == false)
             {
-                std::cerr << "ERROR " << "making url info - url index: " << vurlkey.size()-1 <<std::endl;
+                serr<< "ERROR " << "making url info - url index: " << vurlkey.size()-1 <<std::endl;
                 return false;
             }
 
@@ -2357,7 +2358,7 @@ public:
         //--------------------------------------------------------
         // encode() data_temp => data_temp_next
         //--------------------------------------------------------
-        encode( vurlkey.size(), vurlkey.size(), (uint16_t)CRYPTO_ALGO::ALGO_BIN_DES, 0, 0,
+        encode( serr, vurlkey.size(), vurlkey.size(), (uint16_t)CRYPTO_ALGO::ALGO_BIN_DES, 0, 0,
                 data_temp, puz_key_full.getdata(), puz_key_full.size(), data_temp_next);
 
         data_temp_next.buffer.writeUInt32(crc_full_puz_key, -1);    // PLAIN
@@ -2388,7 +2389,7 @@ public:
 			}
 
 			std::string new_output_filename;
-			bool r = post_encode(data_temp_next, filename_encrypted_data, encrypted_data, new_output_filename); // Convert and  SAVE
+			bool r = post_encode(serr, data_temp_next, filename_encrypted_data, encrypted_data, new_output_filename); // Convert and  SAVE
 			if (r == false)
 			{
 				std::cout << "ERROR post_encode to "  << new_output_filename << std::endl;
@@ -2495,7 +2496,7 @@ public:
 
 	cryptoAL::db::db_mgr dbmgr;
 
-	bool post_encode(cryptodata& indata, const std::string& filename, cryptodata& out_encrypted_data, std::string& new_output_filename)
+	bool post_encode(std::stringstream& serr, cryptodata& indata, const std::string& filename, cryptodata& out_encrypted_data, std::string& new_output_filename)
 	{
 		//dbmgr.flush();
 
@@ -2513,7 +2514,7 @@ public:
 			r = newdatalist.create_header_trailer_buffer(out_encrypted_data);
 			if (r==false)
 			{
-				std::cerr << "ERROR " << " post_encode error with create_header_trailer_buffer " << std::endl;
+				serr << "ERROR " << " post_encode error with create_header_trailer_buffer " << std::endl;
 				return false;
 			}
 			if (VERBOSE_DEBUG) newdatalist.header.show();
@@ -2527,7 +2528,7 @@ public:
 			int cr = png.binaryToPng(filename_tmp_envelop, new_output_filename); // SAVE as PGN
 			if (cr != 0)
 			{
-				std::cerr << "ERROR " << "converting to file: " << new_output_filename <<std::endl;
+				serr << "ERROR " << "converting to file: " << new_output_filename <<std::endl;
 				if (file_util::fileexists(filename_tmp_envelop))
 					std::remove(filename_tmp_envelop.data());
 				return false;
@@ -2548,7 +2549,7 @@ public:
 	}
 
     // pre encode() [if auto flag, export public keys and satus other]
-	bool pre_encode(const std::string& filename, cryptodata& out_data) // TODO ? local folder ...
+	bool pre_encode(std::stringstream& serr, const std::string& filename, cryptodata& out_data) // TODO ? local folder ...
 	{
         datalist.verbose = verbose;
         bool r = true;
