@@ -34,7 +34,7 @@ struct ClientTerm
     std::vector<std::string> vallrows;      // chat view
     std::vector<std::string> vfilerows;     // file view
     std::vector<std::string> vlogrows;      // log view
-    std::vector<std::string> vusrrows;      // log view
+    std::vector<std::string> vusrrows;      // usr view
 
     std::vector<char> vallrows_is_file;
     std::vector<char> vallrows_is_send;
@@ -51,6 +51,10 @@ struct ClientTerm
     // chat view cursor position in screen
     int cursor_x=0;
     int cursor_y=0;
+
+    // user view cursor position in screen
+    int cursor_usr_x = 0;
+    int cursor_usr_y = 0;
 
     ClientTerm(int r, int c) : nrows(r), ncols(c)
     {
@@ -258,19 +262,37 @@ struct ClientTerm
                             first_row_usr_view = vusrrows.size() - (nrows - 4);
                         refresh_screen(term, false);
                     }
-                    else if (c == Key::ARROW_UP)
+                }
+
+                if (c == Key::ARROW_UP)
+                {
+                    if (cursor_usr_y == 0)
                     {
                         first_row_usr_view = first_row_usr_view - 1;
                         if (first_row_usr_view < 0) first_row_usr_view = 0;
-                        refresh_screen(term, false);
                     }
-                    else if (c == Key::ARROW_DOWN)
+                    else
                     {
-                        first_row_usr_view = first_row_usr_view + 1;
-                        if (first_row_usr_view > vusrrows.size() - (nrows - 4))
-                            first_row_usr_view = vusrrows.size() - (nrows - 4);
-                        refresh_screen(term, false);
+                        cursor_usr_y--;
                     }
+                    refresh_screen(term, false);
+                }
+                else if (c == Key::ARROW_DOWN)
+                {
+                    if (cursor_usr_y == (nrows - 4) - 1)
+                    {
+                        if (vallrows.size() > (nrows - 4))
+                        {
+                            first_row_usr_view = first_row_usr_view + 1;
+                            if (first_row_usr_view > vusrrows.size() - (nrows - 4))
+                                first_row_usr_view = vusrrows.size() - (nrows - 4);
+                        }
+                    }
+                    else
+                    {
+                        cursor_usr_y++;
+                    }
+                    refresh_screen(term, false);
                 }
             }
         }
@@ -448,6 +470,7 @@ struct ClientTerm
         {
             if (is_dirty)
             {
+                vusrrows.clear();
                 auto vh = netw_client->map_user_index_to_user;
 
                 // fill vh[i].vmsg_extra
@@ -585,7 +608,7 @@ struct ClientTerm
                         {
                             work.append(std::to_string(histo_cnt - vh.size() + i + 1));
                             work.append(" ");
-                            work.append(vh[i].is_receive ? "recv " : "send ");
+                            work.append(vh[i].is_receive ? "recv      " : "send ");
                             work.append(": ");
 
                             std::string sl;
@@ -769,14 +792,37 @@ struct ClientTerm
         ab.append(Term::move_cursor(1, 1));
 
         // ...
-        status_msg = "[username=" + netw_client->_cfg_cli._username +"]";
-        char host[80];
-        if (gethostname(host, 80) == 0)
+        if (_mode==0)
         {
-            status_msg += "[hostname=" + std::string(host) + "]";
+            if (netw_client->chat_with_other_user_index == 0)
+                status_msg = "Chating with all ";
+            else
+            {
+                status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
+                for (auto&e : netw_client->map_user_index_to_user)
+                {
+                    if (e.first == netw_client->chat_with_other_user_index)
+                    {
+                        status_msg += "[username=" + e.second.usr  + "]";
+                        status_msg += "[hostname=" + e.second.host + "]";
+                        break;
+                    }
+                }
+            }
+            status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
+            status_msg += "[my username=" + netw_client->username + "]";
         }
-        status_msg += "[rows=" + std::to_string(nrows) + "]";
-        status_msg += "[cols=" + std::to_string(ncols) + "]";
+        else
+        {
+            if (netw_client->chat_with_other_user_index == 0)
+                status_msg = "Chating with all ";
+            else
+                status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
+            status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
+            status_msg += "[my username=" + netw_client->username + "]";
+        }
+        //status_msg += "[rows=" + std::to_string(nrows) + "]";
+        //status_msg += "[cols=" + std::to_string(ncols) + "]";
 
 
         draw_history(ab, is_dirty);
@@ -786,6 +832,11 @@ struct ClientTerm
         if (_mode == 0)
         {
             ab.append(Term::move_cursor(cursor_y + 1, cursor_x + 1));
+            ab.append(Term::cursor_on());
+        }
+        else if (_mode == 3)
+        {
+            ab.append(Term::move_cursor(cursor_usr_y + 1, cursor_usr_x + 1));
             ab.append(Term::cursor_on());
         }
 
@@ -804,8 +855,9 @@ struct ClientTerm
         {
             if (netw_client->is_got_chat_cli_signal())
             {
-                std::stringstream ss; ss << "Exiting prompt_msg loop " << std::endl;
-                main_global::log(ss.str(), true);
+                std::stringstream ss; 
+                ss << "Exiting prompt_msg loop " << std::endl;
+                main_global::log(ss.str());
 
                 set_edit_msg("");
                 free(buf);
@@ -832,8 +884,9 @@ struct ClientTerm
 				{
                     if (netw_client->is_got_chat_cli_signal())
                     {
-						std::stringstream ss; ss << "Exiting prompt_msg loop " << std::endl;
-						main_global::log(ss.str(), true);
+						std::stringstream ss; 
+                        ss << "Exiting prompt_msg loop " << std::endl;
+						main_global::log(ss.str());
 
                         set_edit_msg("");
                         free(buf);
@@ -901,27 +954,53 @@ struct ClientTerm
                     main_global::shutdown();
                     return NULL;
                 }
-                else if (c == Key::F4) // TEST
-                {
-//                    menu_user m;
-//                    m.run(term);
-                }
                 else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
                     if (buflen != 0) buf[--buflen] = '\0';
                 }
                 else if (c == Key::ESC)
                 {
-                    set_edit_msg("");
-                    free(buf);
-                    return NULL;
+                    if (_mode == 3)
+                    {
+                        netw_client->chat_with_other_user_index = 0;
+                    }
+                    else
+                    {
+                        set_edit_msg("");
+                        free(buf);
+                        return NULL;
+                    }
                 }
                 else if (c == Key::ENTER)
                 {
-                    if (buflen != 0)
+                    if (_mode == 3)
                     {
-                        set_edit_msg("");
-                        return buf;
+                        int row_cursor = first_row_usr_view + cursor_usr_y;
+                        if (row_cursor < vusrrows.size() && row_cursor >= 0) 
+                        {
+                            if (row_cursor < netw_client->map_user_index_to_user.size() && row_cursor >= 0)
+                            {
+                                int cnt = 0;
+                                for (auto& e : netw_client->map_user_index_to_user)
+                                {
+                                    if (cnt == row_cursor)
+                                    {
+                                        if (e.first != netw_client->my_user_index)
+                                            netw_client->chat_with_other_user_index = e.first;
+                                        break;
+                                    }
+                                    cnt++;
+                                }
+                            }
+                        }
+                    }
+                    else if (_mode == 0)
+                    {
+                        if (buflen != 0)
+                        {
+                            set_edit_msg("");
+                            return buf;
+                        }
                     }
                 }
                 else if (!myiscntrl(c) && c >= 32 && c < 127)// printable char
@@ -1026,40 +1105,26 @@ struct ClientTerm
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_FILE, message, key);
 
-                    // TEST - TODO user must select a to_user....
                     uint8_t crypto_flag = 1;
-                    uint32_t from_user = ct.netw_client->user_index;
-                    for (auto& e : ct.netw_client->map_user_index_to_user)
-                    {
-                        if (e.first != ct.netw_client->my_user_index)
-                        {
-                            ct.netw_client->chat_with_other_user_index = e.first;
-
-                            std::stringstream ss;
-                            ss << "Chatting with : " << ct.netw_client->chat_with_other_user_index << std::endl;
-                            main_global::log(ss.str());
-                            break;
-                        }
-                    }
+                    uint32_t from_user = ct.netw_client->my_user_index;
                     if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
 
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
                                                                     crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
 
+                    std::stringstream ss;
                     if (ret != -1)
                     {
                         ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
                         ct.netw_client->set_ui_dirty();
 
-                        std::stringstream ss; ss << "send MSG_FILE : " << filename << std::endl;
-                        main_global::log(ss.str());
+                        ss << "send MSG_FILE : " << filename << std::endl;
                     }
                     else
                     {
-                        std::stringstream ss; ss << "WARNING - send MSG_FILE Failed : " << filename << std::endl;
-                        main_global::log(ss.str());
+                        ss << "WARNING - send MSG_FILE Failed : " << filename << std::endl;
                     }
-
+                    main_global::log(ss.str());
                 }
             }
             else
@@ -1072,33 +1137,26 @@ struct ClientTerm
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_TEXT, message, key);
 
-                    // TEST - TODO user must select a to_user....
                     uint8_t crypto_flag = 1;
-                    uint32_t from_user = ct.netw_client->user_index;
-                    for (auto& e : ct.netw_client->map_user_index_to_user)
-                    {
-                        if (e.first != ct.netw_client->my_user_index)
-                        {
-                            ct.netw_client->chat_with_other_user_index = e.first;
-
-                            std::stringstream ss;
-                            ss << "Chatting with : " << ct.netw_client->chat_with_other_user_index << std::endl;
-                            main_global::log(ss.str());
-                            break;
-                        }
-                    }
+                    uint32_t from_user = ct.netw_client->my_user_index;
                     if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
 
-                    ct.netw_client->send_message_buffer(ct.netw_client->get_socket(), m, key,
-                                                        crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
+                    int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
+                                                                    crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
 
-                    ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
-                    ct.netw_client->set_ui_dirty();
-
+                    std::stringstream ss;
+                    if (ret != -1)
                     {
-                        std::stringstream ss; ss << "send MSG_TEXT : " << message << std::endl;
-                        main_global::log(ss.str());
+                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                        ct.netw_client->set_ui_dirty();
+
+                        ss << "send MSG_TEXT : " << message << std::endl;
                     }
+                    else
+                    {
+                        ss << "WARNING - send MSG_TEXT Failed : " << filename << std::endl;
+                    }
+                    main_global::log(ss.str());
                 }
             }
 
@@ -1136,12 +1194,14 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
             }
 
             char* e ;
-            if (ct->_mode == 0)
+            if (ct->_mode == 0) // chat
                 e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
-            else if (ct->_mode == 1)
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
-            else
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+            else if (ct->_mode == 1) // file
+                e = ct->prompt_msg(term, "Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+            else if (ct->_mode == 3) // user
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
+            else // log
+                e = ct->prompt_msg(term, "Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
 
             ct->process_prompt(term, e);
 

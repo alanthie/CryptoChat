@@ -89,7 +89,7 @@ namespace keymgr
 			bool ok = true;
 			if (file_util::fileexists(fileDB) == false)
 			{
-				if (verbose)std::cerr << "WARNING no file: " << fileDB << std:: endl;
+				if (verbose) std::cerr << "WARNING no file: " << fileDB << std:: endl;
 				ok = false;
 			}
 
@@ -270,7 +270,8 @@ namespace keymgr
 						}
 						else
 						{
-							std::cout << "WARNING cannot add invalid ECC DOMAIN key name: " << keyname << std::endl;
+							if (verbose)
+								std::cout << "WARNING cannot add invalid ECC DOMAIN key name: " << keyname << std::endl;
 						}
 					}
 				}
@@ -329,12 +330,12 @@ namespace keymgr
 			r = dbmgr.get_rsa_map(filePrivateRSADB, &pmap_rsa, false);
 			if (r == false)
 			{
-				std::cout << "dbmgr.get_rsa_map() == false" << std:: endl;
+				if (verbose)  std::cout << "dbmgr.get_rsa_map() == false" << std:: endl;
 				return false;
 			}
 			if (pmap_rsa == nullptr)
 			{
-				std::cout << "pmap_rsa == nullptr" << std:: endl;
+				if (verbose) std::cout << "pmap_rsa == nullptr" << std:: endl;
 				return false;
 			}
 
@@ -433,12 +434,12 @@ namespace keymgr
 			r = dbmgr.get_ecckey_map(filePrivateECCDB, &pmap_ecc, false);
 			if (r == false)
 			{
-				std::cout << "dbmgr.get_ecckey_map() == false" << std:: endl;
+				if (verbose) std::cout << "dbmgr.get_ecckey_map() == false" << std:: endl;
 				return false;
 			}
 			if (pmap_ecc == nullptr)
 			{
-				std::cout << "pmap_ecc == nullptr" << std:: endl;
+				if (verbose) std::cout << "pmap_ecc == nullptr" << std:: endl;
 				return false;
 			}
 			std::map<std::string, ecc_key>& map_ecc_private = *pmap_ecc;
@@ -532,12 +533,12 @@ namespace keymgr
 			r = dbmgr.get_eccdomain_map(filePrivateECCDB, &pmap_eccdom, false);
 			if (r == false)
 			{
-				std::cout << "dbmgr.get_eccdomain_map() == false" << std:: endl;
+				if (verbose) std::cout << "dbmgr.get_eccdomain_map() == false" << std:: endl;
 				return false;
 			}
 			if (pmap_eccdom == nullptr)
 			{
-				std::cout << "pmap_eccdom == nullptr" << std:: endl;
+				if (verbose) std::cout << "pmap_eccdom == nullptr" << std:: endl;
 				return false;
 			}
 			std::map<std::string, ecc_domain>&  map_ecc_private = *pmap_eccdom;
@@ -1264,7 +1265,7 @@ namespace keymgr
 						}
                         else
                         {
-                            std::cerr << "internal error " << i << std::endl;
+							if (verbose) std::cerr << "internal error " << i << std::endl;
                             return false;
                         }
                     }
@@ -1287,7 +1288,7 @@ namespace keymgr
 					}
 					else
                     {
-                        std::cerr << "internal error " << i << std::endl;
+						if (verbose) std::cerr << "internal error " << i << std::endl;
                         return false;
                     }
 				}

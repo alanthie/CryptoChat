@@ -84,7 +84,8 @@ namespace crypto_socket {
 	int socket_node::sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key, std::stringstream& serr,
                                         uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
-		serr << "sendMessageBuffer - entry m.buffer_len " << m.buffer_len << "\n";
+		if (DEBUG_INFO)
+			serr << "sendMessageBuffer - entry m.buffer_len " << m.buffer_len << "\n";
 
 		int r = 0;
 		NETW_MSG::MSG m2;
@@ -103,7 +104,8 @@ namespace crypto_socket {
 			return -1;
 		}
 
-		serr << "sendMessageBuffer - after m2.buffer_len " << m2.buffer_len << "\n";
+		if (DEBUG_INFO)
+			serr << "sendMessageBuffer - after m2.buffer_len " << m2.buffer_len << "\n";
 
 		uint32_t expected_len = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer + 1);
 		if (expected_len != m2.buffer_len)
@@ -126,7 +128,8 @@ namespace crypto_socket {
 		}
 		else if (r < m2.buffer_len)
 		{
-			serr << "WARNING - NOT all data send\n";
+			if (DEBUG_INFO)
+				serr << "WARNING - NOT all data send\n";
 
 			int bytes_sent = r;
 			while (bytes_sent < m2.buffer_len)
@@ -140,7 +143,8 @@ namespace crypto_socket {
 
 				bytes_sent += bytes_s0;
 			}
-			serr << "INFO - All data send\n";
+			if (DEBUG_INFO)
+				serr << "INFO - All data send\n";
 		}
 		else if (r == m2.buffer_len)
 		{

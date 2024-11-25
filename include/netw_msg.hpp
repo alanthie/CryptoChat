@@ -58,22 +58,25 @@ const uint8_t MSG_CMD_REQU_KEY_HINT = 4;
 const uint8_t MSG_CMD_RESP_KEY_HINT = 5;
 const uint8_t MSG_CMD_INFO_KEY_VALID = 6;
 const uint8_t MSG_CMD_INFO_KEY_INVALID = 7;
+
 const uint8_t MSG_CMD_REQU_ACCEPT_RND_KEY = 10;
 const uint8_t MSG_CMD_RESP_ACCEPT_RND_KEY = 11;
 const uint8_t MSG_CMD_INFO_RND_KEY_VALID = 12;
+
 const uint8_t MSG_CMD_REQU_USERNAME = 20;
 const uint8_t MSG_CMD_RESP_USERNAME = 21;
-const uint8_t MSG_CMD_REQU_HOSTNAME = 22;
-const uint8_t MSG_CMD_RESP_HOSTNAME = 23;
-const uint8_t MSG_CMD_REQU_MACHINEID = 24;
-const uint8_t MSG_CMD_RESP_MACHINEID = 25;
-const uint8_t MSG_CMD_INFO_USERLIST = 26;
-const uint8_t MSG_CMD_INFO_USERINDEX = 27;
+const uint8_t MSG_CMD_ACCEPT_USERNAME = 22;
 
+const uint8_t MSG_CMD_REQU_HOSTNAME = 32;
+const uint8_t MSG_CMD_RESP_HOSTNAME = 33;
+const uint8_t MSG_CMD_REQU_MACHINEID = 34;
+const uint8_t MSG_CMD_RESP_MACHINEID = 35;
+const uint8_t MSG_CMD_INFO_USERLIST = 36;
+const uint8_t MSG_CMD_INFO_USERINDEX = 37;
 
-const uint8_t MSG_FILE_FRAGMENT = 31;
-const uint8_t MSG_CMD_REQU_SHUTDOWN = 41;
-const uint8_t MSG_CMD_RESP_SHUTDOWN  = 42;
+const uint8_t MSG_FILE_FRAGMENT = 41;
+const uint8_t MSG_CMD_REQU_SHUTDOWN = 51;
+const uint8_t MSG_CMD_RESP_SHUTDOWN  = 52;
 
 struct MSG_FILE_FRAGMENT_HEADER
 {

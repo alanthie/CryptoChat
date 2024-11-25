@@ -62,6 +62,7 @@ namespace crypto_socket
 
 		// message sending
 		void sendMessageClients(const std::string& t_message);
+		void sendMessageClients(const std::string& t_message, uint8_t msg_type);
 
 		void sendMessageAll(const std::string& t_message, const int& t_socket);
 		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type);
