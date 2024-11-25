@@ -68,6 +68,7 @@
 		<Unit filename="../include/encrypt.h" />
 		<Unit filename="../include/encryptor.hpp" />
 		<Unit filename="../include/lnx_conio.h" />
+		<Unit filename="../include/menuuser.hpp" />
 		<Unit filename="../include/netw_msg.hpp" />
 		<Unit filename="../include/qa/Bin2PNG/lodepng.cpp" />
 		<Unit filename="../include/qa/RSA-GMP/RSAGMP.cpp" />

@@ -9,6 +9,7 @@
 #include "../include/file_util.hpp"
 #include "../include/main_global.hpp"
 #include <stdarg.h>
+#include "../include/menuuser.hpp"
 
 using Term::Terminal;
 using Term::fg;
@@ -30,9 +31,11 @@ struct ClientTerm
     int first_row = 0;              // first row to display for vallrows
     int first_row_fileview = 0;     // first row to display for vfilerows
     int first_row_log_view = 0;     // first row to display for vlogrows
+    int first_row_usr_view = 0;
     std::vector<std::string> vallrows;      // chat view
     std::vector<std::string> vfilerows;     // file view
     std::vector<std::string> vlogrows;      // log view
+    std::vector<std::string> vusrrows;      // log view
 
     std::vector<char> vallrows_is_file;
     std::vector<char> vallrows_is_send;
@@ -44,7 +47,7 @@ struct ClientTerm
     char editmsg[256] = { 0 };
     std::string status_msg;
 
-    int _mode = 0; // 0 = chat view, 1 = file view, 2 = log view
+    int _mode = 0; // 0 = chat view, 1 = file view, 2 = log view, 3=User view
 
     // chat view cursor position in screen
     int cursor_x=0;
@@ -239,6 +242,38 @@ struct ClientTerm
                     }
                 }
             }
+            else if (_mode == 3)
+            {
+                if (vusrrows.size() > (nrows - 4))
+                {
+                    if (c == Key::PAGE_UP)
+                    {
+                        first_row_usr_view = first_row_usr_view - (nrows - 4);
+                        if (first_row_usr_view < 0) first_row_usr_view = 0;
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::PAGE_DOWN)
+                    {
+                        first_row_usr_view = first_row_usr_view + (nrows - 4);
+                        if (first_row_usr_view > vusrrows.size() - (nrows - 4))
+                            first_row_usr_view = vusrrows.size() - (nrows - 4);
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::ARROW_UP)
+                    {
+                        first_row_usr_view = first_row_usr_view - 1;
+                        if (first_row_usr_view < 0) first_row_usr_view = 0;
+                        refresh_screen(term, false);
+                    }
+                    else if (c == Key::ARROW_DOWN)
+                    {
+                        first_row_usr_view = first_row_usr_view + 1;
+                        if (first_row_usr_view > vusrrows.size() - (nrows - 4))
+                            first_row_usr_view = vusrrows.size() - (nrows - 4);
+                        refresh_screen(term, false);
+                    }
+                }
+            }
         }
     }
 
@@ -390,6 +425,75 @@ struct ClientTerm
                 {
                     ab.append("[" + std::to_string(i) + "]: ");
                     ab.append(get_printable_string(vlogrows[i]));
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+                    cnt++;
+
+                    if (cnt >= nrows - 4)
+                        break;
+                }
+
+                for (int i = cnt; i < nrows - 4; i++)
+                {
+                    ab.append(" ");
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+                }
+            }
+
+            return;
+        }
+
+        // User view
+        else if (_mode==3)
+        {
+            if (is_dirty)
+            {
+                auto vh = netw_client->map_user_index_to_user;
+
+                // fill vh[i].vmsg_extra
+                for (auto& e : vh)
+                {
+                    std::string s;
+                    s = " index: " + std::to_string(e.first) +
+                        ", username: " + e.second.usr +
+                        ", hostname: " + e.second.host ;
+                    vusrrows.push_back(s);
+                }
+
+                if (vusrrows.size() == 0)
+                {
+                    first_row_usr_view = 0;
+                    ab.append("User list is empty");
+                    ab.append(Term::erase_to_eol());
+                    ab.append("\r\n");
+
+                    for (int i = 1; i < nrows - 4; i++)
+                    {
+                        ab.append(" ");
+                        ab.append(Term::erase_to_eol());
+                        ab.append("\r\n");
+                    }
+                    return;
+                }
+            }
+
+            {
+                // shows nrows - 4 at most
+                // first row is at n_rows - nrows + 4
+                int cnt = 0;
+                int n_total_rows = vusrrows.size();
+
+                if (is_dirty)
+                {
+                    first_row_usr_view = n_total_rows - (nrows - 4);
+                    if (first_row_usr_view < 0) first_row_usr_view = 0;
+                }
+
+                for (int i = first_row_usr_view; i < (int)vusrrows.size(); i++)
+                {
+                    ab.append("[" + std::to_string(i) + "]: ");
+                    ab.append(get_printable_string(vusrrows[i]));
                     ab.append(Term::erase_to_eol());
                     ab.append("\r\n");
                     cnt++;
@@ -716,11 +820,13 @@ struct ClientTerm
 
                 if      (_mode == 0)    refresh_screen(term, netw_client->get_ui_dirty());
                 else if (_mode == 2)    refresh_screen(term, main_global::is_log_dirty());
-                else                    refresh_screen(term, is_file_view_dirty);
+                else if (_mode == 1)    refresh_screen(term, is_file_view_dirty);
+                else                    refresh_screen(term, netw_client->get_user_view_dirty());
 
                 if      (_mode == 0)    netw_client->set_ui_dirty(false);
                 else if (_mode == 2)    main_global::set_log_dirty(false);
-                else                    is_file_view_dirty = false;
+                else if (_mode == 1)    is_file_view_dirty = false;
+                else                    netw_client->set_user_view_dirty(false);
 
 				bool key_read = false;
 				while (key_read == false)
@@ -757,6 +863,15 @@ struct ClientTerm
                                 refresh = true;
                             }
                         }
+                        if (_mode == 3)
+                        {
+                            if (netw_client->get_user_view_dirty())
+                            {
+                                refresh_screen(term, true);
+                                netw_client->set_ui_dirty(false);
+                                refresh = true;
+                            }
+                        }
 
                         if (refresh==false)
 						{
@@ -773,7 +888,7 @@ struct ClientTerm
                 if (c == Key::F1)
                 {
                     _mode++;
-                    if (_mode > 2) _mode = 0;
+                    if (_mode > 3) _mode = 0;
 
                     set_edit_msg("");
                     free(buf);
@@ -786,6 +901,11 @@ struct ClientTerm
 
                     main_global::shutdown();
                     return NULL;
+                }
+                else if (c == Key::F4) // TEST
+                {
+//                    menu_user m;
+//                    m.run(term);
                 }
                 else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
@@ -914,7 +1034,7 @@ struct ClientTerm
                     {
                         if (e.first != ct.netw_client->my_user_index)
                         {
-                            ct.netw_client->chat_with_other_user_index = e.first; 
+                            ct.netw_client->chat_with_other_user_index = e.first;
 
                             std::stringstream ss;
                             ss << "Chatting with : " << ct.netw_client->chat_with_other_user_index << std::endl;
@@ -923,7 +1043,7 @@ struct ClientTerm
                         }
                     }
                     if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
-   
+
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
                                                                     crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
 

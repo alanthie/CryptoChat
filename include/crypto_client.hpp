@@ -82,6 +82,7 @@ namespace crypto_socket {
 
 		size_t file_counter = 0;
 		std::atomic<bool> ui_dirty = true;
+		std::atomic<bool> ui_user_view_dirty = true;
 		int challenge_attempt = 0;
 		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
@@ -152,6 +153,15 @@ namespace crypto_socket {
         bool get_ui_dirty()
         {
             return ui_dirty;
+        }
+
+        void set_user_view_dirty(bool v = true)
+        {
+            ui_user_view_dirty = v;
+        }
+        bool get_user_view_dirty()
+        {
+            return ui_user_view_dirty;
         }
 
         std::string get_key()
