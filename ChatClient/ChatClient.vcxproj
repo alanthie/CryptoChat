@@ -29,6 +29,7 @@
     <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPPrime.cpp" />
     <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPTest.cpp" />
     <ClCompile Include="..\include\qa\RSA-GMP\RSAGMPUtils.cpp" />
+    <ClCompile Include="..\include\qa\rsa_gen.cpp" />
     <ClCompile Include="..\include\qa\RSA_generate\bigint\BigInteger.cc" />
     <ClCompile Include="..\include\qa\RSA_generate\bigint\BigIntegerAlgorithms.cc" />
     <ClCompile Include="..\include\qa\RSA_generate\bigint\BigIntegerUtils.cc" />
@@ -88,7 +89,6 @@
     <ClInclude Include="..\include\terminal.h" />
     <ClInclude Include="..\include\terminal_base.h" />
     <ClInclude Include="..\include\vigenere.hpp" />
-    <ClInclude Include="..\include\ysClient.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

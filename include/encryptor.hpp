@@ -543,6 +543,8 @@ public:
             std::vector<std::string> v = parsing::split(s, ";");
             std::vector<uint32_t> v_encoded_size(v.size(), 0 );
 
+            serr << "Number rsa keys: " << v.size() << std::endl;
+
             if (v.size() < 1)
             {
                 serr << "ERROR rsa url bad format - missing rsa key name: " << s << std::endl;

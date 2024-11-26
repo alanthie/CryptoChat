@@ -2062,39 +2062,39 @@ public:
 		{
 			if (auto_flag)
 			{
-				bool okTESTING = false;
-				if (	(cfg_parse_result) &&
-						(cfg.cmdparam.allow_auto_update_on_same_machine_for_testing.size()>0)
-					)
-				{
-					// all_auto_update_on_same_machine_for_testing = 1
-					long long n = parsing::str_to_ll(cfg.cmdparam.allow_auto_update_on_same_machine_for_testing);
-					if (n > 0)
-					{
-						okTESTING = true;
-					}
-				}
+				//bool okTESTING = false;
+				//if (	(cfg_parse_result) &&
+				//		(cfg.cmdparam.allow_auto_update_on_same_machine_for_testing.size()>0)
+				//	)
+				//{
+				//	// all_auto_update_on_same_machine_for_testing = 1
+				//	long long n = parsing::str_to_ll(cfg.cmdparam.allow_auto_update_on_same_machine_for_testing);
+				//	if (n > 0)
+				//	{
+				//		okTESTING = true;
+				//	}
+				//}
 
-				if (okTESTING == false)
-				{
-					std::cout << std::endl;
-					std::cout << "WARNING - It appears that your are decoding a file you made and auto update is on." << std::endl;
-					std::cout << "Normally the auto update flag is to update the public keys received from the sender of the encrypted file." << std::endl;
-					std::cout << "The auto option will update the public keys of the sender with your own public keys!" << std::endl;
-					std::cout << "Do you really want to do this? n=no (normal, just do the decoding), y=yes (I'm only testing)" << std::endl;
-					std::cout << "==> ";
-					std::string q = ns_menu::get_input_string();
-					if      ((q=="n") || (q=="N") || (q=="no") || (q== "NO")) {auto_save = false;}
-					else if ((q=="y") || (q=="Y") || (q=="yes")|| (q=="YES")) {}
-					else
-					{
-						std::cout << "invalid response, only the decoding will be done, no update of public keys" << std::endl;
-						auto_save = false;
-					}
-				}
-				else
-				{
-				}
+				//if (okTESTING == false)
+				//{
+				//	std::cout << std::endl;
+				//	std::cout << "WARNING - It appears that your are decoding a file you made and auto update is on." << std::endl;
+				//	std::cout << "Normally the auto update flag is to update the public keys received from the sender of the encrypted file." << std::endl;
+				//	std::cout << "The auto option will update the public keys of the sender with your own public keys!" << std::endl;
+				//	std::cout << "Do you really want to do this? n=no (normal, just do the decoding), y=yes (I'm only testing)" << std::endl;
+				//	std::cout << "==> ";
+				//	std::string q = ns_menu::get_input_string();
+				//	if      ((q=="n") || (q=="N") || (q=="no") || (q== "NO")) {auto_save = false;}
+				//	else if ((q=="y") || (q=="Y") || (q=="yes")|| (q=="YES")) {}
+				//	else
+				//	{
+				//		std::cout << "invalid response, only the decoding will be done, no update of public keys" << std::endl;
+				//		auto_save = false;
+				//	}
+				//}
+				//else
+				//{
+				//}
 			}
 		}
 

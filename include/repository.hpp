@@ -7,6 +7,18 @@
 #include "../include/file_util.hpp"
 #include "../include/c_plus_plus_serializer.h"
 
+// RSA
+#include "../include/crypto_parsing.hpp"
+#include "../include/qa/rsa_gen.hpp"
+#include "../include/cfg_crypto.hpp"
+
+#ifdef _WIN32
+//add preprocessor directive NOMINMAX
+#pragma warning ( disable : 4146 )
+#endif
+#include "../include/qa/RSA-GMP/RSAGMPTest.h"
+
+
 namespace cryptochat
 {
     namespace db
@@ -103,14 +115,14 @@ namespace cryptochat
             {
                 if (_root_path.size() == 0)
                 {
-                    serr += "WARNING save_repo - empty repo root pathname ";
+                    serr += "WARNING save_repo - empty repo root pathname\n";
                     return false;
                 }
 
                 std::string filename = _root_path + file_separator() + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
-                    serr += "WARNING save_repo - repo info not found (creating...) " + filename;
+                    serr += "WARNING save_repo - repo info not found (creating...) " + filename + "\n";
                 }
 
                 // REPO_INFO
@@ -140,14 +152,14 @@ namespace cryptochat
             {
                 if (_root_path.size() == 0)
                 {
-                    serr += "WARNING read_repo - empty repo root pathname ";
+                    serr += "WARNING read_repo - empty repo root pathname\n";
                     return false;
                 }
 
                 std::string filename = _root_path + file_separator() + REPO_INFO;
                 if (file_util::fileexists(filename) == false)
                 {
-                    serr += "WARNING read_repo - repo info not found (no user registered so far) " + filename;
+                    serr += "WARNING read_repo - repo info not found (no user registered so far) " + filename + "\n";
                     return false;
                 }
 
@@ -160,7 +172,7 @@ namespace cryptochat
                 }
                 catch (...)
                 {
-                    serr += "WARNING read_repo - repo info can not be read " + filename;
+                    serr += "WARNING read_repo - repo info can not be read " + filename + "\n";
                     return false;
                 }
 
@@ -172,7 +184,7 @@ namespace cryptochat
                 bool r = false;
                 if (root_path.size() == 0)
                 {
-                    serr += "ERROR set_root - empty repo root pathname ";
+                    serr += "ERROR set_root - empty repo root pathname\n";
                     return false;
                 }
 
@@ -197,7 +209,7 @@ namespace cryptochat
                     }
                     else
                     {
-                        serr += "ERROR set_root - repo root not a directory " + root_path;
+                        serr += "ERROR set_root - repo root not a directory " + root_path + "\n";
                         r = false;
                     }
                 }
@@ -211,7 +223,7 @@ namespace cryptochat
                         }
                         else
                         {
-                            serr += "ERROR set_root - can not create the repo root directory " + root_path;
+                            serr += "ERROR set_root - can not create the repo root directory " + root_path + "\n";
                         }
                     }
                 }
@@ -231,7 +243,7 @@ namespace cryptochat
                 bool r = true;
                 if (_root_path.size() == 0)
                 {
-                    serr += "WARNING add_me - empty repo root pathname ";
+                    serr += "WARNING add_me - empty repo root pathname \n";
                     return false;
                 }
 
@@ -241,7 +253,7 @@ namespace cryptochat
                     if (std::filesystem::is_directory(folder))
                         return true;
 
-                    serr += "WARNING add_me - me folder is not a directory " + folder;
+                    serr += "WARNING add_me - me folder is not a directory " + folder + "\n";
                     return false;
                 }
 
@@ -251,12 +263,12 @@ namespace cryptochat
                     if (std::filesystem::is_directory(folder))
                         return true;
 
-                    serr += "WARNING add_me - me folder is not a directory " + folder;
+                    serr += "WARNING add_me - me folder is not a directory " + folder + "\n";
                     return false;
                 }
                 else
                 {
-                    serr += "WARNING add_me - Unable to create me folder " + folder;
+                    serr += "WARNING add_me - Unable to create me folder " + folder + "\n";
                 }
                 return r;
             }
@@ -266,19 +278,19 @@ namespace cryptochat
                 bool r = true;
                 if (_root_path.size() == 0)
                 {
-                    serr += "WARNING add_user - empty repo root pathname ";
+                    serr += "WARNING add_user - empty repo root pathname\n";
                     return false;
-                }
+                } 
 
                 if (_repo_info.map_userinfo.contains(user_index))
                 {
                     bool changed = false;
-                    if (hostname.size() > 0 && _repo_info.map_userinfo[user_index].host.size() == 0)
+                    if (hostname != _repo_info.map_userinfo[user_index].host)
                     {
                         _repo_info.map_userinfo[user_index].host = hostname;
                         changed = true;
                     }
-                    if (username.size() > 0 && _repo_info.map_userinfo[user_index].usr.size() == 0)
+                    if (username != _repo_info.map_userinfo[user_index].usr)
                     {
                         _repo_info.map_userinfo[user_index].usr = username;
                         changed = true;
@@ -289,7 +301,7 @@ namespace cryptochat
                        r = save_repo(serr);
                        if (!r)
                        {
-                           return false;
+                          /// return false;
                        }
                     }
                 }
@@ -300,7 +312,7 @@ namespace cryptochat
                     if (std::filesystem::is_directory(folder))
                         return true;
 
-                    serr += "WARNING add_user - user folder is not a directory " + folder;
+                    serr += "WARNING add_user - user folder is not a directory " + folder + "\n";
                     return false;
                 }
 
@@ -322,7 +334,7 @@ namespace cryptochat
                         r = make_default_crypto_cfg(filenamecfg, folder + file_separator());
                         if (!r)
                         {
-                            serr += "WARNING add_user - Unable to create file " + filenamecfg + " in folder " + folder;
+                            serr += "WARNING add_user - Unable to create file " + filenamecfg +  "\n";
                         }
                         else
                         {
@@ -330,14 +342,70 @@ namespace cryptochat
                             r = make_default_urls(filenameurls, folder + file_separator());
                             if (!r)
                             {
-                                serr += "WARNING add_user - Unable to create file " + filenameurls + " in folder " + folder;
+                                serr += "WARNING add_user - Unable to create file " + filenameurls + "\n";
                             }
                         }
                     }
+
+                    if (r)
+                    {
+                        std::stringstream ss;
+                        std::string filenamecfg = folder + file_separator() + "cfg.ini";
+
+                        cryptochat::cfg::cfg_crypto cc;
+                        r = cc.read(filenamecfg, serr, false);
+
+                        if (r)
+                        {
+                            //----------------------
+                            // RSA private keys generation
+                            //----------------------
+                            if (file_util::fileexists(cc._p.folder_my_private_rsa) == false)
+                            {
+                                std::filesystem::create_directories(cc._p.folder_my_private_rsa);
+                            }
+
+                            r = genrsa(ss, 2024, cc._p.folder_my_private_rsa); /*folder_my_private_rsa*/
+                            if (r)
+                            {
+                                serr += "\n";
+                                serr += "INFO - Private RSA key added to repository index: " + std::to_string(user_index) +  "\n";
+                            }
+                            else
+                            {
+                                serr += "WARNING add_user - Unable to generate RSA key at " +  cc._p.folder_my_private_rsa + "\n";
+                            }
+
+                            //----------------------
+                            // RSA public keys export
+                            //----------------------
+                            if (r)
+                            {
+                                r = exportrsa(ss, cc._p.folder_my_private_rsa);
+                                if (r)
+                                {
+                                    serr += "\n";
+                                    serr += "INFO - Public RSA  exported in repository index: " + std::to_string(user_index) + "\n";
+                                }
+                                else
+                                {
+                                    serr += "WARNING add_user - Unable to export RSA key at " + folder + file_separator() + cc._p.folder_my_private_rsa + "\n";
+                                }
+                            } 
+                        }
+                        else
+                        {
+                            serr += "WARNING add_user - Unable to read cfg " + filenamecfg + "\n";
+                        }
+
+                        serr += ss.str();
+                    };
                 }
                 else
                 {
-                    serr += "WARNING add_user - Unable to create user folder " + folder;
+                    // Multiple instance on same machine... TODO
+                    if (file_util::fileexists(folder) == false)
+                        serr += "WARNING add_user - Unable to create user folder " + folder + "\n";
                 }
                 return r;
 
@@ -371,7 +439,7 @@ namespace cryptochat
                 ss << "encryped_ftp_user ="; ss << "\n";
                 ss << "encryped_ftp_pwd ="; ss << "\n";
                 ss << "known_ftp_server ="; ss << "\n";
-                ss << "auto_flag ="; ss << "\n";
+                ss << "auto_flag = 1"; ss << "\n";
                 ss << "use_gmp = 1"; ss << "\n";
                 ss << "self_test = 0"; ss << "\n";
                 ss << "key_size_factor = 3"; ss << "\n";
@@ -432,6 +500,159 @@ namespace cryptochat
                 std::ofstream outfile(filename);
                 outfile << ss.str();
                 outfile.close();
+                return true;
+            }
+
+
+
+            long long keybits8x(long long bits)
+            {
+                if (bits % 8 != 0)
+                {
+                    bits += (8 - (bits % 8));
+                }
+                return bits;
+            }
+
+            // RSA Key: Generate RSA key with GMP (fast)
+            bool genrsa(std::stringstream& ss, long long klen, const std::string& folder_my_private_rsa)
+            {
+                int r = 0;
+                bool rr = true;
+                cryptoAL::rsa::PRIVATE_KEY key;
+
+                // rsa key length in bits (0 = defaut = 2048): ";
+                if (klen <= 0) klen = 2048;
+                klen = keybits8x(klen);
+
+                std::string fileRSADB;
+                fileRSADB = folder_my_private_rsa + file_separator() + cryptoAL::RSA_MY_PRIVATE_DB;
+
+                int nt = std::thread::hardware_concurrency();
+                ss << "RSA key generator using " << nt << " threads" << std::endl;
+
+                RSAGMP::Utils::TestGenerator generator;
+
+                RSAGMP::Utils::mpzBigInteger pub;
+                RSAGMP::Utils::mpzBigInteger priv;
+                RSAGMP::Utils::mpzBigInteger modulus;
+                rr = RSAGMP::get_keys((unsigned int)klen, &generator, nt, 20, pub, priv, modulus);
+                if (rr)
+                {
+                    std::string s_n(modulus.get_str());
+                    std::string s_e(pub.get_str());
+                    std::string s_d(priv.get_str());
+
+                    cryptoAL::rsa::rsa_key k;
+                    cryptoAL::rsa::rsa_key rkey(2, (int)klen,
+                        uint_util::base10_to_base64(s_n),
+                        uint_util::base10_to_base64(s_e),
+                        uint_util::base10_to_base64(s_d));
+
+                    // READ
+                    std::map< std::string, cryptoAL::rsa::rsa_key> map_rsa_private;
+
+                    if (file_util::fileexists(fileRSADB) == false)
+                    {
+                        std::ofstream outfile;
+                        outfile.open(fileRSADB, std::ios_base::out);
+                        outfile.close();
+                    }
+
+                    if (file_util::fileexists(fileRSADB) == true)
+                    {
+                        std::ifstream infile;
+                        infile.open(fileRSADB, std::ios_base::in);
+                        infile >> bits(map_rsa_private);
+                        infile.close();
+                    }
+                    else
+                    {
+                        ss << "ERROR no file: " << fileRSADB << std::endl;
+                        r = -1;
+                        rr = false;
+                    }
+
+                    if (r >= 0)
+                    {
+                        // backup
+                        {
+                            std::ofstream outfile;
+                            outfile.open(fileRSADB + ".bck", std::ios_base::out);
+                            outfile << bits(map_rsa_private);
+                            outfile.close();
+                        }
+
+                        std::string keyname = std::string("MY_RSAKEY_") + std::to_string(klen) + std::string("_") + cryptoAL::parsing::get_current_time_and_date();
+                        map_rsa_private.insert(std::make_pair(keyname, rkey));
+
+                        {
+                            std::ofstream outfile;
+                            outfile.open(fileRSADB, std::ios_base::out);
+                            outfile << bits(map_rsa_private);
+                            outfile.close();
+                        }
+                        ss << "RSA key saved as: " << keyname << std::endl;
+                    }
+                }
+                return rr;
+            }
+
+            bool exportrsa(std::stringstream& ss, const std::string& folder_my_private_rsa)
+            {
+                // RSA Key: Export my public RSA key
+
+                int r = 0;
+                std::string fileRSADB;
+                std::string pathdb;
+
+                fileRSADB           = folder_my_private_rsa + file_separator()  + cryptoAL::RSA_MY_PRIVATE_DB;
+                std::string outfile = folder_my_private_rsa + file_separator()  + cryptoAL::RSA_MY_PUBLIC_DB;
+                ss << "Public rsa keys would be saved in: " << outfile << std::endl;
+
+                std::map< std::string, cryptoAL::rsa::rsa_key > map_RSA_private;
+                std::map< std::string, cryptoAL::rsa::rsa_key > map_RSA_public;
+
+                if (file_util::fileexists(fileRSADB) == true)
+                {
+                    std::ifstream infile;
+                    infile.open(fileRSADB, std::ios_base::in);
+                    infile >> bits(map_RSA_private);
+                    infile.close();
+
+                    for (auto& [keyname, k] : map_RSA_private)
+                    {
+                        cryptoAL::rsa::rsa_key key_public;
+                        key_public.key_size_in_bits = k.key_size_in_bits;
+                        key_public.s_n = k.s_n;
+                        key_public.s_e = k.s_e;
+                        key_public.s_d = "";
+
+                        map_RSA_public.insert(std::make_pair(keyname, key_public));
+                    }
+
+                    ss << "---------------------------" << std::endl;
+                    ss << "Summary of " << outfile << std::endl;
+                    ss << "---------------------------" << std::endl;
+                    for (auto& [keyname, k] : map_RSA_public)
+                    {
+                        ss << keyname << std::endl;
+                    }
+                    ss << std::endl;
+
+                    {
+                        std::ofstream out;
+                        out.open(outfile, std::ios_base::out);
+                        out << bits(map_RSA_public);
+                        out.close();
+                    }
+                }
+                else
+                {
+                    ss << "no file: " << fileRSADB << std::endl;
+                    r = -1;
+                    return false;
+                }
                 return true;
             }
 

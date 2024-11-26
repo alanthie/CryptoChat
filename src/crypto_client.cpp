@@ -11,6 +11,8 @@
 
 #include <stdlib.h>
 #include <chrono>
+#include <iostream>
+#include <fstream>
 
 #include "../include/crypto_const.hpp"
 #include "../include/crypto_client.hpp"
@@ -888,7 +890,7 @@ namespace crypto_socket {
 
 		ss << "handle_new_client " << user_index << " " << in_host << " " << in_usr<<std::endl;
 
-		if (repository_root_set && user_index > 0)
+		if (repository_root_set && user_index > 0 && user_index == my_user_index) // prevent multi instance file contention
 		{
 			r = _repository.user_exist(user_index, in_host, in_usr);
 			if (r == false)
@@ -901,12 +903,20 @@ namespace crypto_socket {
 				}
 				else
 				{
-                    ss << "WARBING - Failed to add user to repository " << user_index << std::endl;
-                    ss << serr << std::endl;
+					// multi instance.... TODO
+					if (_repository.user_exist(user_index, in_host, in_usr) == false)
+					{
+						ss << "WARNING - Failed to add user to repository " << user_index << std::endl;
+						ss << serr << std::endl;
+					}
 				}
 			}
+		}
 
-            // (r)
+		if (repository_root_set && user_index > 0)
+		{
+			r = _repository.user_exist(user_index, in_host, in_usr);
+			if (r == true)
 			{
 				cryptochat::cfg::cfg_crypto cc;
 				if (map_active_user_to_crypto_cfg.contains(user_index) == false)
@@ -1236,8 +1246,42 @@ namespace crypto_socket {
             ss << "WARNING crypto_decrypt - invalid user from_user==0 - msg not decrypted" << std::endl;
 		}
 
-		if (from_user != 0)
+		if (from_user > 0)
 		{
+			std::string s;
+			if (map_active_user_to_crypto_cfg.contains(from_user) == false)
+			{
+				std::string inifile = _repository.get_crypto_cfg_filename(from_user);
+				if (!inifile.empty())
+				{
+					cryptochat::cfg::cfg_crypto cc;
+					r = cc.read(inifile, s, false);
+					if (r)
+					{
+						map_active_user_to_crypto_cfg[from_user] = cc._p;
+					}
+					else
+					{
+						ss << "WARNING - cannot read crypto_cfg " << inifile << std::endl;
+					}
+				}
+			}
+
+			if (map_active_user_to_urls.contains(from_user) == false)
+			{
+				std::string inifile = _repository.get_crypto_cfg_filename(from_user);
+				cryptochat::cfg::cfg_crypto cc;
+				r = cc.read(inifile, s, false);
+				if (r)
+				{
+					map_active_user_to_urls[from_user] = cc._p.filename_urls;
+				}
+				else
+				{
+					ss << "WARNING - cannot read crypto_cfg " << inifile << std::endl;
+				}
+			}
+
 			if (map_active_user_to_crypto_cfg.contains(from_user) && map_active_user_to_urls.contains(from_user))
 			{
 				// content to decrypt is past the header
@@ -1279,7 +1323,7 @@ namespace crypto_socket {
 						map_active_user_to_crypto_cfg[from_user].encryped_ftp_pwd,
 						map_active_user_to_crypto_cfg[from_user].known_ftp_server,
 						false,	// use_gmp,
-						false,	// autoflag
+						map_active_user_to_crypto_cfg[from_user].auto_flag,	// autoflag
 						false	//converter
 					);
 				}
@@ -1293,7 +1337,18 @@ namespace crypto_socket {
 
 				if (r)
 				{
+					cryptoAL::VERBOSE_DEBUG = true;
+
+					/** backup cout buffer and redirect to out.txt **/
+					std::ofstream out(user_folder + cryptochat::db::Repository::file_separator() +"cout_decrypt.txt");
+
+					auto* coutbuf = std::cout.rdbuf();
+					std::cout.rdbuf(out.rdbuf());
+
 					r = _decryptor->decrypt(ss);
+
+					std::cout.rdbuf(coutbuf);
+					cryptoAL::VERBOSE_DEBUG = false;
 
 					if (r)
 					{
@@ -1429,11 +1484,45 @@ namespace crypto_socket {
 			return false;
 
 		std::stringstream ss;
-		if (DEBUG_INFO)
-			ss << "crypto_encrypt msgin.buffer_len: " << msgin.buffer_len << std::endl;
+		if (to_user == 0)
+			ss << "WARNING crypto_encrypt - to_user==0 "  << std::endl;
 
 		if (to_user >  0)
 		{
+			std::string s;
+			if (map_active_user_to_crypto_cfg.contains(to_user) == false)
+			{
+				std::string inifile = _repository.get_crypto_cfg_filename(to_user);
+				if (!inifile.empty())
+				{
+					cryptochat::cfg::cfg_crypto cc;
+					r = cc.read(inifile, s, false);
+					if (r)
+					{
+						map_active_user_to_crypto_cfg[to_user] = cc._p;
+					}
+					else
+					{
+						ss << "WARNING - cannot read crypto_cfg " << inifile << std::endl;
+					}
+				}
+			}
+
+			if (map_active_user_to_urls.contains(to_user) == false)
+			{
+				std::string inifile = _repository.get_crypto_cfg_filename(to_user);
+				cryptochat::cfg::cfg_crypto cc;
+				r = cc.read(inifile, s, false);
+				if (r)
+				{
+					map_active_user_to_urls[to_user] = cc._p.filename_urls;
+				}
+				else
+				{
+					ss << "WARNING - cannot read crypto_cfg " << inifile << std::endl;
+				}
+			}
+
 			if (map_active_user_to_crypto_cfg.contains(to_user) && map_active_user_to_urls.contains(to_user))
 			{
 				std::string msg_input = msgin.get_data_as_string();
@@ -1500,7 +1589,7 @@ namespace crypto_socket {
 						false,	// map_active_user_to_crypto_cfg[to_user].use_gmp,                  // Flag - use gmp for big computation
 						false,	// map_active_user_to_crypto_cfg[to_user].self_test,                // Flag - verify encryption
 						0,		// map_active_user_to_crypto_cfg[to_user].shufflePerc,              // Parameter - shuffling percentage
-						false,	// autoflag
+						map_active_user_to_crypto_cfg[to_user].auto_flag,	// autoflag
 						0 //map_active_user_to_crypto_cfg[to_user].converter
 					);
 				}
@@ -1514,7 +1603,22 @@ namespace crypto_socket {
 
 				if (r)
 				{
+
+					cryptoAL::VERBOSE_DEBUG = true;
+
+					/** backup cout buffer and redirect to out.txt **/
+					std::ofstream out(user_folder + cryptochat::db::Repository::file_separator() + "cout_encrypt.txt");
+
+					auto* coutbuf = std::cout.rdbuf();
+					std::cout.rdbuf(out.rdbuf());
+
+					_encryptor->verbose = true;
 					r = _encryptor->encrypt(ss, true);
+					_encryptor->verbose = false;
+
+					std::cout.rdbuf(coutbuf);
+					cryptoAL::VERBOSE_DEBUG = false;
+
 					if (r)
 					{
 						cryptoAL::cryptodata dout;

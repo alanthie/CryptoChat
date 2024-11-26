@@ -8,6 +8,8 @@
 #include "../include/file_util.hpp"
 #include "../include/ini_parser.hpp"
 
+
+
 //;
 //; cfg.ini
 //;
@@ -101,7 +103,7 @@ namespace cryptochat
             std::string encryped_ftp_pwd;
             std::string known_ftp_server;
 
-            std::string auto_flag;
+            bool auto_flag;
             std::string use_gmp;
             std::string self_test;
             std::string key_size_factor;
@@ -119,6 +121,12 @@ namespace cryptochat
             const std::string Config = "cmdparam";
             cfg_crypto_params _p;
  
+            long long get_positive_value_negative_if_invalid(const std::string& s)
+            {
+                if (s.size() == 0) return -1;
+                return cryptoAL::strutil::str_to_ll(s);
+            }
+
             bool read(const std::string& inifile, std::string&  serr, bool verbose_mode)
             {
                 bool r = true;
@@ -149,6 +157,7 @@ namespace cryptochat
                     _p.filename_encrypted_data = ini.get_string("filename_encrypted_data", Config);
                     _p.filename_decrypted_data = ini.get_string("filename_decrypted_data", Config);
                     _p.keeping = ini.get_string("keeping", Config);
+
                     _p.folder_local = ini.get_string("folder_local", Config);
                     _p.folder_my_private_rsa = ini.get_string("folder_my_private_rsa", Config);
                     _p.folder_other_public_rsa = ini.get_string("folder_other_public_rsa", Config);
@@ -158,10 +167,14 @@ namespace cryptochat
                     _p.folder_other_public_hh = ini.get_string("folder_other_public_hh", Config);
                     _p.wbaes_my_private_path = ini.get_string("wbaes_my_private_path", Config);
                     _p.wbaes_other_public_path = ini.get_string("wbaes_other_public_path", Config);
+
                     _p.encryped_ftp_user = ini.get_string("encryped_ftp_user", Config);
                     _p.encryped_ftp_pwd = ini.get_string("encryped_ftp_pwd", Config);
                     _p.known_ftp_server = ini.get_string("known_ftp_server", Config);
-                    _p.auto_flag = ini.get_string("auto_flag", Config);
+
+                    auto v = get_positive_value_negative_if_invalid(ini.get_string("auto_flag", Config));
+                    _p.auto_flag = (v <= 0) ? false : true;
+
                     _p.use_gmp = ini.get_string("use_gmp", Config);
                     _p.self_test = ini.get_string("self_test", Config);
                     _p.key_size_factor = ini.get_string("key_size_factor", Config);
@@ -170,10 +183,32 @@ namespace cryptochat
                     _p.check_converter = ini.get_string("check_converter", Config);
                     _p.verbose = ini.get_string("verbose", Config);
 
-                    //if (std::filesystem::exists(folder_staging) == false)
-                    //{
-                    //    std::filesystem::create_directories(folder_staging);
-                    //}
+                    if (file_util::fileexists(_p.folder_local) == false)
+                        std::filesystem::create_directories(_p.folder_local);
+
+                    if (file_util::fileexists(_p.folder_my_private_rsa) == false)
+                        std::filesystem::create_directories(_p.folder_my_private_rsa);
+
+                    if (file_util::fileexists(_p.folder_other_public_rsa) == false)
+                        std::filesystem::create_directories(_p.folder_other_public_rsa);
+
+                    if (file_util::fileexists(_p.folder_my_private_ecc) == false)
+                        std::filesystem::create_directories(_p.folder_my_private_ecc);
+
+                    if (file_util::fileexists(_p.folder_other_public_ecc) == false)
+                        std::filesystem::create_directories(_p.folder_other_public_ecc);
+
+                    if (file_util::fileexists(_p.folder_my_private_hh) == false)
+                        std::filesystem::create_directories(_p.folder_my_private_hh);
+
+                    if (file_util::fileexists(_p.folder_other_public_hh) == false)
+                        std::filesystem::create_directories(_p.folder_other_public_hh);
+
+                    if (file_util::fileexists(_p.wbaes_my_private_path) == false)
+                        std::filesystem::create_directories(_p.wbaes_my_private_path);
+
+                    if (file_util::fileexists(_p.wbaes_other_public_path) == false)
+                        std::filesystem::create_directories(_p.wbaes_other_public_path);
                 }
 
                 _p.sz = 0;
@@ -223,6 +258,10 @@ namespace cryptochat
 			//	}
 			//	return false;
 			//}
+
+
+            
+           
 		};
 	}
 }

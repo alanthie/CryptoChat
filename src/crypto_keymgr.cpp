@@ -1247,7 +1247,7 @@ namespace keymgr
 					if (i < (uint32_t)vmapkeyname.size())
 						vkeys_out.push_back(vmapkeyname[i]);
 					else
-						{std::cerr << "error " << i << std::endl; return false;}
+						{std::cout << "get_n_keys first error " << i << std::endl; return false;}
 				}
 			}
 			else if (last)
@@ -1265,7 +1265,7 @@ namespace keymgr
 						}
                         else
                         {
-							if (verbose) std::cerr << "internal error " << i << std::endl;
+							if (verbose) std::cout << "internal error " << i << std::endl;
                             return false;
                         }
                     }
@@ -1288,7 +1288,7 @@ namespace keymgr
 					}
 					else
                     {
-						if (verbose) std::cerr << "internal error " << i << std::endl;
+						if (verbose) std::cout << "internal error " << i << std::endl;
                         return false;
                     }
 				}
