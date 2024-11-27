@@ -795,7 +795,7 @@ struct ClientTerm
         if (_mode==0)
         {
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg = "Chating with all ";
+                status_msg = "Chating with ALL ";
             else
             {
                 status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
@@ -815,12 +815,18 @@ struct ClientTerm
         else
         {
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg = "Chating with all ";
+                status_msg = "Chating with ALL ";
             else
                 status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
             status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
             status_msg += "[my username=" + netw_client->username + "]";
         }
+
+        status_msg += " " + std::to_string(netw_client->recv_while_count1);
+        status_msg += " " + std::to_string(netw_client->recv_while_count2);
+        status_msg += " " + std::to_string(netw_client->recv_while_count3);
+        status_msg += " " + std::to_string(netw_client->cli_byte_recv);
+
         //status_msg += "[rows=" + std::to_string(nrows) + "]";
         //status_msg += "[cols=" + std::to_string(ncols) + "]";
 
@@ -1106,11 +1112,12 @@ struct ClientTerm
                     m.make_msg(NETW_MSG::MSG_FILE, message, key);
 
                     uint8_t crypto_flag = 1;
-                    uint32_t from_user = ct.netw_client->my_user_index;
                     if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
 
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
-                                                                    crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
+                                                                    crypto_flag, 
+                                                                    ct.netw_client->my_user_index,
+                                                                    ct.netw_client->chat_with_other_user_index);
 
                     std::stringstream ss;
                     if (ret != -1)
@@ -1138,11 +1145,12 @@ struct ClientTerm
                     m.make_msg(NETW_MSG::MSG_TEXT, message, key);
 
                     uint8_t crypto_flag = 1;
-                    uint32_t from_user = ct.netw_client->my_user_index;
                     if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
 
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
-                                                                    crypto_flag, from_user, ct.netw_client->chat_with_other_user_index);
+                                                                    crypto_flag, 
+                                                                    ct.netw_client->my_user_index,
+                                                                    ct.netw_client->chat_with_other_user_index);
 
                     std::stringstream ss;
                     if (ret != -1)

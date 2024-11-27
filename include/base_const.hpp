@@ -8,7 +8,7 @@
 
 namespace cryptoAL
 {
-[[maybe_unused]] static bool VERBOSE_DEBUG = false;
+[[maybe_unused]] static bool VERBOSE_DEBUG = true;
 
 const std::string BASEDIGIT10 = "0123456789";
 const std::string BASEDIGIT64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+="; // NOT STANDARD

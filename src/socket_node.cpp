@@ -81,94 +81,166 @@ namespace crypto_socket {
 		this->m_state = STATE::OPEN;
 	}
 
-	int socket_node::sendMessageBuffer( const int& t_socketFd, NETW_MSG::MSG& m, std::string key, std::stringstream& serr,
-                                        uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
+	int socket_node::send_composite(const int& t_socketFd, NETW_MSG::MSG& m, std::string key, 
+									std::stringstream& serr,
+									uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
-		if (DEBUG_INFO)
-			serr << "sendMessageBuffer - entry m.buffer_len " << m.buffer_len << "\n";
+		cryptoAL::VERBOSE_DEBUG = 1;
 
 		int r = 0;
+		if (cryptoAL::VERBOSE_DEBUG)
+			serr << std::endl << "send_composite" << std::endl;
+
+		//... TODO ...
+		//uint32_t	buffer_extra_len = 0;
+		//uint8_t	buffer_extra[NETW_MSG::MESSAGE_SIZE + 1];
+
+		// chat layer first
 		NETW_MSG::MSG m2;
-		//uint8_t original_flag = m.buffer[NETW_MSG::MESSAGE_FLAG_START];
-
-		if (m2.make_encrypt_msg(m, key) == false)
+		if (m2.make_encrypt_msg(m, key, crypto_flag, from_user, to_user) == false)
 		{
-			// TODO...
-			serr << "ERROR - make_encrypt_msg FAILED\n";
+			serr << "ERROR - send_composite - make_encrypt_msg FAILED\n";
 			return -1;
 		}
 
-		if (m2.buffer_len >= NETW_MSG::MESSAGE_SIZE)
-		{
-			serr << "WARNING - sending too much data\n";
-			return -1;
-		}
-
-		if (DEBUG_INFO)
-			serr << "sendMessageBuffer - after m2.buffer_len " << m2.buffer_len << "\n";
+		if (cryptoAL::VERBOSE_DEBUG)
+			serr << "send_composite - msg encrypted by chat layer, new len:" << m2.buffer_len << std::endl;
 
 		uint32_t expected_len = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer + 1);
 		if (expected_len != m2.buffer_len)
 		{
-			serr << "ERROR - SEND  (expected_len != m2.buffer_len)" << std::endl;
+			serr << "ERROR - send_composite - (expected_len != m2.buffer_len)" << std::endl;
 			return -1;
 		}
 
-		m2.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
-		NETW_MSG::MSG::uint4ToByte(from_user, (char*)m2.buffer + NETW_MSG::MESSAGE_FROM_START);
-		NETW_MSG::MSG::uint4ToByte(to_user,   (char*)m2.buffer + NETW_MSG::MESSAGE_TO_START);
+		if (m2.buffer_len <= NETW_MSG::MESSAGE_SIZE)
+		{
+			if (cryptoAL::VERBOSE_DEBUG)
+				serr << "send_composite - sending single packet, len= " << m2.buffer_len <<std::endl;
+			return send_packet(t_socketFd, m2.buffer, m2.buffer_len, serr);
+		}
 
-		// LOCK
-		std::lock_guard lck(get_send_mutex(t_socketFd));
-		r = send(t_socketFd, (char*)m2.buffer, (int)m2.buffer_len, 0);
+		if (cryptoAL::VERBOSE_DEBUG)
+			serr << "send_composite - multi packet message" << std::endl;
+
+		uint32_t bytes_sent = 0;
+		uint32_t bytes_to_send = 0;
+
+		while (bytes_sent < m2.buffer_len)
+		{
+			bytes_to_send = m2.buffer_len - bytes_sent;
+			if (bytes_to_send > NETW_MSG::MESSAGE_SIZE)
+				bytes_to_send = NETW_MSG::MESSAGE_SIZE;
+
+			// Blocking
+			if (cryptoAL::VERBOSE_DEBUG)
+				serr << "send_composite - sending a packet, len= " << bytes_to_send << std::endl;
+			int bytes_s0 = send_packet(t_socketFd, m2.buffer + bytes_sent, bytes_to_send, serr);
 
 #ifdef _WIN32
-		if (r == SOCKET_ERROR) {
-			serr << "ERROR - send failed with error: %d\n", WSAGetLastError();
-		}
-		else if (r < m2.buffer_len)
-		{
-			if (DEBUG_INFO)
-				serr << "WARNING - NOT all data send\n";
-
-			int bytes_sent = r;
-			while (bytes_sent < m2.buffer_len)
+			if (bytes_s0 == SOCKET_ERROR) 
 			{
-				int bytes_s0 = send(t_socketFd, (char*)m2.buffer + bytes_sent, m2.buffer_len - bytes_sent, 0);
-
-				if (bytes_s0 == SOCKET_ERROR) {
-					serr << "ERROR - send failed with error: %d\n", WSAGetLastError();
-					return SOCKET_ERROR;
-				}
-
-				bytes_sent += bytes_s0;
+				serr << "ERROR - send failed with error: " << WSAGetLastError();
+				return SOCKET_ERROR;
 			}
-			if (DEBUG_INFO)
-				serr << "INFO - All data send\n";
-		}
-		else if (r == m2.buffer_len)
-		{
-		}
-		else if (r > m2.buffer_len)
-		{
-			serr << "WARNING - Excess data send\n";
+#else
+			if (bytes_s0 == -1)
+			{
+				serr << "ERROR - send failed with error: " << errno << "\n";
+				return -1;
+			}
+#endif
+			bytes_sent += bytes_s0;
 		}
 
+		if (bytes_sent > m2.buffer_len)
+		{
+			//... TODO ...
+			serr << "WARNING - send excess data " << m2.buffer_len - bytes_sent << "\n";
+			std::cout << "WARNING - send excess data " << m2.buffer_len - bytes_sent << "\n";
+			return -1;
+
+			// keep extra
+			//buffer_extra_len = m2.buffer_len - bytes_sent;
+			//if (buffer_extra_len <= NETW_MSG::MESSAGE_SIZE)
+			//{
+			//	memcpy(buffer_extra, m2.buffer + bytes_sent, buffer_extra_len);
+			//}
+			//else
+			//{
+			//	serr << "ERROR - send_composite - (excess data sent > MESSAGE_SIZE " << buffer_extra_len << std::endl;
+			//	return -1;
+			//}
+		}
+		else
+		{
+			//buffer_extra_len = 0;
+		}
+		return m2.buffer_len;
+	}
+
+	int socket_node::send_packet(const int& t_socketFd, uint8_t* buffer, uint32_t buffer_len, std::stringstream& serr)
+	{
+		int r = 0;
+		if (buffer_len > NETW_MSG::MESSAGE_SIZE)
+		{
+			serr << "ERROR - send_packet - sending too much data\n";
+			return -1;
+		}
+
+		// LOCK
+		{
+			std::lock_guard lck(get_send_mutex(t_socketFd));
+			r = send(t_socketFd, (char*)buffer, (int)buffer_len, 0);
+		}
+
+#ifdef _WIN32
+		if (r == SOCKET_ERROR) 
+		{
+			serr << "ERROR - send failed with error: " << WSAGetLastError() << "\n";
+		}
 #else
 		if (r == -1)
 		{
-			serr << "ERROR - send failed with error: " << errno << " len:" << m2.buffer_len << "\n";
-		}
-		else if (r < (int)m2.buffer_len)
-		{
-			serr << "WARNING - NOT all data send from sendMessageBuffer\n";
+			serr << "ERROR - send failed with error: " << errno << "\n";
 		}
 #endif
+		else if (r < buffer_len)
+		{
+			int bytes_sent = r;
+			while (bytes_sent < buffer_len)
+			{
+				int bytes_s0 = send(t_socketFd, (char*)buffer + bytes_sent, buffer_len - bytes_sent, 0);
+#ifdef _WIN32
+				if (bytes_s0 == SOCKET_ERROR) 
+				{
+					serr << "ERROR - send failed with error: " << WSAGetLastError() << "\n";
+					return SOCKET_ERROR;
+				}
+#else
+				if (bytes_s0 == -1)
+				{
+					serr << "ERROR - send failed with error: " << errno << "\n";
+					return -1;
+				}
+#endif
+				bytes_sent += bytes_s0;
+			}
+		}
+		else if (r == buffer_len)
+		{
+		}
+		else if (r > buffer_len)
+		{
+		}
+
 		return r;
 	}
 
-	void socket_node::closeSocket(bool force) {
-		if (this->m_state == STATE::CLOSED && force==false) {
+	void socket_node::closeSocket(bool force) 
+	{
+		if (this->m_state == STATE::CLOSED && force==false)
+		{
 			return;
 		}
 

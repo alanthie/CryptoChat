@@ -87,6 +87,11 @@ namespace crypto_socket {
 		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 
+		std::atomic<uint32_t> recv_while_count1 = 0;
+		std::atomic<uint32_t> recv_while_count2 = 0;
+		std::atomic<uint32_t> recv_while_count3 = 0;
+		std::atomic<size_t> cli_byte_recv = 0;
+
 	public:
 		crypto_client(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile);
 
@@ -104,8 +109,8 @@ namespace crypto_socket {
 		void handle_info_client(uint32_t user_index, const std::string& in_host, const std::string& in_usr);
 		void handle_new_client( uint32_t user_index, const std::string& in_host, const std::string& in_usr);
 
-		bool crypto_encrypt(uint32_t to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
-		bool crypto_decrypt(uint32_t from_user, char* buffer, uint32_t buffer_len, NETW_MSG::MSG& msgout);
+		bool crypto_encrypt(uint32_t from_user, uint32_t to_user, NETW_MSG::MSG& msgin, NETW_MSG::MSG& msgout);
+		bool crypto_decrypt(uint32_t from_user, uint32_t to_user, char* buffer, uint32_t buffer_len, NETW_MSG::MSG& msgout);
 
 		int send_message_buffer(const int& t_socketFd, NETW_MSG::MSG& msgin, std::string key,
              uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);

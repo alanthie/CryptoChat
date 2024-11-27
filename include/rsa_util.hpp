@@ -98,6 +98,7 @@ namespace rsa_util
 	{
 		std::string decoded_rsa_data;
 		std::string msg;
+		std::cout << "INFO rsa_decode_string " << std::endl;
 
 		if (smsg.size() == msg_input_size_touse)
 		{
@@ -109,7 +110,7 @@ namespace rsa_util
 		}
 		else
 		{
-            std::cout << "ERROR string to decode too big " << smsg.size() << " " << msg_input_size_touse << std::endl;
+            std::cout << "ERROR rsa_decode_string - string to decode too big " << smsg.size() << " " << msg_input_size_touse << std::endl;
             throw "ERROR string to decode too big";
 		}
 
@@ -123,7 +124,7 @@ namespace rsa_util
 		}
 		else
 		{
-			std::cout << "WARNING not using GMP" << std::endl;
+			std::cout << "WARNING rsa_decode_string - not using GMP" << std::endl;
 			typeuinteger  v = uint_util::val(msg);
 			decoded_rsa_data = k.decode(v);
 		}
@@ -143,6 +144,7 @@ namespace rsa_util
                                                             bool use_gmp, bool SELF_TEST, [[maybe_unused]] bool verbose=false)
 	{
 		std::string encoded_rsa_data;
+		std::cout << "INFO rsa_encode_string " << std::endl;
 
 		// smsg maybe less or bigger than rsa capacity
 		std::string msg_to_encrypt;
@@ -183,7 +185,7 @@ namespace rsa_util
 		}
 		else
 		{
-			std::cout << "WARNING not using GMP" << std::endl;
+			std::cout << "WARNING rsa_encode_string - not using GMP" << std::endl;
 			typeuinteger  e = k.encode(msg_to_encrypt);
 			encoded_rsa_data = uint_util::to_base64(e);
 		}
@@ -200,6 +202,8 @@ namespace rsa_util
                                                                 uint32_t& msg_size_produced,
                                                                 bool use_gmp, bool SELF_TEST, bool verbose=false)
 	{
+		std::cout << "INFO rsa_encode_full_string " << std::endl;
+		
 		std::string r;
 		std::string r_remaining = smsg;
 		uint32_t required_encoded_msg_len = (uint32_t)smsg.size();
@@ -210,6 +214,7 @@ namespace rsa_util
 		uint32_t cnt = 0;
 		std::string token_out;
 		std::string token_in;
+		
 		while(current_encoded_msg_len < required_encoded_msg_len)
 		{
 			t_msg_input_size_used = 0;
@@ -218,7 +223,7 @@ namespace rsa_util
 
 			if (t_msg_size_produced == 0)
 			{
-				std::cerr << "ERROR t_msg_size_produced == 0" << std::endl;
+				std::cout << "ERROR rsa_encode_full_string - t_msg_size_produced == 0" << std::endl;
 				break;
 			}
 
@@ -267,6 +272,8 @@ namespace rsa_util
 	[[maybe_unused]] static std::string rsa_decode_full_string(	const std::string& smsg, cryptoAL::rsa::rsa_key& k,
                                                                 uint32_t& msg_size_produced, bool use_gmp, bool verbose=false)
 	{
+		std::cout << "INFO rsa_decode_full_string " << std::endl;
+		
 		bool ok = true;
 		std::string r;
 		std::vector<std::string> vr;

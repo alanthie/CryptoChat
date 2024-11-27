@@ -128,7 +128,7 @@ bool crypto_server::check_default_encrypt(std::string& key)
     uint32_t crc1 = NETW_MSG::MSG::byteToUInt4((char*)m.buffer+NETW_MSG::MESSAGE_CRC_START);
 
     uint32_t crc;
-    m2.make_encrypt_msg(m, key);
+    m2.make_encrypt_msg(m, key, 0, 0, 0);
     std::string sm2 = m2.get_data_as_string();
     uint32_t crc2 = NETW_MSG::MSG::byteToUInt4((char*)m2.buffer+NETW_MSG::MESSAGE_CRC_START);
 

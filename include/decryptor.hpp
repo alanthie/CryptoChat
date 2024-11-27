@@ -607,7 +607,8 @@ public:
 								// may reduce size
 								uk.sRSA_ECC_ENCODED_DATA = t + uk.sRSA_ECC_ENCODED_DATA.substr(d.size());
 
-								//std::cout << "RSA ITER: " << riter << " " << rsa_key_at_iter << " from " << d.size() << " to " << t.size() << " total left " << uk.sRSA_ENCODED_DATA .size() << std::endl;
+								if (VERBOSE_DEBUG)
+								    std::cout << "RSA ITER: " << riter << " " << rsa_key_at_iter << " from " << d.size() << " to " << t.size() << " total left " << uk.sRSA_ECC_ENCODED_DATA.size() << std::endl;
 							}
 							else
 							{

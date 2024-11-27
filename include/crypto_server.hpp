@@ -68,8 +68,8 @@ namespace crypto_socket
 		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type);
 		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
 
-		void sendMessageOne(const std::string& t_message,	const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
-        void sendMessageOne(NETW_MSG::MSG& msg,				const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
+		bool sendMessageOneBySocket(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
+        bool sendMessageOne(NETW_MSG::MSG& msg, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
 
 	public:
 		crypto_server(cryptochat::cfg::cfg_srv cfg);

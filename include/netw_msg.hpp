@@ -330,17 +330,25 @@ struct MSG
 	size_t size();
 	uint8_t* get_buffer();
 
+	void reset()
+	{
+		if (buffer != nullptr) delete buffer;
+		buffer = nullptr;
+		buffer_len = 0;
+	}
+
 	std::string get_data_as_string();
 	bool is_same(MSG& msgin);
 
-	bool make_encrypt_msg(MSG& msgin, const std::string& key);
+	bool make_encrypt_msg(MSG& msgin, const std::string& key, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
 	bool make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc);
 
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 
-	void make_msg_with_crc_and_flag(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t flag);
-	void make_msg_with_crc_and_flag_buffer(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey, uint32_t crc, uint8_t flag);
+	void make_msg_with_crc_and_flag(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t flag, uint32_t from_user, uint32_t to_user);
+	void make_msg_with_crc_and_flag_buffer(	uint8_t t, uint32_t len_data, uint8_t* data, 
+											uint8_t* digestkey, uint32_t crc, uint8_t flag, uint32_t from_user, uint32_t to_user);
 
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
