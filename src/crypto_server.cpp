@@ -158,7 +158,6 @@ namespace crypto_socket {
 				sendMessageOneBySocket(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
 			else
 				sendMessageClients(v, NETW_MSG::MSG_CMD_INFO_USERLIST);
-                //sendMessageAll(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
         }
 
     }
@@ -183,7 +182,7 @@ namespace crypto_socket {
 				m.make_msg(NETW_MSG::MSG_TEXT, "Server is full.", getDEFAULT_KEY());
 				std::stringstream serr;
 				send_composite(temp_socket, m, getDEFAULT_KEY(), serr);
-				//if (DEBUG_INFO)	
+				if (DEBUG_INFO)
 					std::cout << serr.str();
 #ifdef _WIN32
 				closesocket(temp_socket);
@@ -195,7 +194,6 @@ namespace crypto_socket {
 			this->m_nodeSize += 1;
 
 			// NEW CLIENT
-			//socket_node * new_client = new socket_node();
 			client_node* new_client = new client_node();
 			new_client->setSocketInfo(temp_addr);
 			new_client->setSocketFd(temp_socket);
@@ -232,15 +230,13 @@ namespace crypto_socket {
 						std::cout << "recv() bytes from previous " << byte_recv << std::endl;
 					}
 
-					// recv on windows
-					// If no error occurs, recv returns the number of bytes received and the buffer pointed to by the buf parameter will contain this data received.
-					// If the connection has been gracefully closed, the return value is zero.
-					// Otherwise, a value of SOCKET_ERROR is returned, and a specific error code can be retrieved by calling WSAGetLastError.
-
 					while (byte_recv < NETW_MSG::MESSAGE_HEADER)
 					{
-						std::cout << std::endl;
-						std::cout << "while (byte_recv < NETW_MSG::MESSAGE_HEADER)" << std::endl;
+                        if (DEBUG_INFO)
+                        {
+                            std::cout << std::endl;
+                            std::cout << "while (byte_recv < NETW_MSG::MESSAGE_HEADER)" << std::endl;
+						}
 
                         if (new_client->getState() == STATE::CLOSED)
                         {
@@ -253,7 +249,8 @@ namespace crypto_socket {
 						if (len > 0)
 						{
 							byte_recv += len;
-							std::cout << "recv() bytes total " << byte_recv << std::endl;
+							if (DEBUG_INFO)
+                                std::cout << "recv() bytes total " << byte_recv << std::endl;
 						}
 						else
 						{
@@ -278,7 +275,8 @@ namespace crypto_socket {
 					size_t len_recv_buffer_call = 0;
 					while (byte_recv < expected_len)
 					{
-						std::cout << "while (byte_recv < expected_len)" << std::endl;
+                        if (DEBUG_INFO)
+                            std::cout << "while (byte_recv < expected_len)" << std::endl;
 
                         if (new_client->getState() == STATE::CLOSED)
                         {
@@ -295,14 +293,18 @@ namespace crypto_socket {
 						{
 							byte_recv += len;
 							recv_buffer.buffer.write(message_buffer, len);
-							std::cout << "recv() bytes total " << byte_recv << std::endl;
+							if (DEBUG_INFO)
+                                std::cout << "recv() bytes total " << byte_recv << std::endl;
 						}
 						else
 						{
-							if (len == 0)
-								std::cout << "WARNING recv() - socket closed" << std::endl;
-							else
-								std::cout << "WARNING recv() - socket error" << std::endl;
+                            if (DEBUG_INFO)
+                            {
+                                if (len == 0)
+                                    std::cout << "WARNING recv() - socket closed" << std::endl;
+                                else
+                                    std::cout << "WARNING recv() - socket error" << std::endl;
+                            }
 							msg_ok = false;
 							break;
 						}
@@ -336,8 +338,8 @@ namespace crypto_socket {
 
 						std::cout	<< "recv msg (from:" << new_client->getSocketFd() << ")"
 									<< " type:" << std::to_string((int)recv_buffer.buffer.getdata()[0])
-									<< " crypto:" << std::to_string((int)original_flag) 
-									<< " from_user: " << from_user 
+									<< " crypto:" << std::to_string((int)original_flag)
+									<< " from_user: " << from_user
 									<< " to_user: " << to_user
 									<< " len: " << expected_len
 									<< std::endl;
@@ -385,7 +387,7 @@ namespace crypto_socket {
 									send_composite(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
 
-									//if (DEBUG_INFO)	
+									if (DEBUG_INFO)
 										std::cout << serr.str();
 
 									new_client->previous_random_key = new_client->random_key;
@@ -411,7 +413,6 @@ namespace crypto_socket {
                                 new_client->username = user + "_" + std::to_string(new_client->getSocketFd()) ;
                                 std::cout << "INFO client[" << new_client->getSocketFd() << "] username:" << new_client->username << std::endl;
 
-								// TODO NETW_MSG::MSG_CMD_ACCEPT_USERNAME ...
 								{
 									if (DEBUG_INFO) std::cout << "send MSG_CMD_ACCEPT_USERNAME " << new_client->getSocketFd() << std::endl;
 
@@ -422,7 +423,7 @@ namespace crypto_socket {
 									std::stringstream serr;
 									send_composite(new_client->getSocketFd(), msg,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
-									//if (DEBUG_INFO)	
+									if (DEBUG_INFO)
 										std::cout << serr.str();
 								}
                                 handle_info_client(new_client->getSocketFd());
@@ -442,8 +443,6 @@ namespace crypto_socket {
 							}
 							else if (m.type_msg == NETW_MSG::MSG_CMD_RESP_MACHINEID)
 							{
-                                // Handle multiple instance of machineid...
-
 								if (DEBUG_INFO)	std::cout << "recv MSG_CMD_RESP_MACHINEID" << std::endl;
 
 								std::string id = m.get_data_as_string();
@@ -469,7 +468,7 @@ namespace crypto_socket {
 										std::stringstream serr;
 										send_composite(new_client->getSocketFd(), m,
 											new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
-										//if (DEBUG_INFO)	
+										if (DEBUG_INFO)
 											std::cout << serr.str();
 
 										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
@@ -511,7 +510,7 @@ namespace crypto_socket {
 										std::stringstream serr;
 										send_composite(new_client->getSocketFd(), m,
 											new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
-										//if (DEBUG_INFO)	
+										if (DEBUG_INFO)
 											std::cout << serr.str();
 
 										// new_client->user_index changed =>MSG_CMD_INFO_USERLIST
@@ -562,8 +561,6 @@ namespace crypto_socket {
 									send_to_one = true;
 								}
 
-								//if (original_flag > 0) // 1 to 1 crypto msg
-
 								if (ok)
 								{
                                     if (send_to_one == false)
@@ -613,7 +610,7 @@ namespace crypto_socket {
 									std::stringstream serr;
 									send_composite(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
-									//if (DEBUG_INFO)	
+									//if (DEBUG_INFO)
 										std::cout << serr.str();
 								}
 								else if (!new_client->random_key_validation_done)
@@ -660,7 +657,7 @@ namespace crypto_socket {
 									std::stringstream serr;
 									send_composite(new_client->getSocketFd(), m,
 										new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
-									//if (DEBUG_INFO)	
+									if (DEBUG_INFO)
 										std::cout << serr.str();
 								}
 								else
@@ -675,8 +672,6 @@ namespace crypto_socket {
 							}
 						}
 					}
-
-					//std::memset(message_buffer, '\0', sizeof (message_buffer));
 				}
 
 				// connection closed. DELETING socket instance
@@ -721,7 +716,7 @@ namespace crypto_socket {
 				m.make_msg(msg_type, t_message, key);
 				std::stringstream serr;
 				send_composite(client->getSocketFd(), m, key, serr);
-				//if (DEBUG_INFO)	
+				if (DEBUG_INFO)
 					std::cout << serr.str();
 			}
 		}
@@ -729,25 +724,6 @@ namespace crypto_socket {
 	void crypto_server::sendMessageClients(const std::string& t_message)
 	{
 		sendMessageClients(t_message, NETW_MSG::MSG_TEXT);
-
-		/*std::lock_guard lck(vclient_mutex);
-
-		for (auto &client : v_client)
-		{
-			if (client->getState() == STATE::OPEN)
-			{
-				NETW_MSG::MSG  m;
-
-				std::string key;
-				if (!client->initial_key_validation_done) key = getDEFAULT_KEY();
-				else if (!client->random_key_validation_done) key = client->initial_key64;
-				else key = client->random_key;
-
-				m.make_msg(NETW_MSG::MSG_TEXT, t_message, key);
-				std::stringstream serr;
-				send_composite(client->getSocketFd(), m, key, serr);
-			}
-		}*/
 	}
 
 	// Relay message m
@@ -770,7 +746,7 @@ namespace crypto_socket {
 					m.make_msg(msg_type, t_message, key);
 					std::stringstream serr;
 					send_composite(client->getSocketFd(), m, key, serr);
-					//if (DEBUG_INFO)	
+					if (DEBUG_INFO)
 						std::cout << serr.str();
 				}
 			}
@@ -793,20 +769,16 @@ namespace crypto_socket {
 					else if (!client->random_key_validation_done) key = client->initial_key64;
 					else key = client->random_key;
 
-					//m.buffer[NETW_MSG::MESSAGE_FLAG_START] = crypto_flag;
-					//NETW_MSG::MSG::uint4ToByte(in_from_user, (char*)m.buffer + NETW_MSG::MESSAGE_FROM_START);
-					//NETW_MSG::MSG::uint4ToByte(in_to_user, (char*)m.buffer + NETW_MSG::MESSAGE_TO_START);
-
 					std::stringstream serr;
 					int ret = send_composite(client->getSocketFd(), m, key, serr, crypto_flag, in_from_user, in_to_user);
 					if (ret >= 0)
 						r = true;
-					std::cout << serr.str();
+                    if (DEBUG_INFO)
+                        std::cout << serr.str();
 				}
 				break;
 			}
 		}
-		std::cout << "sendMessageOne status: " << (int)r << std::endl;
 		return r;
 	}
 
@@ -837,12 +809,12 @@ namespace crypto_socket {
 					int ret = send_composite(client->getSocketFd(), m, key, serr, crypto_flag, in_from_user, in_to_user);
 					if (ret >= 0)
 						r = true;
-					std::cout << serr.str();
+                    if (DEBUG_INFO)
+                        std::cout << serr.str();
 				}
 				break;
 			}
 		}
-		std::cout << "sendMessageOneBySocket status: " << (int)r << std::endl;
 		return r;
 	}
 
@@ -863,7 +835,8 @@ namespace crypto_socket {
 
 					std::stringstream serr;
 					send_composite(client->getSocketFd(), m, key, serr);
-					std::cout << serr.str();
+					if (DEBUG_INFO)
+                        std::cout << serr.str();
 				}
 
 			}
@@ -904,7 +877,8 @@ namespace crypto_socket {
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_SHUTDOWN, "shutdown", key);
 			std::stringstream serr;
 			send_composite(client->getSocketFd(), m, key, serr);
-			std::cout << serr.str();
+			if (DEBUG_INFO)
+                std::cout << serr.str();
 		}
 	}
 
@@ -919,7 +893,8 @@ namespace crypto_socket {
 			m.make_msg(NETW_MSG::MSG_CMD_REQU_KEY_HINT, s, getDEFAULT_KEY());
 			std::stringstream serr;
 			send_composite(client->getSocketFd(), m, getDEFAULT_KEY(),serr);
-			std::cout << serr.str();
+			if (DEBUG_INFO)
+                std::cout << serr.str();
 		}
 	}
 
@@ -951,7 +926,8 @@ namespace crypto_socket {
 				client->random_key_validation_done ? client->random_key : client->initial_key64);
 			std::stringstream serr;
 			send_composite(client->getSocketFd(), m, client->random_key_validation_done ? client->random_key : client->initial_key64, serr);
-			std::cout << serr.str();
+			if (DEBUG_INFO)
+                std::cout << serr.str();
 		}
 	}
 
@@ -1027,7 +1003,8 @@ namespace crypto_socket {
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_USERNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 				std::stringstream serr;
 				send_composite(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64, serr);
-				std::cout << serr.str();
+				if (DEBUG_INFO)
+                    std::cout << serr.str();
 			}
 
 			if (new_client->hostname.size() == 0)
@@ -1039,7 +1016,8 @@ namespace crypto_socket {
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_HOSTNAME, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 				std::stringstream serr;
 				send_composite(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
-				std::cout << serr.str();
+				if (DEBUG_INFO)
+                    std::cout << serr.str();
 			}
 
 			if (new_client->machine_id.size() == 0)
@@ -1051,7 +1029,8 @@ namespace crypto_socket {
 				m.make_msg(NETW_MSG::MSG_CMD_REQU_MACHINEID, s, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64);
 				std::stringstream serr;
 				send_composite(new_client->getSocketFd(), m, new_client->random_key_validation_done ? new_client->random_key : new_client->initial_key64,serr);
-				std::cout << serr.str();
+				if (DEBUG_INFO)
+                    std::cout << serr.str();
 			}
 		}
 		else
@@ -1125,7 +1104,6 @@ namespace crypto_socket {
 		}
 		catch (...)
 		{
-			//serr += "WARNING read_repo - repo info can not be read " + filename;
 			return false;
 		}
 		return true;

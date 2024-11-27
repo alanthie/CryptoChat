@@ -123,15 +123,16 @@ namespace crypto_socket {
 			char message_previous_buffer[NETW_MSG::MESSAGE_SIZE + 1];
 
 			// RECV ()
+			std::stringstream ss;
 			while (msg_ok && this->m_state == STATE::OPEN)
 			{
 				recv_while_count1++;
 
 				if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 				{
-					std::stringstream ss;
 					ss << " Exiting thread recv_thread " << std::endl;
 					main_global::log(ss.str());
+					ss.clear();
 					msg_ok = false;
 					break;
 				}
@@ -139,13 +140,8 @@ namespace crypto_socket {
 				if (byte_recv > 0)
 				{
 					memcpy(message_buffer, message_previous_buffer, byte_recv);
-					std::cout << "recv() bytes total " << byte_recv << std::endl;
+					ss<< "recv() bytes total " << byte_recv << std::endl;
 				}
-
-				// recv on windows
-				// If no error occurs, recv returns the number of bytes received and the buffer pointed to by the buf parameter will contain this data received.
-				// If the connection has been gracefully closed, the return value is zero.
-				// Otherwise, a value of SOCKET_ERROR is returned, and a specific error code can be retrieved by calling WSAGetLastError.
 
 				while (byte_recv < NETW_MSG::MESSAGE_HEADER && msg_ok==true)
 				{
@@ -153,9 +149,9 @@ namespace crypto_socket {
 
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::stringstream ss;
 						ss << " Exiting thread recv_thread " << std::endl;
 						main_global::log(ss.str());
+						ss.clear();
 						msg_ok = false;
 						break;
 					}
@@ -165,24 +161,26 @@ namespace crypto_socket {
 					{
 						byte_recv += len;
 						cli_byte_recv = byte_recv;
-						std::cout << "recv() bytes total " << byte_recv << std::endl;
+						ss << "recv() bytes total " << byte_recv << std::endl;
+						main_global::log(ss.str());
+						ss.clear();
 					}
 					else
 					{
-						std::stringstream ss;
 						if (len == 0)
 							ss << "WARNING recv() - socket closed" << std::endl;
 						else
 							ss << "WARNING recv() - socket error" << std::endl;
 						msg_ok = false;
 						main_global::log(ss.str());
+						ss.clear();
 						break;
 					}
 				}
 
 				expected_len = NETW_MSG::MSG::byteToUInt4(message_buffer + 1);
 
-				cryptoAL::cryptodata recv_buffer; // new instance ...//recv_buffer.erase(use default init size); // TODO
+				cryptoAL::cryptodata recv_buffer; // new instance ...use reset TODO
 				if (byte_recv > 0)
 				{
 					recv_buffer.buffer.write(message_buffer, byte_recv);
@@ -195,9 +193,9 @@ namespace crypto_socket {
 
 					if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 					{
-						std::stringstream ss;
 						ss << " Exiting thread recv_thread " << std::endl;
 						main_global::log(ss.str());
+						ss.clear();
 						msg_ok = false;
 						break;
 					}
@@ -211,7 +209,9 @@ namespace crypto_socket {
 						byte_recv += len;
 						cli_byte_recv = byte_recv;
 						recv_buffer.buffer.write(message_buffer, len);
-						std::cout << "recv() bytes total " << byte_recv << std::endl;
+						ss << "recv() bytes total " << byte_recv << std::endl;
+						main_global::log(ss.str());
+						ss.clear();
 					}
 					else
 					{
@@ -222,13 +222,13 @@ namespace crypto_socket {
 							ss << "WARNING recv() - socket error" << std::endl;
 						msg_ok = false;
 						main_global::log(ss.str());
+						ss.clear();
 						break;
 					}
 				}
 
 				if (msg_ok)
 				{
-					// remaining data for next msg
 					if (byte_recv >= expected_len)
 					{
 						byte_recv = byte_recv - expected_len;
@@ -238,14 +238,12 @@ namespace crypto_socket {
 								memcpy(message_previous_buffer, message_buffer, byte_recv);
 							else
 							{
-								// TODO...
-								std::cout << "WARNING recv() - excess data recv" << byte_recv << std::endl;
+                                // not possible...
+								ss << "WARNING recv() - excess data recv" << byte_recv << std::endl;
+								main_global::log(ss.str());
+                                ss.clear();
 							}
 						}
-					}
-					else
-					{
-
 					}
 				}
 
@@ -268,17 +266,15 @@ namespace crypto_socket {
 						<< " len: " << expected_len
 						<< std::endl;
 					main_global::log(ss.str());
+					ss.clear();
 				}
 
 				bool r = true;
 				NETW_MSG::MSG m;
 				NETW_MSG::MSG msgout;
 
-				// chat layer first
-				// crypto layer next
-
 				//-----------------------------------------------
-				// Parse message 
+				// Parse message
 				//	call make_decrypt_msg()
 				// 	call crypto_decrypt()
 				//-----------------------------------------------
@@ -298,16 +294,16 @@ namespace crypto_socket {
 
 						if (!r)
 						{
-							std::stringstream ss;
 							ss << "WARNING - Failed to decrypt recv message" << std::endl;
 							main_global::log(ss.str());
+                            ss.clear();
 						}
 						else
 						{
 							{
-								std::stringstream ss;
 								ss << "crypto_decrypt ok, msg len: " << msgout.buffer_len <<std::endl << std::endl;
 								main_global::log(ss.str());
+                                ss.clear();
 							}
 
 							m.reset();
@@ -316,18 +312,13 @@ namespace crypto_socket {
 					}
 
 					std::string str_message = m.get_data_as_string();
-					{
-						std::stringstream ss;
-						ss << "processing msg type: " << m.type_msg << std::endl;
-						main_global::log(ss.str());
-					}
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_SHUTDOWN)
                     {
                     	{
-							std::stringstream ss;
 							ss << "recv MSG_CMD_REQU_SHUTDOWN" << std::endl;
 							main_global::log(ss.str());
+                            ss.clear();
 						}
 
                         std::string key = get_key();
@@ -344,14 +335,13 @@ namespace crypto_socket {
                     {
                         challenge_attempt++;
 						{
-							std::stringstream ss;
 							ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 						}
 
 						if (_cfg_cli.map_challenges.contains(str_message))
 						{
-							std::stringstream ss;
 							ss << "using known challenge answer" << std::endl;
 							ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
 
@@ -363,6 +353,7 @@ namespace crypto_socket {
 							}
 							ss << "initial_key_hint set" << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 
 							NETW_MSG::MSG m;
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, _cfg_cli.map_challenges[str_message], getDEFAULT_KEY());
@@ -399,8 +390,9 @@ namespace crypto_socket {
 							{
 								if (is_got_chat_cli_signal())
 								{
-									std::stringstream ss; ss << "Terminating menu" << std::endl;
+									ss << "Terminating menu" << std::endl;
 									main_global::log(ss.str());
+									ss.clear();
 									menu_abort = true;
 									break;
 								}
@@ -455,9 +447,9 @@ namespace crypto_socket {
 
 								{
 									{
-										std::stringstream ss;
 										ss << "recv MSG_CMD_REQU_KEY_HINT" << std::endl;
 										main_global::log(ss.str());
+										ss.clear();
 									}
 
 									{
@@ -467,15 +459,11 @@ namespace crypto_socket {
 										initial_key64 = NETW_MSG::MSG::make_key_64(initial_key, getDEFAULT_KEY());
 									}
 
-									std::stringstream ss;
 									ss << "initial_key_hint set size=" << initial_key_hint.size() << std::endl;
-									main_global::log(ss.str());
 
-									{
-										std::stringstream ss;
-										ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
-										main_global::log(ss.str());
-									}
+                                    ss << "send MSG_CMD_RESP_KEY_HINT" << std::endl;
+                                    main_global::log(ss.str());
+                                    ss.clear();
 
 									NETW_MSG::MSG m;
 									m.make_msg(NETW_MSG::MSG_CMD_RESP_KEY_HINT, r, getDEFAULT_KEY());
@@ -487,7 +475,6 @@ namespace crypto_socket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_VALID)
                     {
                         {
-							std::stringstream ss;
 							ss << "recv MSG_CMD_INFO_KEY_VALID" << std::endl;
 
                             // CONFIRMED new key
@@ -511,6 +498,7 @@ namespace crypto_socket {
 								ss << "WARNING initial_key_hint empty" << std::endl;
 							}
 							main_global::log(ss.str());
+							ss.clear();
 
                             showMessage(str_message);
                             add_to_history(true, NETW_MSG::MSG_CMD_INFO_KEY_VALID, str_message);
@@ -519,9 +507,9 @@ namespace crypto_socket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_KEY_INVALID)
                     {
                         {
-                            std::stringstream ss;
                             ss << "recv MSG_CMD_INFO_KEY_INVALID" << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
                         }
 
                         key_valid = false;
@@ -531,7 +519,6 @@ namespace crypto_socket {
                     }
 					else if (m.type_msg == NETW_MSG::MSG_CMD_ACCEPT_USERNAME)
 					{
-						std::stringstream ss;
 						ss << "recv MSG_CMD_ACCEPT_USERNAME " << str_message << std::endl;
 						this->username = str_message;
 
@@ -552,6 +539,7 @@ namespace crypto_socket {
 							set_user_view_dirty(true);
 						}
 						main_global::log(ss.str());
+						ss.clear();
 					}
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_ACCEPT_RND_KEY)
                     {
@@ -564,7 +552,6 @@ namespace crypto_socket {
                         std::string str_digest = sha.toString(digestkey);
                         delete[]digestkey;
 
-                        std::stringstream ss;
                         ss << "recv MSG_CMD_REQU_ACCEPT_RND_KEY" << std::endl;
 
 						if (DEBUG_INFO)
@@ -579,13 +566,14 @@ namespace crypto_socket {
 							ss << "Random key CRC32 recv [" << chk.get_hash() << "]" << std::endl;
                         }
                         main_global::log(ss.str());
+                        ss.clear();
 
 						std::string key = get_key();
 
 						{
-                            std::stringstream ss;
                             ss << "send MSG_CMD_RESP_ACCEPT_RND_KEY" << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
 						NETW_MSG::MSG m;
@@ -596,9 +584,9 @@ namespace crypto_socket {
                     {
                         {
 							{
-                                std::stringstream ss;
                                 ss << "recv MSG_CMD_INFO_RND_KEY_VALID" << std::endl;
                                 main_global::log(ss.str());
+                                ss.clear();
 							}
 
                             // CONFIRMED new rnd key
@@ -613,33 +601,33 @@ namespace crypto_socket {
                     else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_USERNAME)
                     {
 						{
-                            std::stringstream ss;
                             ss << "recv MSG_CMD_REQU_USERNAME" << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
                         if (_cfg_cli._username.size() == 0)
                         {
                             showMessage(str_message);
                             std::string r = get_input("Enter username");
-                            if (r.size() == 0) r = "user_xyz";
+                            if (r.size() == 0) r = "user_xyz"; // TODO validate
                             _cfg_cli._username = r;
 
 							std::string serr;
 							bool ret =  _cfg_cli.save_cfg(_cfgfile, serr);
 							if (!ret)
 							{
-								std::stringstream ss;
-								ss << serr << std::endl;
+								ss <<  serr << std::endl;
 								main_global::log(ss.str());
+								ss.clear();
 							}
                         }
                         user_valid = true;
 
 						{
-                            std::stringstream ss;
 							ss << "send MSG_CMD_RESP_USERNAME : " << _cfg_cli._username << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
                         NETW_MSG::MSG m;
@@ -651,9 +639,9 @@ namespace crypto_socket {
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_HOSTNAME)
 					{
 						{
-                            std::stringstream ss;
                             ss << "recv MSG_CMD_REQU_HOSTNAME" << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
 						char host[80] = { 0 };
@@ -663,9 +651,9 @@ namespace crypto_socket {
 							this->hostname = h;
 
 							{
-                                std::stringstream ss;
-                                ss << "send MSG_CMD_RESP_HOSTNAME : " << h << std::endl; 
+                                ss << "send MSG_CMD_RESP_HOSTNAME : " << h << std::endl;
 								main_global::log(ss.str());
+								ss.clear();
 							}
 
 							NETW_MSG::MSG m;
@@ -676,16 +664,17 @@ namespace crypto_socket {
 						}
 						else
 						{
-							std::stringstream ss; ss << "WARNING gethostname failed" << std::endl;
+							ss << "WARNING gethostname failed" << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 						}
 					}
 					else if (m.type_msg == NETW_MSG::MSG_CMD_REQU_MACHINEID)
 					{
 						{
-                            std::stringstream ss;
                             ss << "recv MSG_CMD_REQU_MACHINEID" << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
 						//-------------------------------------------
@@ -696,26 +685,27 @@ namespace crypto_socket {
 
 						{
 							{
-                                std::stringstream ss;
                                 ss << "send MSG_CMD_RESP_MACHINEID : " << my_machineid << std::endl;
                                 main_global::log(ss.str());
+                                ss.clear();
 							}
 
 							NETW_MSG::MSG m;
 							std::string key = get_key();
 
-							std::stringstream serr;
 							m.make_msg(NETW_MSG::MSG_CMD_RESP_MACHINEID, my_machineid, key);
+							std::stringstream serr;
 							this->send_composite(this->m_socketFd, m, key, serr);
 							main_global::log(serr.str());
+							ss.clear();
 						}
 					}
 					else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_USERINDEX)
 					{
 						{
-							std::stringstream ss;
 							ss << "recv MSG_CMD_INFO_USERINDEX " << str_message << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 						}
 
 						//-------------------------------------------
@@ -724,19 +714,19 @@ namespace crypto_socket {
 						my_user_index = (uint32_t)NETW_MSG::str_to_ll(str_message);
 
 						{
-							std::stringstream ss;
 							ss << "My USERINDEX set to " << str_message << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 						}
 
 					}
 					else if (m.type_msg == NETW_MSG::MSG_CMD_INFO_USERLIST)
 					{
 						{
-							std::stringstream ss;
 							ss << "recv MSG_CMD_INFO_USERLIST : " << std::endl;
 							ss << "     " << str_message << std::endl;
 							main_global::log(ss.str());
+							ss.clear();
 						}
 
 						//s = v_client[i]->std::to_string(v_client[i]->user_index) + ";" + v_client[i]->hostname + ";" + v_client[i]->username + ";";
@@ -770,9 +760,9 @@ namespace crypto_socket {
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
                     {
 						{
-                            std::stringstream ss; 
 							ss << "recv MSG_TEXT : " << str_message << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
                         showMessage(str_message);
@@ -783,9 +773,9 @@ namespace crypto_socket {
 					else if (m.type_msg == NETW_MSG::MSG_FILE)
 					{
 						{
-                            std::stringstream ss;
                             ss << "recv MSG_FILE : " << str_message << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
 						showMessage(str_message);
@@ -828,8 +818,9 @@ namespace crypto_socket {
 					else if (m.type_msg == NETW_MSG::MSG_FILE_FRAGMENT)
 					{
 						{
-                            std::stringstream ss; ss << "recv MSG_FILE_FRAGMENT : " << std::endl;
+                            ss << "recv MSG_FILE_FRAGMENT : " << std::endl;
                             main_global::log(ss.str());
+                            ss.clear();
 						}
 
 						NETW_MSG::MSG_FILE_FRAGMENT_HEADER mh;
@@ -856,13 +847,13 @@ namespace crypto_socket {
 					}
                 }
 
-				std::memset(message_buffer, '\0', sizeof (message_buffer));
+				//std::memset(message_buffer, '\0', sizeof (message_buffer));
 			}
 
 			{
-                std::stringstream ss;
                 ss << "recv thread done"<< std::endl;
-                main_global::log(ss.str(), true);
+                main_global::log(ss.str());
+                ss.clear();
 			}
 			this->m_state = STATE::CLOSED;
 		}));
@@ -923,7 +914,7 @@ namespace crypto_socket {
 				}
 				else
 				{
-					// multi instance.... TODO
+					// multi instance...
 					if (_repository.user_exist(user_index, in_host, in_usr) == false)
 					{
 						ss << "WARNING - Failed to add user to repository " << user_index << std::endl;
@@ -981,7 +972,7 @@ namespace crypto_socket {
 		{
 			if (cryptochat::cli::chat_cli::got_chat_cli_signal == 1)
 			{
-				std::stringstream ss; 
+				std::stringstream ss;
 				ss << " Exiting loop client_UI " << std::endl;
 				main_global::log(ss.str());
 				break;
@@ -1236,8 +1227,8 @@ namespace crypto_socket {
 				// TODO add flag, user...
 				uint8_t crypto_flag = 1;
 				if (chat_with_other_user_index == 0) crypto_flag = 0;
-				send_status = send_message_buffer(	t_socketFd, m, key, 
-													crypto_flag, 
+				send_status = send_message_buffer(	t_socketFd, m, key,
+													crypto_flag,
 													my_user_index,
 													chat_with_other_user_index);
 
@@ -1370,8 +1361,6 @@ namespace crypto_socket {
 
 				if (r)
 				{
-					//cryptoAL::VERBOSE_DEBUG = true;
-
 					std::ofstream out(user_folder + cryptochat::db::Repository::file_separator() +"cout_decrypt.txt");
 					auto* coutbuf = std::cout.rdbuf();
 					std::cout.rdbuf(out.rdbuf());
@@ -1379,7 +1368,6 @@ namespace crypto_socket {
 					r = _decryptor->decrypt(ss);
 
 					std::cout.rdbuf(coutbuf);
-					//cryptoAL::VERBOSE_DEBUG = false;
 
 					if (r)
 					{
@@ -1411,11 +1399,6 @@ namespace crypto_socket {
 							uint8_t chk[4];
 							memcpy(&chk[0], buffer + NETW_MSG::MESSAGE_CRC_START, 4);
 							uint32_t crc = NETW_MSG::MSG::byteToUInt4((char*)buffer + NETW_MSG::MESSAGE_CRC_START);
-
-							//uint8_t original_flag = buffer[NETW_MSG::MESSAGE_FLAG_START];
-							//uint32_t to_user = this->from_user;
-							//NETW_MSG::MSG::uint4ToByte(from_user, (char*)buffer + NETW_MSG::MESSAGE_FROM_START);
-							//NETW_MSG::MSG::uint4ToByte(to_user,   (char*)buffer + NETW_MSG::MESSAGE_TO_START);
 
 							msgout.make_msg_with_crc_and_flag_buffer(
 								buffer[0], dout.buffer.size(), (uint8_t*)dout.buffer.getdata(), digestkey, crc, 0, from_user, to_user);
@@ -1509,7 +1492,8 @@ namespace crypto_socket {
 
 		if (to_user > 0 && from_user == my_user_index)
 		{
-			ss << "crypto_encrypt - msgin len " << msgin.buffer_len << std::endl;
+            if (DEBUG_INFO)
+                ss << "crypto_encrypt - msgin len " << msgin.buffer_len << std::endl;
 
 			std::string s;
 			if (map_active_user_to_crypto_cfg.contains(to_user) == false)
@@ -1554,7 +1538,8 @@ namespace crypto_socket {
 				std::string user_folder = _repository.get_user_folder(to_user) + cryptochat::db::Repository::file_separator();
 				bool r = din.save_to_file(user_folder + "encryptor_" + map_active_user_to_crypto_cfg[to_user].filename_msg_data);
 
-				ss << "crypto_encrypt - msgin without header  " << msg_input.size() << std::endl;
+				if (DEBUG_INFO)
+                    ss << "crypto_encrypt - msgin without header  " << msg_input.size() << std::endl;
 
 				if (r)
 				{
@@ -1625,9 +1610,6 @@ namespace crypto_socket {
 
 				if (r)
 				{
-
-					//cryptoAL::VERBOSE_DEBUG = true;
-
 					/** backup cout buffer and redirect to out.txt **/
 					std::ofstream out(user_folder + cryptochat::db::Repository::file_separator() + "cout_encrypt.txt");
 
@@ -1639,7 +1621,6 @@ namespace crypto_socket {
 					_encryptor->verbose = false;
 
 					std::cout.rdbuf(coutbuf);
-					//cryptoAL::VERBOSE_DEBUG = false;
 
 					if (r)
 					{
@@ -1650,7 +1631,8 @@ namespace crypto_socket {
 							if (DEBUG_INFO)
 								ss << "crypto_encrypt filename_encrypted_data.buffer.size(): " << dout.buffer.size() << std::endl;
 
-							ss << "crypto_encrypt - msg encrypted len " << dout.buffer.size() << std::endl;
+                            if (DEBUG_INFO)
+                                ss << "crypto_encrypt - msg encrypted len " << dout.buffer.size() << std::endl;
 
 							// original header
 							uint8_t digestkey[32];
@@ -1660,15 +1642,11 @@ namespace crypto_socket {
 							memcpy(&chk[0], msgin.buffer + NETW_MSG::MESSAGE_CRC_START, 4);
 							uint32_t crc = NETW_MSG::MSG::byteToUInt4((char*)msgin.buffer + NETW_MSG::MESSAGE_CRC_START);
 
-							//uint8_t original_flag = msgin.buffer[NETW_MSG::MESSAGE_FLAG_START];
-							//uint32_t from_user = this->my_user_index;
-							//NETW_MSG::MSG::uint4ToByte(from_user, (char*)msgin.buffer + NETW_MSG::MESSAGE_FROM_START);
-							//NETW_MSG::MSG::uint4ToByte(to_user,   (char*)msgin.buffer + NETW_MSG::MESSAGE_TO_START);
-
 							msgout.make_msg_with_crc_and_flag_buffer(
 								msgin.type_msg, dout.buffer.size(), (uint8_t*)dout.buffer.getdata(), digestkey, crc, 1, from_user, to_user);
 
-							ss << "crypto_encrypt - msg encrypted with header, len " << msgout.buffer_len << std::endl;
+                            if (DEBUG_INFO)
+                                ss << "crypto_encrypt - msg encrypted with header, len " << msgout.buffer_len << std::endl;
 
                             uint8_t new_flag = msgout.buffer[NETW_MSG::MESSAGE_FLAG_START];
                             if (new_flag == 0)
