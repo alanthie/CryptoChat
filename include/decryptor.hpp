@@ -125,10 +125,10 @@ public:
             }
         }
 
-        if (verbose)
-            show_param();
-	}
+//        if (verbose)
+//            show_param();
 
+	}
     ~decryptor()
     {
     }
@@ -1766,7 +1766,7 @@ public:
 	}
 
 
-	bool decode(std::stringstream& serr, 
+	bool decode(std::stringstream& serr,
                 size_t iter, size_t NITER, uint16_t crypto_algo, uint32_t crypto_flags, uint32_t shuffle_perc,
                 cryptodata& data_encrypted, const char* key, uint32_t key_size, cryptodata& data_decrypted,
 				std::string keyname = "")

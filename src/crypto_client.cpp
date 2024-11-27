@@ -301,7 +301,7 @@ namespace crypto_socket {
 						else
 						{
 							{
-								ss << "crypto_decrypt ok, msg len: " << msgout.buffer_len <<std::endl << std::endl;
+								ss << "crypto_decrypt ok, msg len: " << msgout.buffer_len << std::endl;
 								main_global::log(ss.str());
                                 ss.clear();
 							}
@@ -1559,8 +1559,8 @@ namespace crypto_socket {
 
 					if (DEBUG_INFO)
 						ss << "crypto_encrypt filename_msg_data.buffer.size(): " << din.buffer.size() << std::endl;
-
-					ss << "crypto_encrypt - padding " << padding << std::endl;
+                    if (DEBUG_INFO)
+                        ss << "crypto_encrypt - padding " << padding << std::endl;
 
 					if (_encryptor != nullptr)
 					{
@@ -1587,7 +1587,7 @@ namespace crypto_socket {
 						map_active_user_to_crypto_cfg[to_user].folder_other_public_hh,
 						map_active_user_to_crypto_cfg[to_user].wbaes_my_private_path,
 						map_active_user_to_crypto_cfg[to_user].wbaes_other_public_path,
-						true,                      // Flag - verbose
+						false,                      // Flag - verbose
 						false,                      // Flag - keep staging files
 						map_active_user_to_crypto_cfg[to_user].encryped_ftp_user,
 						map_active_user_to_crypto_cfg[to_user].encryped_ftp_pwd,
@@ -1616,9 +1616,7 @@ namespace crypto_socket {
 					auto* coutbuf = std::cout.rdbuf();
 					std::cout.rdbuf(out.rdbuf());
 
-					_encryptor->verbose = true;
 					r = _encryptor->encrypt(ss, true);
-					_encryptor->verbose = false;
 
 					std::cout.rdbuf(coutbuf);
 

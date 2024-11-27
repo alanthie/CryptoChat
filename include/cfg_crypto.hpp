@@ -120,7 +120,7 @@ namespace cryptochat
 		{
             const std::string Config = "cmdparam";
             cfg_crypto_params _p;
- 
+
             long long get_positive_value_negative_if_invalid(const std::string& s)
             {
                 if (s.size() == 0) return -1;
@@ -235,33 +235,7 @@ namespace cryptochat
 
 
 			//bool save(const std::string& filename, std::string& serr)
-			//{
-			//	if (filename.size() == 0)
-			//	{
-			//		serr += "WARNING save_cfg - cfg file name empty: ";
-			//		return false;
-			//	}
 
-			//	try
-			//	{
-   //                 //...
-			//	}
-			//	catch (const std::exception& e)
-			//	{
-			//		serr += "WARNING save_cfg - unable to save file " + filename + "\n";
-			//		serr += "Exception thrown: " + std::string(e.what()) + "\n";
-			//	}
-			//	catch (...)
-			//	{
-			//		serr += "WARNING save_cfg - unable to save file " + filename + "\n";
-			//		serr += "Exception thrown\n";
-			//	}
-			//	return false;
-			//}
-
-
-            
-           
 		};
 	}
 }

@@ -94,6 +94,7 @@
 		<Unit filename="../include/qa/ecc_point/ecc_elgamal.cpp" />
 		<Unit filename="../include/qa/exclusive-lock-file.cpp" />
 		<Unit filename="../include/random_engine.hpp" />
+		<Unit filename="../include/repository.hpp" />
 		<Unit filename="../include/rng.h" />
 		<Unit filename="../include/socket_node.hpp" />
 		<Unit filename="../include/terminal.h" />

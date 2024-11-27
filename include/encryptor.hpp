@@ -159,8 +159,8 @@ public:
                 filename_encrypted_data = filename_msg_data + ".encrypted";
         }
 
-        if (verbose)
-            show_param();
+//        if (verbose)
+//            show_param();
     }
 
     ~encryptor()

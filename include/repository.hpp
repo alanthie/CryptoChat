@@ -280,7 +280,7 @@ namespace cryptochat
                 {
                     serr += "WARNING add_user - empty repo root pathname\n";
                     return false;
-                } 
+                }
 
                 if (_repo_info.map_userinfo.contains(user_index))
                 {
@@ -391,7 +391,7 @@ namespace cryptochat
                                 {
                                     serr += "WARNING add_user - Unable to export RSA key at " + folder + file_separator() + cc._p.folder_my_private_rsa + "\n";
                                 }
-                            } 
+                            }
                         }
                         else
                         {
@@ -487,7 +487,7 @@ namespace cryptochat
                 ss << ";------------------------------------------------------------------------\n";
                 ss << "; URL keys source when encoding :\n";
                 ss << ";------------------------------------------------------------------------\n";
-                ss << "[r:]last=1,first=1,random=5;\n";
+                ss << "[r:]last=1,first=1,random=1;\n";
                 ss << ";\n";
                 ss << ";------------------------------------------------------------------------\n";
                 ss << "; GLOBAL parameters\n";

@@ -81,11 +81,11 @@ namespace crypto_socket {
 		this->m_state = STATE::OPEN;
 	}
 
-	int socket_node::send_composite(const int& t_socketFd, NETW_MSG::MSG& m, std::string key, 
+	int socket_node::send_composite(const int& t_socketFd, NETW_MSG::MSG& m, std::string key,
 									std::stringstream& serr,
 									uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
-		cryptoAL::VERBOSE_DEBUG = 1;
+		//cryptoAL::VERBOSE_DEBUG = 1;
 
 		int r = 0;
 		if (cryptoAL::VERBOSE_DEBUG)
@@ -135,10 +135,11 @@ namespace crypto_socket {
 			// Blocking
 			if (cryptoAL::VERBOSE_DEBUG)
 				serr << "send_composite - sending a packet, len= " << bytes_to_send << std::endl;
+
 			int bytes_s0 = send_packet(t_socketFd, m2.buffer + bytes_sent, bytes_to_send, serr);
 
 #ifdef _WIN32
-			if (bytes_s0 == SOCKET_ERROR) 
+			if (bytes_s0 == SOCKET_ERROR)
 			{
 				serr << "ERROR - send failed with error: " << WSAGetLastError();
 				return SOCKET_ERROR;
@@ -157,7 +158,6 @@ namespace crypto_socket {
 		{
 			//... TODO ...
 			serr << "WARNING - send excess data " << m2.buffer_len - bytes_sent << "\n";
-			std::cout << "WARNING - send excess data " << m2.buffer_len - bytes_sent << "\n";
 			return -1;
 
 			// keep extra
@@ -195,7 +195,7 @@ namespace crypto_socket {
 		}
 
 #ifdef _WIN32
-		if (r == SOCKET_ERROR) 
+		if (r == SOCKET_ERROR)
 		{
 			serr << "ERROR - send failed with error: " << WSAGetLastError() << "\n";
 		}
@@ -212,7 +212,7 @@ namespace crypto_socket {
 			{
 				int bytes_s0 = send(t_socketFd, (char*)buffer + bytes_sent, buffer_len - bytes_sent, 0);
 #ifdef _WIN32
-				if (bytes_s0 == SOCKET_ERROR) 
+				if (bytes_s0 == SOCKET_ERROR)
 				{
 					serr << "ERROR - send failed with error: " << WSAGetLastError() << "\n";
 					return SOCKET_ERROR;
@@ -237,7 +237,7 @@ namespace crypto_socket {
 		return r;
 	}
 
-	void socket_node::closeSocket(bool force) 
+	void socket_node::closeSocket(bool force)
 	{
 		if (this->m_state == STATE::CLOSED && force==false)
 		{
