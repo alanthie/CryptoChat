@@ -202,6 +202,24 @@ namespace crypto_socket {
 			std::string client_ip(inet_ntoa(temp_addr.sin_addr));
 			std::string client_port(std::to_string(ntohs(temp_addr.sin_port)));
 
+            // * getpeername
+            struct sockaddr_in peeraddr;
+            socklen_t peeraddrlen;
+
+            int retval = getpeername(temp_socket, (struct sockaddr *) &peeraddr, &peeraddrlen);
+            if (retval == -1)
+            {
+            }
+            else
+            {
+                char *peeraddrpresn = inet_ntoa(peeraddr.sin_addr);
+
+                printf("Peer information:\n");
+                printf("Peer Address Family: %d\n", peeraddr.sin_family);
+                printf("Peer Port: %d\n", ntohs(peeraddr.sin_port));
+                printf("Peer IP Address: %s\n\n", peeraddrpresn);
+            }
+
 			//------------------------------------
 			// One RECV thread per client
 			//------------------------------------
