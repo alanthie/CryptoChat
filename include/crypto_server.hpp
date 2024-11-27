@@ -122,6 +122,10 @@ namespace crypto_socket
 		bool save_map_machineid_to_user_index();
 
 		void handle_msg_MSG_CMD_RESP_KEY_HINT(NETW_MSG::MSG& m, client_node* new_client);
+		void handle_msg_MSG_CMD_RESP_ACCEPT_RND_KEY(NETW_MSG::MSG& m, client_node* new_client);
+		void handle_msg_MSG_CMD_RESP_USERNAME(NETW_MSG::MSG& m, client_node* new_client);
+		void handle_msg_MSG_CMD_RESP_MACHINEID(NETW_MSG::MSG& m, client_node* new_client);
+		void handle_new_pending_random_key(client_node* new_client);
 	};
 
 }

@@ -48,22 +48,6 @@ static void signalHandler(int code)
 	}
 }
 
-//int funcmain(int argc, char** argv);
-//int main(int argc, char** argv)
-//{
-//    std::string entry;
-//    std::thread t(funcmain, argc, std::ref(argv));
-//    while (true)
-//    {
-//        std::cout << "enter command: ";
-//        std::cin >> entry;
-//        if (entry == "quit")
-//            signalHandler(0);
-//        //std::this_thread::sleep_for(std::chrono::seconds(1));
-//    }
-//    t.join();
-//}
-
 int main(int argc, char** argv)
 {
 	std::string FULLVERSION = CHATSRV_VERSION;// + "_" + cryptoAL::parsing::get_current_date();
