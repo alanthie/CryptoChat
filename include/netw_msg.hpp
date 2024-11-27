@@ -17,7 +17,7 @@ namespace NETW_MSG
 const int MESSAGE_SIZE = 4 * 1024;
 const int MESSAGE_FACTOR = 64;
 
-// MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
+// MSG = MESSAGE_HEADER + data
 const int MESSAGE_HEADER = 1+4+32+20+1+4+2 + 4+4+56; // 64 bytes + 8 (from, to) + 56 = 128
 const int MESSAGE_MSGTYPE_START = 0;
 const int MESSAGE_LEN_START = MESSAGE_MSGTYPE_START + 1;
@@ -27,11 +27,11 @@ const int MESSAGE_FLAG_START = MESSAGE_SIGNATURE_START + 20; // flag == 0 if no 
 const int MESSAGE_CRC_START = MESSAGE_FLAG_START + 1;
 const int MESSAGE_MISC_START = MESSAGE_CRC_START + 4;
 const int MESSAGE_MISC_END = MESSAGE_MISC_START + 2;
-const int MESSAGE_FROM_START = MESSAGE_MISC_END + 1;
-const int MESSAGE_TO_START = MESSAGE_FROM_START + 4;
+const int MESSAGE_FROM_START = MESSAGE_MISC_END + 1; // from_user
+const int MESSAGE_TO_START = MESSAGE_FROM_START + 4; // to_user
 
 const char MESSAGE_SIGNATURE[20+1] = "12345678901234567890";
-const char MESSAGE_LAST[7 + 1]{0}; // in header
+const char MESSAGE_LAST[7 + 1]{0}; // reset last 7 bytes of first 64 bytes in header
 
 // Make KEY_SIZE a multiple of 64 to support most encryption algos
 const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in size
@@ -347,7 +347,7 @@ struct MSG
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
 
 	void make_msg_with_crc_and_flag(uint8_t t, const std::string& s, uint8_t* digestkey, uint32_t crc, uint8_t flag, uint32_t from_user, uint32_t to_user);
-	void make_msg_with_crc_and_flag_buffer(	uint8_t t, uint32_t len_data, uint8_t* data, 
+	void make_msg_with_crc_and_flag_buffer(	uint8_t t, uint32_t len_data, uint8_t* data,
 											uint8_t* digestkey, uint32_t crc, uint8_t flag, uint32_t from_user, uint32_t to_user);
 
 	void make_msg(uint8_t* buffer_in, size_t len);

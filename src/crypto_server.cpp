@@ -128,7 +128,7 @@ namespace crypto_socket {
 
 	void crypto_server::handle_new_client(socket_node* new_client)
 	{
-		// send current list to this
+		// send current list
 		handle_info_client(new_client->getSocketFd(), false);
 	}
     void crypto_server::handle_remove_client()
@@ -159,7 +159,6 @@ namespace crypto_socket {
 			else
 				sendMessageClients(v, NETW_MSG::MSG_CMD_INFO_USERLIST);
         }
-
     }
 
 	void crypto_server::handle_accept()
@@ -229,6 +228,7 @@ namespace crypto_socket {
 				int len;
 				size_t byte_recv = 0;
 				uint32_t expected_len = 0;
+				size_t msg_counter = 0;
 				char message_buffer[NETW_MSG::MESSAGE_SIZE + 1];
 				char message_previous_buffer[NETW_MSG::MESSAGE_SIZE + 1];
 
@@ -282,7 +282,54 @@ namespace crypto_socket {
 						}
 					}
 
+					//------------------------------------------------------
+					// Validate 1 th message send by a client - abort if wrong
+					//------------------------------------------------------
+					if (msg_counter == 0)
+					{
+                        bool ok = true;
+
+						uint8_t original_flag	= message_buffer[NETW_MSG::MESSAGE_FLAG_START];
+						uint32_t from_user		= NETW_MSG::MSG::byteToUInt4((char*)message_buffer+NETW_MSG::MESSAGE_FROM_START);
+                        uint32_t to_user		= NETW_MSG::MSG::byteToUInt4((char*)message_buffer+NETW_MSG::MESSAGE_TO_START);
+
+                        if (memcmp(message_buffer + NETW_MSG::MESSAGE_SIGNATURE_START, NETW_MSG::MESSAGE_SIGNATURE, 20) != 0)
+                        {
+                            ok = false;
+                        }
+                        if (ok)
+                        {
+                            if (message_buffer[0] != NETW_MSG::MSG_TEXT)
+                                ok = false;
+                        }
+                        if (ok && from_user != 0)
+                        {
+                            ok = false;
+                        }
+                        if (ok && to_user != 0)
+                        {
+                            ok = false;
+                        }
+                        //...
+
+                        if (ok == false)
+                        {
+                            msg_ok = false;
+                            std::cout << "WARNING recv() - exiting a thread, invalid 1 th message" << std::endl;
+                            break;
+                        }
+					}
+
 					expected_len = NETW_MSG::MSG::byteToUInt4(message_buffer + 1);
+					if (msg_counter == 0)
+					{
+                        if (expected_len > NETW_MSG::MESSAGE_SIZE)
+                        {
+                            msg_ok = false;
+                            std::cout << "WARNING recv() - exiting a thread, invalid 1 th message" << std::endl;
+                            break;
+                        }
+                    }
 
 					cryptoAL::cryptodata recv_buffer; // new instance ...//recv_buffer.erase(use default init size); // TODO
 					if (byte_recv > 0)
@@ -345,10 +392,6 @@ namespace crypto_socket {
 								}
 							}
 						}
-						else
-						{
-
-						}
 
 						uint8_t original_flag	= recv_buffer.buffer.getdata()[NETW_MSG::MESSAGE_FLAG_START];
 						uint32_t from_user		= NETW_MSG::MSG::byteToUInt4((char*)recv_buffer.buffer.getdata()+NETW_MSG::MESSAGE_FROM_START);
@@ -374,8 +417,22 @@ namespace crypto_socket {
 						else
 							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, new_client->random_key, new_client->previous_random_key, new_client->pending_random_key);
 
+						if (r && msg_counter == 0)
+                        {
+                            std::string msg1 = m.get_data_as_string();
+
+                            if (msg1 != "hello")
+                            {
+                                msg_ok = false;
+                                std::cout << "WARNING recv() - exiting a thread, invalid 1 th message" << std::endl;
+                                break;
+                            }
+                        }
+
 						if (r == true)
 						{
+                            msg_counter++;
+
 							if (m.type_msg == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
 							{
 								handle_msg_MSG_CMD_RESP_KEY_HINT(m, new_client);
@@ -715,7 +772,6 @@ namespace crypto_socket {
 		}
 	}
 
-
 	void crypto_server::sendMessageClients(const std::string& t_message, uint8_t msg_type)
 	{
 		std::lock_guard lck(vclient_mutex);
@@ -739,6 +795,7 @@ namespace crypto_socket {
 			}
 		}
 	}
+
 	void crypto_server::sendMessageClients(const std::string& t_message)
 	{
 		sendMessageClients(t_message, NETW_MSG::MSG_TEXT);
@@ -1094,15 +1151,6 @@ namespace crypto_socket {
 			return false;
 		}
 
-		std::cout << "read_map_machineid_to_user_index " << std::endl;
-		for (auto &e : map_machineid_to_user_index)
-		{
-			for (auto& v : e.second)
-			{
-				v.status = 0;
-				std::cout << "Known user: " << v.index << std::endl;
-			}
-		}
 		std::cout << "next_user_index: " << next_user_index << std::endl;
 
 		save_map_machineid_to_user_index();
