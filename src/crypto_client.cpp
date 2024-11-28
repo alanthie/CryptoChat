@@ -1270,7 +1270,7 @@ namespace crypto_socket {
 			ss << "WARNING crypto_decrypt - from_user != my_user_index" << std::endl;
 		}
 
-		//if (from_user > 0 && to_user == my_user_index)//TEST
+		if (from_user > 0 && to_user == my_user_index)//TEST
 		{
 			std::string s;
 			if (map_active_user_to_crypto_cfg.contains(from_user) == false)
@@ -1341,7 +1341,7 @@ namespace crypto_socket {
 						map_active_user_to_crypto_cfg[from_user].folder_other_public_hh,
 						map_active_user_to_crypto_cfg[from_user].wbaes_my_private_path,
 						map_active_user_to_crypto_cfg[from_user].wbaes_other_public_path,
-						false,                      // Flag - verbose
+						true,                      // Flag - verbose
 						false,                      // Flag - keep staging files
 						map_active_user_to_crypto_cfg[from_user].encryped_ftp_user,
 						map_active_user_to_crypto_cfg[from_user].encryped_ftp_pwd,
@@ -1581,7 +1581,7 @@ namespace crypto_socket {
 						map_active_user_to_crypto_cfg[to_user].folder_other_public_hh,
 						map_active_user_to_crypto_cfg[to_user].wbaes_my_private_path,
 						map_active_user_to_crypto_cfg[to_user].wbaes_other_public_path,
-						false,                      // Flag - verbose
+						true,                      // Flag - verbose
 						false,                      // Flag - keep staging files
 						map_active_user_to_crypto_cfg[to_user].encryped_ftp_user,
 						map_active_user_to_crypto_cfg[to_user].encryped_ftp_pwd,
