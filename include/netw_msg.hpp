@@ -38,7 +38,7 @@ const int KEY_SIZE = 2 * (1024 - 64); // Key transfer is encrypt and may 2x in s
 
 const std::string DEFAULT_USERNAME = "user";
 
-// For msg history in UI
+// For msg history in UIf
 struct netw_msg
 {
 	bool is_receive;
@@ -80,6 +80,9 @@ const uint8_t MSG_CMD_INFO_USERINDEX = 37;
 const uint8_t MSG_FILE_FRAGMENT = 41;
 const uint8_t MSG_CMD_REQU_SHUTDOWN = 51;
 const uint8_t MSG_CMD_RESP_SHUTDOWN  = 52;
+
+const uint8_t MSG_FIRST = 200;
+const uint8_t MSG_VALIDATION = 201;
 
 struct MSG_FILE_FRAGMENT_HEADER
 {

@@ -324,7 +324,7 @@ namespace crypto_socket {
 						}
 					}
 
-					std::string str_message = m.get_data_as_string();	
+					std::string str_message = m.get_data_as_string();
 
                     if (m.type_msg == NETW_MSG::MSG_CMD_REQU_SHUTDOWN)
                     {
@@ -996,56 +996,41 @@ namespace crypto_socket {
 
 			if (cnt == 0)
 			{
-				if (message.size() == 0) message = "hello";
-
+                // 1 th message required
+				message = "hello";
 				NETW_MSG::MSG m;
 				std::stringstream serr;
 
-				m.make_msg(NETW_MSG::MSG_TEXT, message, getDEFAULT_KEY());
-				this->send_composite(this->m_socketFd, m, getDEFAULT_KEY(), serr);
+				std::string key = get_key();
+				m.make_msg(NETW_MSG::MSG_FIRST, message, key);
+				this->send_composite(this->m_socketFd, m, key, serr);
 
-				std::string s = m.get_data_as_string();
-				add_to_history(false, false, my_user_index, 0, NETW_MSG::MSG_TEXT, s);
-				ui_dirty = true;
-
-				serr << "send MSG_TEXT : " << message << std::endl;
-
+                main_global::log(serr.str());
 				cnt++;
-				main_global::log(serr.str());
 			}
 
 			if (key_valid && rnd_valid && user_valid)
 			{
 				main_client_ui(this);
 			}
-			else if (!user_valid)
+
 			{
+                // MSG_VALIDATION activate MSG_CMD_REQU_USERNAME
+                message = "validation";
+				NETW_MSG::MSG m;
+				std::stringstream serr;
 
-			}
-			else if (key_valid || rnd_valid)
-			{
-				{
-					std::stringstream serr;
-					message = get_input("Enter chat msg");
+				std::string key = get_key();
+				m.make_msg(NETW_MSG::MSG_VALIDATION, message, key);
+				this->send_composite(this->m_socketFd, m, key, serr);
 
-					std::string key = get_key();
+                main_global::log(serr.str());
+				cnt++;
 
-					NETW_MSG::MSG m;
-					m.make_msg(NETW_MSG::MSG_TEXT, message, key);
-
-					serr << "send MSG_TEXT : " << message << std::endl;
-					this->send_composite(this->m_socketFd, m, key, serr);
-
-					std::string s = m.get_data_as_string();
-					add_to_history(false, false, my_user_index, 0, NETW_MSG::MSG_TEXT, s);
-					ui_dirty = true;
-
-					cnt++;
-					main_global::log(serr.str());
-				}
-			}
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
 		}
-	}
+    }
 
 	crypto_client::crypto_client(cryptochat::cfg::cfg_cli cfg, const std::string& cfgfile) :
 		client_node(cfg._port),
@@ -1396,7 +1381,7 @@ namespace crypto_socket {
 								ss << "crypto_decrypt filename_decrypted_data.buffer.size(): " << dout.buffer.size() << std::endl;
                             }
 
-							// un padding 
+							// un padding
 							// MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
 							//uint32_t padding = (uint32_t)dout.buffer.getdata()[dout.buffer.size() - 1];
 							//dout.buffer.remove_last_n_char(padding);
@@ -1661,9 +1646,9 @@ namespace crypto_socket {
                                 ss << "ERROR crypto_encrypt - invalid crypto flag (0)" <<std::endl;
                             }
 
-                            // TEST - TODO 
+                            // TEST - TODO
        //                     NETW_MSG::MSG msgout2;
-       //                     r = crypto_decrypt(	from_user, to_user, 
+       //                     r = crypto_decrypt(	from_user, to_user,
 							//					(char*)msgout.buffer,msgout.buffer_len,
 							//					msgout2);
 							//if (r == false)

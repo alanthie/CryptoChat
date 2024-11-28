@@ -155,9 +155,9 @@ namespace crypto_socket {
 		if (v.size() > 0)
 		{
 			if (send_to_current_user_only)
-				sendMessageOneBySocket(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST);
+				sendMessageOneBySocket(v, t_socket, NETW_MSG::MSG_CMD_INFO_USERLIST,0,0,0);
 			else
-				sendMessageClients(v, NETW_MSG::MSG_CMD_INFO_USERLIST);
+				sendMessageClients(v, NETW_MSG::MSG_CMD_INFO_USERLIST,0,0,0);
         }
     }
 
@@ -309,20 +309,20 @@ namespace crypto_socket {
                         {
                             ok = false;
                         }
-                        if (ok)
-                        {
-                            if (message_buffer[0] != NETW_MSG::MSG_TEXT)
-                                ok = false;
-                        }
-                        if (ok && from_user != 0)
-                        {
-                            ok = false;
-                        }
-                        if (ok && to_user != 0)
-                        {
-                            ok = false;
-                        }
-                        //...
+//                        if (ok)
+//                        {
+//                            if (message_buffer[0] != NETW_MSG::MSG_FIRST)
+//                                ok = false;
+//                        }
+//                        if (ok && from_user != 0)
+//                        {
+//                            ok = false;
+//                        }
+//                        if (ok && to_user != 0)
+//                        {
+//                            ok = false;
+//                        }
+//                        //...
 
                         if (ok == false)
                         {
@@ -421,7 +421,7 @@ namespace crypto_socket {
 						uint32_t from_user		= NETW_MSG::MSG::byteToUInt4((char*)recv_buffer.buffer.getdata()+NETW_MSG::MESSAGE_FROM_START);
                         uint32_t to_user		= NETW_MSG::MSG::byteToUInt4((char*)recv_buffer.buffer.getdata()+NETW_MSG::MESSAGE_TO_START);
 
-						std::cout	<< "recv msg (from:" << new_client->getSocketFd() << ")"
+						std::cout	<< "recv msg (from socket:" << new_client->getSocketFd() << ")"
 									<< " type:" << std::to_string((int)recv_buffer.buffer.getdata()[0])
 									<< " crypto:" << std::to_string((int)original_flag)
 									<< " from_user: " << from_user
@@ -502,7 +502,7 @@ namespace crypto_socket {
 
                                 if (send_to_one == false)
                                 {
-                                    sendMessageAll(m, new_client->getSocketFd());
+                                    sendMessageAll(m, new_client->getSocketFd(),original_flag, from_user, to_user);
                                 }
                                 else
                                 {
@@ -524,7 +524,7 @@ namespace crypto_socket {
 
                                 if (send_to_one == false)
                                 {
-                                    sendMessageAll(m, new_client->getSocketFd());
+                                    sendMessageAll(m, new_client->getSocketFd(),original_flag, from_user, to_user);
                                 }
                                 else
                                 {
@@ -536,20 +536,37 @@ namespace crypto_socket {
 							{
 								bool send_to_one = false;
 
-								if (to_user != 0)
-								{
-									send_to_one = true;
-								}
+                                if (to_user != 0)
+                                {
+                                    send_to_one = true;
+                                }
 
                                 if (send_to_one == false)
                                 {
-                                    sendMessageAll(m, new_client->getSocketFd());
+                                    sendMessageAll(m, new_client->getSocketFd(),original_flag, from_user, to_user);
                                 }
                                 else
                                 {
                                     this->sendMessageOne(m, m.type_msg, original_flag, from_user, to_user);
                                 }
 
+                                // new random encryption key per message
+                                if (new_client->new_pending_random_key == true)
+								{
+                                    handle_new_pending_random_key(new_client);
+								}
+								else if (new_client->new_pending_random_key == false)
+								{
+									if (USE_BASE64_RND_KEY_GENERATOR == false)
+										new_client->pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
+									else
+										new_client->pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
+
+									new_client->new_pending_random_key = true;
+								}
+                            }
+                            else if (m.type_msg == NETW_MSG::MSG_VALIDATION)
+							{
 								if (!new_client->initial_key_validation_done)
 								{
 									this->request_client_initial_key(new_client);
@@ -570,19 +587,6 @@ namespace crypto_socket {
 								else if (!new_client->random_key_validation_done)
 								{
 									this->request_accept_rnd_key(new_client);
-								}
-								else if (new_client->new_pending_random_key == true)
-								{
-                                    handle_new_pending_random_key(new_client);
-								}
-								else if (new_client->new_pending_random_key == false)
-								{
-									if (USE_BASE64_RND_KEY_GENERATOR == false)
-										new_client->pending_random_key = cryptoAL::random::generate_base10_random_string(NETW_MSG::KEY_SIZE);
-									else
-										new_client->pending_random_key = cryptoAL::random::generate_base64_random_string(NETW_MSG::KEY_SIZE);
-
-									new_client->new_pending_random_key = true;
 								}
 							}
 						}
@@ -612,7 +616,8 @@ namespace crypto_socket {
 		}
 	}
 
-	void crypto_server::sendMessageClients(const std::string& t_message, uint8_t msg_type)
+	void crypto_server::sendMessageClients( const std::string& t_message, uint8_t msg_type,
+                                            uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
 		std::lock_guard lck(vclient_mutex);
 
@@ -629,20 +634,22 @@ namespace crypto_socket {
 
 				m.make_msg(msg_type, t_message, key);
 				std::stringstream serr;
-				send_composite(client->getSocketFd(), m, key, serr);
+				send_composite(client->getSocketFd(), m, key, serr,crypto_flag, from_user, to_user);
 				if (DEBUG_INFO)
 					std::cout << serr.str();
 			}
 		}
 	}
 
-	void crypto_server::sendMessageClients(const std::string& t_message)
+	void crypto_server::sendMessageClients(const std::string& t_message,
+                                            uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
-		sendMessageClients(t_message, NETW_MSG::MSG_TEXT);
+		sendMessageClients(t_message, NETW_MSG::MSG_TEXT, crypto_flag, from_user, to_user);
 	}
 
 	// Relay message m
-	void crypto_server::sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type)
+	void crypto_server::sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type,
+                                        uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
 		std::lock_guard lck(vclient_mutex);
 
@@ -660,7 +667,7 @@ namespace crypto_socket {
 					NETW_MSG::MSG m;
 					m.make_msg(msg_type, t_message, key);
 					std::stringstream serr;
-					send_composite(client->getSocketFd(), m, key, serr);
+					send_composite(client->getSocketFd(), m, key, serr, crypto_flag, from_user, to_user);
 					if (DEBUG_INFO)
 						std::cout << serr.str();
 				}
@@ -668,7 +675,8 @@ namespace crypto_socket {
 		}
 	}
 
-	bool crypto_server::sendMessageOne(NETW_MSG::MSG& m, uint8_t msg_type, uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
+	bool crypto_server::sendMessageOne(NETW_MSG::MSG& m, uint8_t msg_type,
+                                        uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
 	{
 		bool r = false;
 		std::lock_guard lck(vclient_mutex);
@@ -697,7 +705,8 @@ namespace crypto_socket {
 		return r;
 	}
 
-	bool crypto_server::sendMessageOneBySocket(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
+	bool crypto_server::sendMessageOneBySocket(const std::string& t_message, const int& t_socket, uint8_t msg_type,
+                                                uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
 	{
 		bool r = false;
 		std::lock_guard lck(vclient_mutex);
@@ -733,7 +742,8 @@ namespace crypto_socket {
 		return r;
 	}
 
-	void crypto_server::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket)
+	void crypto_server::sendMessageAll(NETW_MSG::MSG& m, const int& t_socket,
+                                        uint8_t crypto_flag, uint8_t in_from_user, uint8_t in_to_user)
 	{
 		std::lock_guard lck(vclient_mutex);
 
@@ -749,7 +759,7 @@ namespace crypto_socket {
 					else key = client->random_key;
 
 					std::stringstream serr;
-					send_composite(client->getSocketFd(), m, key, serr);
+					send_composite(client->getSocketFd(), m, key, serr, crypto_flag, in_from_user, in_to_user);
 					if (DEBUG_INFO)
                         std::cout << serr.str();
 				}
@@ -759,9 +769,10 @@ namespace crypto_socket {
 	}
 
 	// NETW_MSG::MSG_TEXT
-	void crypto_server::sendMessageAll(const std::string& t_message, const int& t_socket)
+	void crypto_server::sendMessageAll( const std::string& t_message, const int& t_socket,
+                                        uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
 	{
-		sendMessageAll(t_message, t_socket, NETW_MSG::MSG_TEXT);
+		sendMessageAll(t_message, t_socket, NETW_MSG::MSG_TEXT, crypto_flag, from_user, to_user);
 	}
 
 	void crypto_server::close_client(client_node* client,bool force)
@@ -871,7 +882,7 @@ namespace crypto_socket {
 	void crypto_server::closeServer()
 	{
         std::cout << "closeServer" << std::endl;
-		sendMessageClients("Server closed.");
+		sendMessageClients("Server closed.",0,0,0);
 
 		this->close_all_clients();
 		this->closeSocket();

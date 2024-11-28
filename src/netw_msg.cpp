@@ -205,6 +205,8 @@ namespace NETW_MSG
 		memcpy(buffer + MESSAGE_CRC_START, 			msgin.buffer + MESSAGE_CRC_START, 4);
 		memcpy(buffer + MESSAGE_MISC_START, 		msgin.buffer + MESSAGE_MISC_START, 2);
         memcpy(buffer + MESSAGE_MISC_END,           msgin.buffer + MESSAGE_MISC_END, 64);
+        memcpy(buffer + MESSAGE_FROM_START, 		msgin.buffer + MESSAGE_FROM_START, 4);
+        memcpy(buffer + MESSAGE_TO_START, 		    msgin.buffer + MESSAGE_TO_START, 4);
         for (size_t i = 0; i < b64_decode_vec.size(); i++) buffer[i + MESSAGE_HEADER] = b64_decode_vec[i];
 
         crc = MSG::byteToUInt4((char*)buffer + MESSAGE_CRC_START);

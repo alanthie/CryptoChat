@@ -61,15 +61,15 @@ namespace crypto_socket
 		bool check_salsa_encrypt(std::string& key);
 
 		// message sending
-		void sendMessageClients(const std::string& t_message);
-		void sendMessageClients(const std::string& t_message, uint8_t msg_type);
+		void sendMessageClients(const std::string& t_message, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
+		void sendMessageClients(const std::string& t_message, uint8_t msg_type,uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
 
-		void sendMessageAll(const std::string& t_message, const int& t_socket);
-		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type);
-		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket);
+		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
+		void sendMessageAll(const std::string& t_message, const int& t_socket, uint8_t msg_type,uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
+		void sendMessageAll(NETW_MSG::MSG& msg, const int& t_socket,uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
 
-		bool sendMessageOneBySocket(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
-        bool sendMessageOne(NETW_MSG::MSG& msg, uint8_t msg_type, uint8_t crypto_flag = 0, uint8_t from_user = 0, uint8_t to_user = 0);
+		bool sendMessageOneBySocket(const std::string& t_message, const int& t_socket, uint8_t msg_type, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
+        bool sendMessageOne(NETW_MSG::MSG& msg, uint8_t msg_type, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
 
 	public:
 		crypto_server(cryptochat::cfg::cfg_srv cfg);
