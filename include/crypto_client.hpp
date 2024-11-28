@@ -87,9 +87,11 @@ namespace crypto_socket {
 		size_t history_cnt = 0;
 		std::vector<NETW_MSG::netw_msg> vhistory;
 
-		std::atomic<uint32_t> recv_while_count1 = 0;
-		std::atomic<uint32_t> recv_while_count2 = 0;
-		std::atomic<uint32_t> recv_while_count3 = 0;
+		std::atomic<bool> cryto_on = false;
+
+		//std::atomic<uint32_t> recv_while_count1 = 0;
+		//std::atomic<uint32_t> recv_while_count2 = 0;
+		//std::atomic<uint32_t> recv_while_count3 = 0;
 		std::atomic<size_t> cli_byte_recv = 0;
 
 	public:
@@ -125,10 +127,10 @@ namespace crypto_socket {
 			return vhistory;
 		}
 
-		void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename = {}, std::string filename_key = {}, bool is_for_display = true)
+		void add_to_history(bool is_receive, bool crypto, uint32_t from_user, uint32_t to_user, uint8_t msg_type, std::string& msg, std::string filename = {}, std::string filename_key = {}, bool is_for_display = true)
 		{
 			std::lock_guard l(_vhistory_mutex);// recursive mutex deadlock to watch for
-			vhistory.push_back({ is_receive, msg_type, msg, filename, filename_key, is_for_display, {} });
+			vhistory.push_back({ is_receive, crypto, from_user, to_user, msg_type, msg, filename, filename_key, is_for_display, {} });
 			history_cnt++;
 			while (vhistory.size() > HISTORY_SIZE)
 			{

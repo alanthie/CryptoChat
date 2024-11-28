@@ -850,6 +850,10 @@ public:
 					if (VERBOSE_DEBUG)
 					{
 						std::cout << "key pos: " << pos << ", key size: " << uk.key_size << ", databuffer containing key - size: " << d.buffer.size() << std::endl;
+
+                        // crash
+                        //key pos : 0, key size : 2816, databuffer containing key - size : 0
+                        //rotating(padding) key : 2816
 					}
 
 					if (pos >= d.buffer.size() - key_size)
@@ -867,7 +871,8 @@ public:
 						int32_t databuffer_size = (int32_t)d.buffer.size();
 						if (databuffer_size < key_size)
 						{
-							b->write(&d.buffer.getdata()[0], databuffer_size, 0);
+                            if (databuffer_size > 0)
+							    b->write(&d.buffer.getdata()[0], databuffer_size, 0);
 
 							// PADDING...
 							if (VERBOSE_DEBUG)
@@ -878,9 +883,18 @@ public:
 							char c[1]; uint32_t rotate_pos;
 							for( int32_t j = databuffer_size; j< key_size; j++)
 							{
-								rotate_pos = j % databuffer_size;
-								c[0] = d.buffer.getdata()[rotate_pos];
-								b->write(&c[0], 1, -1);
+                                if (databuffer_size > 0)
+                                {
+                                    rotate_pos = j % databuffer_size;
+                                    c[0] = d.buffer.getdata()[rotate_pos];
+                                    b->write(&c[0], 1, -1);
+                                }
+                                else
+                                {
+                                    // ???
+                                    c[0] = 'A';
+                                    b->write(&c[0], 1, -1);
+                                }
 							}
 						}
 						else

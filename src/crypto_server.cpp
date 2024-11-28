@@ -276,7 +276,19 @@ namespace crypto_socket {
 							if (len == 0)
 								std::cout << "WARNING recv() - socket closed"  << std::endl;
 							else
-								std::cout << "WARNING recv() - socket error" << std::endl;
+							{
+#ifdef _WIN32
+								if (len == SOCKET_ERROR)
+								{
+									std::cout << "ERROR - recv() failed with error: " << WSAGetLastError();
+								}
+#else
+								if (len == -1)
+								{
+									std::cout << "ERROR - recv() failed with error: " << errno << " " << strerror(errno) << "\n";
+								}
+#endif
+							}
 							msg_ok = false;
 							break;
 						}
@@ -367,8 +379,20 @@ namespace crypto_socket {
                             {
                                 if (len == 0)
                                     std::cout << "WARNING recv() - socket closed" << std::endl;
-                                else
-                                    std::cout << "WARNING recv() - socket error" << std::endl;
+								else
+								{
+#ifdef _WIN32
+									if (len == SOCKET_ERROR)
+									{
+										std::cout << "ERROR - recv() failed with error: " << WSAGetLastError();
+									}
+#else
+									if (len == -1)
+									{
+										std::cout << "ERROR - recv() failed with error: " << errno << " " << strerror(errno) << "\n";
+									}
+#endif
+								}
                             }
 							msg_ok = false;
 							break;
@@ -965,6 +989,13 @@ namespace crypto_socket {
 		{
 			std::cerr << "WARNING map_machineid can not be read " << this->_cfg._machineid_filename;
 			return false;
+		}
+		for (auto& e : map_machineid_to_user_index)
+		{
+			for (auto& v : e.second)
+			{
+				v.status = 0; // no active
+			}
 		}
 
 		std::cout << "next_user_index: " << next_user_index << std::endl;

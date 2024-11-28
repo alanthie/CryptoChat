@@ -42,6 +42,9 @@ const std::string DEFAULT_USERNAME = "user";
 struct netw_msg
 {
 	bool is_receive;
+	bool crypto_on;
+	uint32_t from_user;
+	uint32_t to_user;
 	uint8_t msg_type;
 	std::string msg;        // ONE LINE
 	std::string filename;	// MSG_FILE

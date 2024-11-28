@@ -88,9 +88,9 @@ struct ClientTerm
         return {};
     }
 
-    void add_to_history(bool is_receive, uint8_t msg_type, std::string& msg, std::string filename, std::string filename_key, bool is_for_display)
+    void add_to_history(bool is_receive, bool crypto, uint32_t from_user, uint32_t to_user, uint8_t msg_type, std::string& msg, std::string filename, std::string filename_key, bool is_for_display)
     {
-        netw_client->add_to_history(is_receive, msg_type, msg, filename, filename_key, is_for_display);
+        netw_client->add_to_history(is_receive, crypto, from_user, to_user, msg_type, msg, filename, filename_key, is_for_display);
     }
 
     void draw_edit_msg(std::string& ab)
@@ -608,7 +608,27 @@ struct ClientTerm
                         {
                             work.append(std::to_string(histo_cnt - vh.size() + i + 1));
                             work.append(" ");
-                            work.append(vh[i].is_receive ? "recv      " : "send ");
+
+                            if (vh[i].is_receive)
+                            {
+                                std::string user;
+                                if (netw_client->map_user_index_to_user.contains(vh[i].from_user))
+                                    user = netw_client->map_user_index_to_user[vh[i].from_user].usr;
+                                if (user.empty())
+                                    work.append("recv (from: " + std::to_string(vh[i].from_user) + ")" + "      ");
+                                else
+                                    work.append("recv (from: " + std::to_string(vh[i].from_user) + ")[" + user + "]      ");
+                            }
+                            else
+                            {
+                                std::string user;
+                                if (netw_client->map_user_index_to_user.contains(vh[i].to_user))
+                                    user = netw_client->map_user_index_to_user[vh[i].to_user].usr;
+                                if (user.empty())
+                                    work.append("send (to: " + std::to_string(vh[i].to_user) + ")");
+                                else
+                                   work.append("send (to: " + std::to_string(vh[i].to_user) + ")[" + user + "]");
+                            }
                             work.append(": ");
 
                             std::string sl;
@@ -663,14 +683,30 @@ struct ClientTerm
                                     }
                                 }
 
+                                std::string ss;
+                                if (vh[i].is_receive == true)
+                                    ss += color(fg::green) + color(bg::reset);
+                                else
+                                    ss += color(fg::yellow) + color(bg::reset);
+
                                 int ipercent = (int)(100 * percent);
-                                std::string ss = "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%] size=" + std::to_string(total_size) + "";
+                                ss += "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%] size=" + std::to_string(total_size) + "";
                                 ss += " Lines=" + std::to_string(vh[i].vmsg_extra.size());
+                                ss += color(fg::reset) + color(bg::reset);
                                 work.append(ss); // ncols ...
                             }
                             else
+                            {
+                                if (vh[i].is_receive == true)
+                                    work.append(color(fg::green) + color(bg::reset));
+                                else
+                                    work.append(color(fg::yellow) + color(bg::reset));
+
                                 work.append(sl); // ncols ...
+                                work.append(color(fg::reset) + color(bg::reset));
+                            }
                         }
+
                         vallrows.push_back(work);
                         vallrows_is_file.push_back(is_file_line);
                         vallrows_filename_key.push_back(filename_key);
@@ -688,10 +724,18 @@ struct ClientTerm
                                 {
                                     work.append(std::to_string(histo_cnt - vh.size() + i + 1));
                                     work.append(" ");
+
+                                    if (vh[i].is_receive == true)
+                                        work.append(color(fg::green) + color(bg::reset));
+                                    else
+                                        work.append(color(fg::yellow) + color(bg::reset));
+
                                     work.append(vh[i].is_receive ? "< " : "> ");
                                     work.append(": ");
                                     std::string sl = get_printable_string(vh[i].vmsg_extra[j]);
                                     work.append(sl); // ncols ...
+                                    work.append(color(fg::reset) + color(bg::reset));
+
                                     vallrows.push_back(work);
                                     vallrows_is_file.push_back(is_file_line);
                                     vallrows_is_send.push_back(is_file_send);
@@ -703,10 +747,18 @@ struct ClientTerm
                                 {
                                     work.append(std::to_string(histo_cnt - vh.size() + i + 1));
                                     work.append(" ");
+
+                                    if (vh[i].is_receive == true)
+                                        work.append(color(fg::green) + color(bg::reset));
+                                    else
+                                        work.append(color(fg::yellow) + color(bg::reset));
+
                                     work.append(vh[i].is_receive ? "< " : "> ");
                                     work.append(": ");
                                     std::string sl = "..................";
                                     work.append(sl); // ncols ...
+                                    work.append(color(fg::reset) + color(bg::reset));
+
                                     vallrows.push_back(work);
                                     vallrows_is_file.push_back(is_file_line);
                                     vallrows_is_send.push_back(is_file_send);
@@ -792,19 +844,27 @@ struct ClientTerm
         ab.append(Term::move_cursor(1, 1));
 
         // ...
+        status_msg.clear();
+
         if (_mode==0)
         {
+            status_msg = color(fg::green) + color(bg::reset);
+            if (netw_client->cryto_on)
+                status_msg += color(fg::green) + color(bg::reset) + color(style::bold) + "[Extra Cryto ON (F2)]" + color(style::reset);
+            else
+                status_msg += color(fg::yellow) + color(bg::reset) + color(style::bold) + "[Extra Cryto OFF (F2)]" + color(style::reset);
+            status_msg += color(bg::reset) + color(fg::reset);
+
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg = "Chating with ALL ";
+                status_msg += "[Chatting with ALL]";
             else
             {
-                status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
+                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + "]";
                 for (auto&e : netw_client->map_user_index_to_user)
                 {
                     if (e.first == netw_client->chat_with_other_user_index)
                     {
                         status_msg += "[username=" + e.second.usr  + "]";
-                        status_msg += "[hostname=" + e.second.host + "]";
                         break;
                     }
                 }
@@ -815,17 +875,17 @@ struct ClientTerm
         else
         {
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg = "Chating with ALL ";
+                status_msg += "Chatting with ALL ";
             else
-                status_msg = "Chating with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
+                status_msg += "Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
             status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
             status_msg += "[my username=" + netw_client->username + "]";
         }
 
-        status_msg += " " + std::to_string(netw_client->recv_while_count1);
-        status_msg += " " + std::to_string(netw_client->recv_while_count2);
-        status_msg += " " + std::to_string(netw_client->recv_while_count3);
-        status_msg += " " + std::to_string(netw_client->cli_byte_recv);
+        //status_msg += " " + std::to_string(netw_client->recv_while_count1);
+        //status_msg += " " + std::to_string(netw_client->recv_while_count2);
+        //status_msg += " " + std::to_string(netw_client->recv_while_count3);
+        //status_msg += " " + std::to_string(netw_client->cli_byte_recv);
 
         //status_msg += "[rows=" + std::to_string(nrows) + "]";
         //status_msg += "[cols=" + std::to_string(ncols) + "]";
@@ -943,7 +1003,7 @@ struct ClientTerm
 				}
                 //c = term.read_key();
 
-                if (c == Key::F1)
+                if (c == Key::F1) // move to next view
                 {
                     _mode++;
                     if (_mode > 3) _mode = 0;
@@ -952,7 +1012,12 @@ struct ClientTerm
                     free(buf);
                     return NULL;
                 }
-                else if (c == Key::F3) // TEST
+                else if (c == Key::F2) // toggle crypto
+                {
+                    netw_client->cryto_on = !netw_client->cryto_on;
+                    netw_client->set_ui_dirty();
+                }
+                else if (c == Key::F10) // TEST shutdown
                 {
                     set_edit_msg("");
                     free(buf);
@@ -1111,18 +1176,19 @@ struct ClientTerm
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_FILE, message, key);
 
-                    uint8_t crypto_flag = 1;
-                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
+                    bool crypto_on = (ct.netw_client->cryto_on == true) ? true : false;
+                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_on = false;
 
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
-                                                                    crypto_flag, 
+                                                                    crypto_on,
                                                                     ct.netw_client->my_user_index,
                                                                     ct.netw_client->chat_with_other_user_index);
 
                     std::stringstream ss;
                     if (ret != -1)
                     {
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
+                        ct.netw_client->add_to_history(false, crypto_on, ct.netw_client->my_user_index, ct.netw_client->chat_with_other_user_index,
+                                                        NETW_MSG::MSG_FILE, message, filename, filename_key, is_txtfile_send_cmd);
                         ct.netw_client->set_ui_dirty();
 
                         ss << "send MSG_FILE : " << filename << std::endl;
@@ -1144,18 +1210,19 @@ struct ClientTerm
                     NETW_MSG::MSG m;
                     m.make_msg(NETW_MSG::MSG_TEXT, message, key);
 
-                    uint8_t crypto_flag = 1;
-                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_flag = 0;
+                    bool crypto_on = (ct.netw_client->cryto_on == true) ? true : false;
+                    if (ct.netw_client->chat_with_other_user_index == 0) crypto_on = false;
 
                     int ret = ct.netw_client->send_message_buffer(  ct.netw_client->get_socket(), m, key,
-                                                                    crypto_flag, 
+                                                                    crypto_on,
                                                                     ct.netw_client->my_user_index,
                                                                     ct.netw_client->chat_with_other_user_index);
 
                     std::stringstream ss;
                     if (ret != -1)
                     {
-                        ct.netw_client->add_to_history(false, NETW_MSG::MSG_TEXT, message);
+                        ct.netw_client->add_to_history( false, crypto_on, ct.netw_client->my_user_index, ct.netw_client->chat_with_other_user_index,
+                                                        NETW_MSG::MSG_TEXT, message);
                         ct.netw_client->set_ui_dirty();
 
                         ss << "send MSG_TEXT : " << message << std::endl;

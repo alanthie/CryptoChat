@@ -961,14 +961,24 @@ public:
 
 						Buffer* b = vurlkey[i].get_buffer(); // allocate
 						b->increase_size(perfect_key_size);
-						b->write(&d.buffer.getdata()[0], databuffer_size, 0);
+                        if (databuffer_size > 0)
+						    b->write(&d.buffer.getdata()[0], databuffer_size, 0);
 
 						char c[1]; uint32_t rotate_pos;
 						for( uint32_t j = databuffer_size; j< perfect_key_size; j++) // padding vurlkey[i].get_buffer() to perfect_key_size
 						{
-							rotate_pos = j % databuffer_size;
-							c[0] =d.buffer.getdata()[rotate_pos];
-							b->write(&c[0], 1, -1);
+                            if (databuffer_size > 0)
+                            {
+                                rotate_pos = j % databuffer_size;
+                                c[0] = d.buffer.getdata()[rotate_pos];
+                                b->write(&c[0], 1, -1);
+                            }
+                            else
+                            {
+                                // ???
+                                c[0] = 'A';
+                                b->write(&c[0], 1, -1);
+                            }
 						}
 
 						if (VERBOSE_DEBUG)
