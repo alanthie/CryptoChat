@@ -62,10 +62,17 @@ namespace cryptochat
 
 					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
 					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
+					std::cout << "default_new_user_cmd : " << _cfg.default_new_user_cmd << std::endl;
 					std::cout << "recv_color_bg : " << std::to_string(static_cast<int>(_cfg.recv_color_bg)) << std::endl;
 					std::cout << "recv_color_fg : " << std::to_string(static_cast<int>(_cfg.recv_color_fg))  << std::endl;
 					std::cout << "send_color_bg : " << std::to_string(static_cast<int>(_cfg.send_color_bg))  << std::endl;
 					std::cout << "send_color_fg : " << std::to_string(static_cast<int>(_cfg.send_color_fg))  << std::endl;
+
+                    std::cout <<std::endl;
+
+                    std::string entry;
+					std::cout << "Press enter to continue" << std::endl;
+					std::getline(std::cin, entry);
 				}
 				else
 				{
@@ -89,6 +96,9 @@ namespace cryptochat
                     std::cout << "default_bin_filename (Default " << _cfg.default_bin_filename << "): ";
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg.default_txt_filename = entry;
 
+					std::cout << "default_new_user_cmd (Default " << _cfg.default_new_user_cmd << "): ";
+					std::getline(std::cin, entry); if (!entry.empty()) _cfg.default_new_user_cmd = entry;
+
 					// TODO...
 #ifdef _WIN32
 					_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
@@ -110,6 +120,7 @@ namespace cryptochat
 
 					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
 					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
+					std::cout << "default_new_user_cmd : " << _cfg.default_new_user_cmd << std::endl;
 					std::cout << "recv_color_bg : " << std::to_string(static_cast<int>(_cfg.recv_color_bg)) << std::endl;
 					std::cout << "recv_color_fg : " << std::to_string(static_cast<int>(_cfg.recv_color_fg))  << std::endl;
 					std::cout << "send_color_bg : " << std::to_string(static_cast<int>(_cfg.send_color_bg))  << std::endl;

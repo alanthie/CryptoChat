@@ -30,6 +30,7 @@ namespace cryptochat
 
             std::string default_txt_filename = "msg.txt";
             std::string default_bin_filename = "bin.dat";
+            std::string default_new_user_cmd = "";
             Term::bg recv_color_bg = Term::bg::reset;
             Term::fg recv_color_fg = Term::fg::green;
             Term::bg send_color_bg = Term::bg::reset;
@@ -70,6 +71,7 @@ namespace cryptochat
 
                 default_txt_filename = "msg.txt";
                 default_bin_filename = "bin.dat";
+                default_new_user_cmd = "";
                 recv_color_bg = Term::bg::reset;
                 recv_color_fg = Term::fg::green;
                 send_color_bg = Term::bg::reset;
@@ -169,6 +171,7 @@ namespace cryptochat
 					<< bits(my.t.map_challenges)
 					<< bits(my.t.default_txt_filename)
 					<< bits(my.t.default_bin_filename)
+					<< bits(my.t.default_new_user_cmd)
 					<< bits(my.t.recv_color_bg)
 					<< bits(my.t.recv_color_fg)
 					<< bits(my.t.send_color_bg)
@@ -184,6 +187,7 @@ namespace cryptochat
 					>> bits(my.t.map_challenges)
 					>> bits(my.t.default_txt_filename)
 					>> bits(my.t.default_bin_filename)
+					>> bits(my.t.default_new_user_cmd)
 					>> bits(my.t.recv_color_bg)
 					>> bits(my.t.recv_color_fg)
 					>> bits(my.t.send_color_bg)

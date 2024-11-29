@@ -757,6 +757,8 @@ namespace crypto_socket {
 						std::string in_usr;
 
 						int cnt = 0;
+						bool new_user = false;
+						uint32_t new_user_index = 0;
 						for (size_t i = 0; i < tokens.size(); i++)
 						{
 							if (cnt == 0)
@@ -769,11 +771,23 @@ namespace crypto_socket {
 							if (cnt == 2)
 							{
 								if (user_index > 0 && in_host.size() > 0 && in_usr.size() > 0)
+								{
+                                    if (user_index != my_user_index)
+                                    if (map_user_index_to_user.contains(user_index) == false)
+                                    {
+                                        new_user_index = user_index;
+                                        new_user = true;
+                                    }
 									handle_info_client(user_index, in_host, in_usr);
+                                }
 							}
 							cnt++;
 							if (cnt >= 3) cnt = 0;
 						}
+                        if (new_user && _cfg_cli.default_new_user_cmd.empty() == false)
+                            std::system(_cfg_cli.default_new_user_cmd.c_str());
+                        //std::system("mpg123 /home/allaptop/dev/toot/quothello-therequot-158832.mp3 -q");
+
 
 					}
                     else if (m.type_msg == NETW_MSG::MSG_TEXT)
