@@ -15,7 +15,7 @@ RESET:
 Peut toujours tout effacer completement et recommencer:
 effacer le folder cryptochat
 effacer le fichier machineid.dat 
-effacer les fichiers cfg.cfg
+effacer les fichiers cfg.txt
 
 Le 1er nombre premier est 2
 Le 1000 eme nombre premier est 7919
