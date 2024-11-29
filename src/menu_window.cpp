@@ -618,22 +618,32 @@ struct ClientTerm
                             if (vh[i].is_receive)
                             {
                                 std::string user;
+                                std::string fromuser_nonzero;
+                                fromuser_nonzero = std::to_string(vh[i].from_user);
+                                if (vh[i].from_user == 0) fromuser_nonzero = "srv";
+
                                 if (netw_client->map_user_index_to_user.contains(vh[i].from_user))
                                     user = netw_client->map_user_index_to_user[vh[i].from_user].usr;
+
                                 if (user.empty())
-                                    work.append("recv (from: " + std::to_string(vh[i].from_user) + ")" + "      ");
+                                    work.append("recv (from: " + fromuser_nonzero + ")" + "      ");
                                 else
-                                    work.append("recv (from: " + std::to_string(vh[i].from_user) + ")[" + user + "]      ");
+                                    work.append("recv (from: " + fromuser_nonzero + ")[" + user + "]      ");
                             }
                             else
                             {
                                 std::string user;
+                                std::string to_user_nonzero;
+                                to_user_nonzero = std::to_string(vh[i].to_user);
+                                if (vh[i].to_user == 0) to_user_nonzero = "all";
+
                                 if (netw_client->map_user_index_to_user.contains(vh[i].to_user))
                                     user = netw_client->map_user_index_to_user[vh[i].to_user].usr;
+
                                 if (user.empty())
-                                    work.append("send (to: " + std::to_string(vh[i].to_user) + ")");
+                                    work.append("send (to: " + to_user_nonzero + ")");
                                 else
-                                   work.append("send (to: " + std::to_string(vh[i].to_user) + ")[" + user + "]");
+                                   work.append("send (to: " + to_user_nonzero + ")[" + user + "]");
                             }
                             work.append(": ");
 
@@ -864,30 +874,32 @@ struct ClientTerm
             status_msg += color(bg::reset) + color(fg::reset);
 
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg += "[Chatting with ALL] - ";
+                status_msg += "[Chatting with ALL]";
             else
             {
-                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + "]";
+                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + " (F3)]";
                 for (auto&e : netw_client->map_user_index_to_user)
                 {
                     if (e.first == netw_client->chat_with_other_user_index)
                     {
-                        status_msg += "[username=" + e.second.usr  + "]";
+                        status_msg += "[username= " + e.second.usr  + "]";
                         break;
                     }
                 }
             }
-            status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
-            status_msg += "[my username=" + netw_client->username + "]";
+            status_msg += " - ";
+            status_msg += "[my index= " + std::to_string(netw_client->my_user_index) + "]";
+            status_msg += "[my username= " + netw_client->username + "]";
         }
         else
         {
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg += "[Chatting with ALL] - ";
+                status_msg += "[Chatting with ALL]";
             else
-                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + "[ - ";
-            status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
-            status_msg += "[my username=" + netw_client->username + "]";
+                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + " (F3)]";
+            status_msg += " - ";
+            status_msg += "[my index= " + std::to_string(netw_client->my_user_index) + "]";
+            status_msg += "[my username= " + netw_client->username + "]";
         }
 
 
@@ -1031,6 +1043,10 @@ struct ClientTerm
                 {
                     netw_client->cryto_on = !netw_client->cryto_on;
                     netw_client->set_ui_dirty();
+                }
+                else if (c == Key::F3) // chat with all
+                {
+                    netw_client->chat_with_other_user_index = 0;
                 }
                 else if (c == CTRL_KEY('q')) // shutdown
                 {
@@ -1314,13 +1330,13 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
 
             char* e ;
             if (ct->_mode == 0) // chat
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_file or *>>/[[bin_file or *])", NULL);
+                e = ct->prompt_msg(term, "Chat View Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_file or *>>/[[bin_file or *])", NULL);
             else if (ct->_mode == 1) // file
-                e = ct->prompt_msg(term, "Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
+                e = ct->prompt_msg(term, "File View Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
             else if (ct->_mode == 3) // user
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
+                e = ct->prompt_msg(term, "User View Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
             else // log
-                e = ct->prompt_msg(term, "Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
+                e = ct->prompt_msg(term, "Log View Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN)", NULL);
 
             ct->process_prompt(term, e);
 
