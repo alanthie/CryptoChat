@@ -864,7 +864,7 @@ struct ClientTerm
             status_msg += color(bg::reset) + color(fg::reset);
 
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg += "[Chatting with ALL]";
+                status_msg += "[Chatting with ALL] - ";
             else
             {
                 status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + "]";
@@ -883,9 +883,9 @@ struct ClientTerm
         else
         {
             if (netw_client->chat_with_other_user_index == 0)
-                status_msg += "Chatting with ALL ";
+                status_msg += "[Chatting with ALL] - ";
             else
-                status_msg += "Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + " ";
+                status_msg += "[Chatting with index: " + std::to_string(netw_client->chat_with_other_user_index) + "[ - ";
             status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
             status_msg += "[my username=" + netw_client->username + "]";
         }
@@ -927,7 +927,11 @@ struct ClientTerm
                 ss.clear();
 
                 set_edit_msg("");
-                free(buf);
+                if (buf!=NULL)
+                {
+                    free(buf);
+                    buf=NULL;
+                }
                 return NULL;
             }
 
@@ -957,7 +961,11 @@ struct ClientTerm
 						ss.clear();
 
                         set_edit_msg("");
-                        free(buf);
+                        if (buf!=NULL)
+                        {
+                            free(buf);
+                            buf=NULL;
+                        }
                         return NULL;
                     }
 
@@ -1011,7 +1019,12 @@ struct ClientTerm
                     if (_mode > 3) _mode = 0;
 
                     set_edit_msg("");
-                    free(buf);
+                    if (buf!=NULL)
+                    {
+                        free(buf);
+                        buf=NULL;
+                    }
+
                     return NULL;
                 }
                 else if (c == Key::F2) // toggle crypto
@@ -1019,13 +1032,32 @@ struct ClientTerm
                     netw_client->cryto_on = !netw_client->cryto_on;
                     netw_client->set_ui_dirty();
                 }
-                else if (c == Key::F10) // TEST shutdown
+                else if (c == CTRL_KEY('q')) // TEST shutdown
                 {
                     set_edit_msg("");
-                    free(buf);
+                    if (buf!=NULL)
+                    {
+                        free(buf);
+                        buf=NULL;
+                    }
 
-                    main_global::shutdown();
-                    return NULL;
+                    cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
+                    //main_global::shutdown(); // thread will join on itself = bug
+
+                    std::string key;
+                    key = netw_client->get_key();
+
+                    NETW_MSG::MSG m;
+                    m.make_msg(NETW_MSG::MSG_CMD_RESP_SHUTDOWN, "shutdown", key);
+
+                    bool crypto_on = (netw_client->cryto_on == true) ? true : false;
+                    if (netw_client->chat_with_other_user_index == 0) crypto_on = false;
+
+                    int ret = netw_client->send_message_buffer(  netw_client->get_socket(), m, key,
+                                                                    crypto_on,
+                                                                    netw_client->my_user_index,
+                                                                    netw_client->chat_with_other_user_index);
+
                 }
                 else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {
@@ -1040,7 +1072,12 @@ struct ClientTerm
                     else
                     {
                         set_edit_msg("");
-                        free(buf);
+                        if (buf!=NULL)
+                        {
+                            free(buf);
+                            buf=NULL;
+                        }
+
                         return NULL;
                     }
                 }
@@ -1253,7 +1290,11 @@ struct ClientTerm
                 }
             }
 
-            free(e);
+            if (e!=NULL)
+            {
+                free(e);
+                e=NULL;
+            }
         }
     }
 };

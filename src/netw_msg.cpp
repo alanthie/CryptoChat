@@ -78,6 +78,7 @@ namespace NETW_MSG
         char cpadding = (char)(uint8_t)padding;
 
         buffer_len = len_data + MESSAGE_HEADER + padding;
+        if (buffer != nullptr) delete buffer;
         buffer = new uint8_t[buffer_len]{ 0 };
         type_msg = m.buffer[0];
         memcpy(buffer, m.buffer, m.buffer_len);
@@ -283,6 +284,7 @@ namespace NETW_MSG
         type_msg = t;
 
         buffer_len = len_data + MESSAGE_HEADER;
+        if (buffer != nullptr) delete buffer;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
@@ -307,6 +309,7 @@ namespace NETW_MSG
         if (buffer_in == nullptr) return;
         if (len == 0) return;
 
+        if (buffer != nullptr) delete buffer;
         buffer = new uint8_t[len]{ 0 };
         type_msg = buffer_in[0];
         buffer_len = (uint32_t)len;
@@ -446,7 +449,8 @@ namespace NETW_MSG
 
     MSG::~MSG()
     {
-        delete []buffer;
+        if (buffer != nullptr)
+            delete []buffer;
         buffer = nullptr;
     }
 
