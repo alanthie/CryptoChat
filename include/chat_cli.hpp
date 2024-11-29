@@ -62,10 +62,10 @@ namespace cryptochat
 
 					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
 					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
-//					std::cout << "recv_color_bg : " << _cfg.recv_color_bg << std::endl;
-//					std::cout << "recv_color_fg : " << _cfg.recv_color_fg << std::endl;
-//					std::cout << "send_color_bg : " << _cfg.send_color_bg << std::endl;
-//					std::cout << "send_color_fg : " << _cfg.send_color_fg << std::endl;
+					std::cout << "recv_color_bg : " << std::to_string(static_cast<int>(_cfg.recv_color_bg)) << std::endl;
+					std::cout << "recv_color_fg : " << std::to_string(static_cast<int>(_cfg.recv_color_fg))  << std::endl;
+					std::cout << "send_color_bg : " << std::to_string(static_cast<int>(_cfg.send_color_bg))  << std::endl;
+					std::cout << "send_color_fg : " << std::to_string(static_cast<int>(_cfg.send_color_fg))  << std::endl;
 				}
 				else
 				{
@@ -99,6 +99,10 @@ namespace cryptochat
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._repo_root_path = entry;
 					// validate...
 
+					std::cout << std::endl;
+					std::cout << "------------------------- " << std::endl;
+					std::cout << "SUMMARY " << std::endl;
+					std::cout << "------------------------- " << std::endl;
 					std::cout << "Server : " << _cfg._server << std::endl;
 					std::cout << "Port : " << _cfg._port << std::endl;
 					std::cout << "Username : " << _cfg._username << std::endl;
@@ -106,10 +110,14 @@ namespace cryptochat
 
 					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
 					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
-//					std::cout << "recv_color_bg : " << _cfg.recv_color_bg << std::endl;
-//					std::cout << "recv_color_fg : " << _cfg.recv_color_fg << std::endl;
-//					std::cout << "send_color_bg : " << _cfg.send_color_bg << std::endl;
-//					std::cout << "send_color_fg : " << _cfg.send_color_fg << std::endl;
+					std::cout << "recv_color_bg : " << std::to_string(static_cast<int>(_cfg.recv_color_bg)) << std::endl;
+					std::cout << "recv_color_fg : " << std::to_string(static_cast<int>(_cfg.recv_color_fg))  << std::endl;
+					std::cout << "send_color_bg : " << std::to_string(static_cast<int>(_cfg.send_color_bg))  << std::endl;
+					std::cout << "send_color_fg : " << std::to_string(static_cast<int>(_cfg.send_color_fg)) << std::endl;
+
+					std::cout <<std::endl;
+					std::cout << "Press enter to continue" << std::endl;
+					std::getline(std::cin, entry);
 
 					bool r = save_cfg(serr);
 				}

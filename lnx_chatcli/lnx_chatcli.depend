@@ -40,7 +40,7 @@
 	<stdio.h>
 	<ctype.h>
 
-1732840569 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
+1732842838 source:/home/allaptop/dev/CryptoChat/src/menu_window.cpp
 	"../include/crypto_const.hpp"
 	"../include/terminal.h"
 	"../include/crypto_client.hpp"
@@ -511,7 +511,7 @@
 	<string>
 	<vector>
 
-1732839873 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
+1732843745 /home/allaptop/dev/CryptoChat/include/chat_cli.hpp
 	<iostream>
 	<limits>
 	<csignal>
@@ -603,7 +603,7 @@
 	"../include/string_util.hpp"
 	"../include/challenge.hpp"
 
-1731908887 /home/allaptop/dev/CryptoChat/include/main_global.hpp
+1732848332 /home/allaptop/dev/CryptoChat/include/main_global.hpp
 	<iostream>
 	<string>
 	<sstream>
@@ -1327,7 +1327,7 @@
 	<cctype>
 	<filesystem>
 
-1732337824 source:/home/allaptop/dev/CryptoChat/src/chat_client_main.cpp
+1732847490 source:/home/allaptop/dev/CryptoChat/src/chat_client_main.cpp
 	<iostream>
 	<string>
 	<sstream>
@@ -1343,7 +1343,7 @@
 	"../include/crypto_parsing.hpp"
 	"../include/main_global.hpp"
 
-1732839164 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
+1732844786 source:/home/allaptop/dev/CryptoChat/src/crypto_client.cpp
 	<iostream>
 	<string>
 	<conio.h>

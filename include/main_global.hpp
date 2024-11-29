@@ -56,20 +56,23 @@ public:
 	{
         main_global::log("shutdown", true);
 
-		if (main_global::global_cli != nullptr)
-		{
-			try
-			{
-				cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
-				std::this_thread::sleep_for(std::chrono::seconds(1));
+        cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
+        //delete main_global::global_cli// thread will join on itself = bug
 
-				delete main_global::global_cli;
-				main_global::global_cli = nullptr;
-			}
-			catch (...)
-			{
-			}
-		}
+        std::string key;
+        key = main_global::global_cli->_chat_cli->get_key();
+
+        NETW_MSG::MSG m;
+        m.make_msg(NETW_MSG::MSG_CMD_RESP_SHUTDOWN, "shutdown", key);
+
+        bool crypto_on = (main_global::global_cli->_chat_cli->cryto_on == true) ? true : false;
+        if (main_global::global_cli->_chat_cli->chat_with_other_user_index == 0) crypto_on = false;
+
+        int ret = main_global::global_cli->_chat_cli->send_message_buffer(  main_global::global_cli->_chat_cli->get_socket(), m, key,
+                                                        crypto_on,
+                                                        main_global::global_cli->_chat_cli->my_user_index,
+                                                        main_global::global_cli->_chat_cli->chat_with_other_user_index);
+
 	}
 
 private:

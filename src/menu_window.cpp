@@ -1032,7 +1032,7 @@ struct ClientTerm
                     netw_client->cryto_on = !netw_client->cryto_on;
                     netw_client->set_ui_dirty();
                 }
-                else if (c == CTRL_KEY('q')) // TEST shutdown
+                else if (c == CTRL_KEY('q')) // shutdown
                 {
                     set_edit_msg("");
                     if (buf!=NULL)
@@ -1040,24 +1040,7 @@ struct ClientTerm
                         free(buf);
                         buf=NULL;
                     }
-
-                    cryptochat::cli::chat_cli::got_chat_cli_signal = 1;
-                    //main_global::shutdown(); // thread will join on itself = bug
-
-                    std::string key;
-                    key = netw_client->get_key();
-
-                    NETW_MSG::MSG m;
-                    m.make_msg(NETW_MSG::MSG_CMD_RESP_SHUTDOWN, "shutdown", key);
-
-                    bool crypto_on = (netw_client->cryto_on == true) ? true : false;
-                    if (netw_client->chat_with_other_user_index == 0) crypto_on = false;
-
-                    int ret = netw_client->send_message_buffer(  netw_client->get_socket(), m, key,
-                                                                    crypto_on,
-                                                                    netw_client->my_user_index,
-                                                                    netw_client->chat_with_other_user_index);
-
+                    main_global::shutdown();
                 }
                 else if (c == Key::DEL || c == CTRL_KEY('h') || c == Key::BACKSPACE)
                 {

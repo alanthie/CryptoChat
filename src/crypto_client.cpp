@@ -30,6 +30,7 @@
 #include <iostream>
 #include <string>
 
+
 extern int main_client_ui(crypto_socket::crypto_client* netw_client);
 
 namespace crypto_socket {
