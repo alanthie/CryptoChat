@@ -192,7 +192,7 @@ namespace NETW_MSG
 
         uint32_t len = MESSAGE_HEADER + b64_decode_vec.size();
 
-        if (buffer != nullptr) delete buffer;
+        if (buffer != nullptr) delete []buffer;
         buffer = new uint8_t[len]{ 0 };
         buffer_len = len;
 
@@ -232,16 +232,16 @@ namespace NETW_MSG
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-        if (s.size() >= NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER)
-        {
-            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER);
-            make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
-
-            std::stringstream ss;
-            ss << "WARNING message truncated" << std::endl;
-            main_global::log(ss.str());
-        }
-        else
+//        if (s.size() >= NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER)
+//        {
+//            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER);
+//            make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
+//
+//            std::stringstream ss;
+//            ss << "WARNING message truncated" << std::endl;
+//            main_global::log(ss.str());
+//        }
+//        else
         {
             make_msg(t, s.size(), (uint8_t*)s.data(), digestkey);
         }
@@ -250,14 +250,15 @@ namespace NETW_MSG
 
     void MSG::make_msg_with_crc_and_flag_buffer( uint8_t t,
                         uint32_t len_data, uint8_t* data,
-                        uint8_t* digestkey, uint32_t crc, uint8_t flag_original, uint32_t from_user, uint32_t to_user)
+                        uint8_t* digestkey,
+                        uint32_t crc, uint8_t flag_original, uint32_t from_user, uint32_t to_user)
     {
         if (data == nullptr) return;
 
         type_msg = t;
 
         buffer_len = len_data + MESSAGE_HEADER;// +padding;
-        if (buffer != nullptr) delete buffer;
+        if (buffer != nullptr) delete []buffer;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
@@ -277,11 +278,11 @@ namespace NETW_MSG
                         uint32_t len_data, uint8_t* data,
                         uint8_t* digestkey)
     {
-        if (data == nullptr) return;
+        //if (len_data == 0) return;
 
         type_msg = t;
 
-        buffer_len = len_data + MESSAGE_HEADER;// +padding;
+        buffer_len = len_data + MESSAGE_HEADER;
         buffer = new uint8_t[buffer_len]{ 0 };
 
         buffer[0] = t;
@@ -289,16 +290,16 @@ namespace NETW_MSG
         memcpy(buffer + MESSAGE_KEYDIGEST_START, digestkey, 32);
 		memcpy(buffer + MESSAGE_SIGNATURE_START, MESSAGE_SIGNATURE, 20);
 		memcpy(buffer + MESSAGE_FLAG_START, MESSAGE_LAST, 1+4+2);
-        //har buff[64] = { 0 };
-        //memcpy(buffer + MESSAGE_MISC_END, buff, 64);
-        memcpy(buffer + MESSAGE_HEADER, data, len_data);
+
+		if (len_data > 0)
+            memcpy(buffer + MESSAGE_HEADER, data, len_data);
 
         CRC32 chk;
         chk.update((char*)buffer + MESSAGE_HEADER, buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
 
-		// flag????????
+		// flag???????? all 0
     }
 
     void MSG::make_msg(uint8_t* buffer_in, size_t len)
@@ -324,7 +325,7 @@ namespace NETW_MSG
     bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)
     {
         std::stringstream ss;
-        ss << "MSG::parse() size= " << len << std::endl;
+        // << "MSG::parse() size= " << len << std::endl;
 
         if (len < MESSAGE_HEADER)
         {
@@ -445,7 +446,7 @@ namespace NETW_MSG
 
     MSG::~MSG()
     {
-        delete buffer;
+        delete []buffer;
         buffer = nullptr;
     }
 

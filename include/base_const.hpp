@@ -5,10 +5,11 @@
 #include <map>
 #include <string>
 
+constexpr bool DEBUG_INFO = false;
 
 namespace cryptoAL
 {
-[[maybe_unused]] static bool VERBOSE_DEBUG = true;
+[[maybe_unused]] static bool VERBOSE_DEBUG = false;
 
 const std::string BASEDIGIT10 = "0123456789";
 const std::string BASEDIGIT64 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+="; // NOT STANDARD

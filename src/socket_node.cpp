@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <mutex>
+#include "../include/base_const.hpp"
 #include "../include/socket_node.hpp"
 
 namespace crypto_socket {

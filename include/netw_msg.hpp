@@ -4,13 +4,13 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include "../include/base_const.hpp"
 #include "encrypt.h"
 #include "random_engine.hpp"
 #include "SHA256.h"
 #include "IDEA.hpp"
 #include "../include/string_util.hpp"
 
-constexpr bool DEBUG_INFO = true;
 
 namespace NETW_MSG
 {

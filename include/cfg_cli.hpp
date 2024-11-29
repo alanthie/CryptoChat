@@ -7,6 +7,14 @@
 #include <map>
 #include "../include/c_plus_plus_serializer.h"
 #include "../include/file_util.hpp"
+#include "../include/terminal.h"
+#include <type_traits>
+
+template <typename E>
+constexpr auto to_underlying(E e) noexcept
+{
+    return static_cast<std::underlying_type_t<E>>(e);
+}
 
 namespace cryptochat
 {
@@ -14,6 +22,43 @@ namespace cryptochat
     {
         struct cfg_cli
         {
+            std::string _server;
+            int			_port;
+            std::string _username;
+			std::string _repo_root_path;
+            std::map<std::string, std::string> map_challenges;
+
+            std::string default_txt_filename = "msg.txt";
+            std::string default_bin_filename = "bin.dat";
+            Term::bg recv_color_bg = Term::bg::reset;
+            Term::fg recv_color_fg = Term::fg::green;
+            Term::bg send_color_bg = Term::bg::reset;
+            Term::fg send_color_fg = Term::fg::yellow;
+            // enum class fg {
+            //    black = 30,
+            //    red = 31,
+            //    green = 32,
+            //    yellow = 33,
+            //    blue = 34,
+            //    magenta = 35,
+            //    cyan = 36,
+            //    gray = 37,
+            //    reset = 39
+            //};
+            //
+            //enum class bg {
+            //    black = 40,
+            //    red = 41,
+            //    green = 42,
+            //    yellow = 43,
+            //    blue = 44,
+            //    magenta = 45,
+            //    cyan = 46,
+            //    gray = 47,
+            //    reset = 49
+            //};
+
+
             cfg_cli() {}
 
             void make_default()
@@ -22,6 +67,13 @@ namespace cryptochat
                 _port = 14003;
                 _username = NETW_MSG::DEFAULT_USERNAME;
 				_repo_root_path = "./cryptochat"; // should have a non relative path TODO...- not using default
+
+                default_txt_filename = "msg.txt";
+                default_bin_filename = "bin.dat";
+                recv_color_bg = Term::bg::reset;
+                recv_color_fg = Term::fg::green;
+                send_color_bg = Term::bg::reset;
+                send_color_fg = Term::fg::yellow;
             }
 
             cfg_cli(const std::string& srv, int port, int number_connection, const std::string& user, const std::string& repo_root_path)
@@ -110,17 +162,18 @@ namespace cryptochat
 				return false;
 			}
 
-            std::string _server;
-            int			_port;
-            std::string _username;
-			std::string _repo_root_path;
-            std::map<std::string, std::string> map_challenges;
-
             friend std::ostream& operator<<(std::ostream& out, Bits<cfg_cli& > my)
             {
                 out << bits(my.t._server) << bits(my.t._port) << bits(my.t._username)
 					<< bits(my.t._repo_root_path)
-					<< bits(my.t.map_challenges);
+					<< bits(my.t.map_challenges)
+					<< bits(my.t.default_txt_filename)
+					<< bits(my.t.default_bin_filename)
+					<< bits(my.t.recv_color_bg)
+					<< bits(my.t.recv_color_fg)
+					<< bits(my.t.send_color_bg)
+					<< bits(my.t.send_color_fg)
+					;
                 return (out);
             }
 
@@ -128,7 +181,14 @@ namespace cryptochat
             {
                 in  >> bits(my.t._server) >> bits(my.t._port) >> bits(my.t._username)
 					>> bits(my.t._repo_root_path)
-					>> bits(my.t.map_challenges);
+					>> bits(my.t.map_challenges)
+					>> bits(my.t.default_txt_filename)
+					>> bits(my.t.default_bin_filename)
+					>> bits(my.t.recv_color_bg)
+					>> bits(my.t.recv_color_fg)
+					>> bits(my.t.send_color_bg)
+					>> bits(my.t.send_color_fg)
+					;
                 return (in);
             }
         };

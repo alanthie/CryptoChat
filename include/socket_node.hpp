@@ -117,7 +117,14 @@ namespace crypto_socket {
 
 		int count_initial_key_validation = 0;
 		bool initial_key_validation_done = false;
+		bool initial_key_validation_waiting_answer = false;
 		bool random_key_validation_done = false;
+
+		bool requ_username_waiting_resp = false;
+		bool requ_hostname_waiting_resp = false;
+		bool requ_machineid_waiting_resp = false;
+		bool requ_accept_rnd_waiting_resp = false;
+		bool new_pending_random_key_waiting = false;
 
 		std::string initial_key_hint;
 		std::string initial_key;

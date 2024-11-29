@@ -117,7 +117,7 @@
 	<string>
 	<iostream>
 
-1732692739 /home/allaptop/dev/CryptoChat/include/base_const.hpp
+1732834011 /home/allaptop/dev/CryptoChat/include/base_const.hpp
 	<cstddef>
 	<map>
 	<string>
@@ -842,17 +842,18 @@
 	"../include/netw_msg.hpp"
 	"../include/main_global.hpp"
 
-1732766039 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
+1732833921 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
+	"../include/base_const.hpp"
 	"encrypt.h"
 	"random_engine.hpp"
 	"SHA256.h"
 	"IDEA.hpp"
 	"../include/string_util.hpp"
 
-1732759384 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
+1732821226 source:/home/allaptop/dev/CryptoChat/src/netw_msg.cpp
 	"../include/crypto_const.hpp"
 	"../include/netw_msg.hpp"
 	"../include/main_global.hpp"
@@ -949,11 +950,13 @@
 	<stdexcept>
 	<algorithm>
 
-1732337824 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
+1732817431 /home/allaptop/dev/CryptoChat/include/cfg_cli.hpp
 	<string>
 	<map>
 	"../include/c_plus_plus_serializer.h"
 	"../include/file_util.hpp"
+	"../include/terminal.h"
+	<type_traits>
 
 1713079865 /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h
 	"syslimits.h"
@@ -1649,7 +1652,7 @@
 	"encryptor.hpp"
 	"decryptor.hpp"
 
-1732692739 /home/allaptop/dev/CryptoChat/include/socket_node.hpp
+1732829558 /home/allaptop/dev/CryptoChat/include/socket_node.hpp
 	"encrypt.h"
 	"random_engine.hpp"
 	"../include/netw_msg.hpp"
@@ -1739,7 +1742,7 @@
 	"../include/crypto_parsing.hpp"
 	"../include/main_global.hpp"
 
-1732760685 /home/allaptop/dev/CryptoChat/include/crypto_server.hpp
+1732830494 /home/allaptop/dev/CryptoChat/include/crypto_server.hpp
 	"socket_node.hpp"
 	<vector>
 	<functional>
@@ -1747,7 +1750,7 @@
 	<thread>
 	<mutex>
 
-1732767403 source:/home/allaptop/dev/CryptoChat/src/crypto_server.cpp
+1732832426 source:/home/allaptop/dev/CryptoChat/src/crypto_server.cpp
 	"../include/challenge.hpp"
 	"../include/crc32a.hpp"
 	"../include/SHA256.h"
@@ -1757,9 +1760,10 @@
 	<iostream>
 	<string>
 
-1732698530 source:/home/allaptop/dev/CryptoChat/src/socket_node.cpp
+1732833964 source:/home/allaptop/dev/CryptoChat/src/socket_node.cpp
 	<iostream>
 	<mutex>
+	"../include/base_const.hpp"
 	"../include/socket_node.hpp"
 
 1732696772 /home/allaptop/dev/CryptoChat/include/cfg_crypto.hpp

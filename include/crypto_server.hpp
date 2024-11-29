@@ -81,7 +81,7 @@ namespace crypto_socket
 		void request_all_client_shutdown();
 
 		void request_client_initial_key(client_node* client);
-		void request_accept_rnd_key(client_node* client);
+		void request_accept_firstrnd_key(client_node* client);
 
 		void close_client(client_node* client, bool force = false);
 

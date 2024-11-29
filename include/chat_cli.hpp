@@ -59,6 +59,13 @@ namespace cryptochat
 					std::cout << "Port : " << _cfg._port << std::endl;
 					std::cout << "Username : " << _cfg._username << std::endl;
 					std::cout << "Repository : " << _cfg._repo_root_path << std::endl;
+
+					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
+					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
+//					std::cout << "recv_color_bg : " << _cfg.recv_color_bg << std::endl;
+//					std::cout << "recv_color_fg : " << _cfg.recv_color_fg << std::endl;
+//					std::cout << "send_color_bg : " << _cfg.send_color_bg << std::endl;
+//					std::cout << "send_color_fg : " << _cfg.send_color_fg << std::endl;
 				}
 				else
 				{
@@ -76,6 +83,12 @@ namespace cryptochat
 					std::cout << "Username (Default user): ";
 					std::getline(std::cin, entry); if (!entry.empty()) _cfg._username = entry;
 
+                    std::cout << "default_txt_filename (Default " << _cfg.default_txt_filename << "): ";
+					std::getline(std::cin, entry); if (!entry.empty()) _cfg.default_txt_filename = entry;
+
+                    std::cout << "default_bin_filename (Default " << _cfg.default_bin_filename << "): ";
+					std::getline(std::cin, entry); if (!entry.empty()) _cfg.default_txt_filename = entry;
+
 					// TODO...
 #ifdef _WIN32
 					_cfg._repo_root_path = "C:\\cpp\\test\\cryptochat";
@@ -91,6 +104,13 @@ namespace cryptochat
 					std::cout << "Username : " << _cfg._username << std::endl;
 					std::cout << "Repository : " << _cfg._repo_root_path << std::endl;
 
+					std::cout << "default_txt_filename : " << _cfg.default_txt_filename << std::endl;
+					std::cout << "default_bin_filename : " << _cfg.default_bin_filename << std::endl;
+//					std::cout << "recv_color_bg : " << _cfg.recv_color_bg << std::endl;
+//					std::cout << "recv_color_fg : " << _cfg.recv_color_fg << std::endl;
+//					std::cout << "send_color_bg : " << _cfg.send_color_bg << std::endl;
+//					std::cout << "send_color_fg : " << _cfg.send_color_fg << std::endl;
+
 					bool r = save_cfg(serr);
 				}
 
@@ -103,7 +123,7 @@ namespace cryptochat
 					// The destructor of crypto_socket::crypto_client call closeConnection that join with the client threads
 
 				}
-				catch (const std::exception& e) 
+				catch (const std::exception& e)
 				{
 					std::cerr << "Exception thrown: " << e.what() << std::endl;
 				}

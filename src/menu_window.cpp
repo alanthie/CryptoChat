@@ -67,6 +67,7 @@ struct ClientTerm
             return true;
         return false;
     }
+
     bool is_binfile_command(const std::string& m)
     {
         if (m.size() < 5) return false;
@@ -74,10 +75,12 @@ struct ClientTerm
             return true;
         return false;
     }
+
     std::string file_from_command(const std::string& m)
     {
         return m.substr(2, m.size()-4);
     }
+
     std::string read_file(const std::string& fname)
     {
         cryptoAL::cryptodata file;
@@ -410,6 +413,7 @@ struct ClientTerm
         {
             if (is_dirty)
             {
+				vlogrows.clear();
                 std::string log_str = main_global::get_log_string();
                 vlogrows = NETW_MSG::split(log_str, "\n");
 
@@ -535,10 +539,12 @@ struct ClientTerm
             return;
         }
 
+		// Chat view
         else if (_mode == 0)
         {
             if (is_dirty)
             {
+
                 size_t histo_cnt;
                 auto vh = netw_client->get_vhistory(histo_cnt); // get a copy since multi thread ressource
 
@@ -683,11 +689,12 @@ struct ClientTerm
                                     }
                                 }
 
+
                                 std::string ss;
                                 if (vh[i].is_receive == true)
-                                    ss += color(fg::green) + color(bg::reset);
+                                    ss += color(netw_client->_cfg_cli.recv_color_fg) + color(netw_client->_cfg_cli.recv_color_bg);
                                 else
-                                    ss += color(fg::yellow) + color(bg::reset);
+                                    ss += color(netw_client->_cfg_cli.send_color_fg) + color(netw_client->_cfg_cli.send_color_bg);
 
                                 int ipercent = (int)(100 * percent);
                                 ss += "<<" + sl + ">>" + "[" + std::to_string(ipercent) + "%] size=" + std::to_string(total_size) + "";
@@ -698,9 +705,9 @@ struct ClientTerm
                             else
                             {
                                 if (vh[i].is_receive == true)
-                                    work.append(color(fg::green) + color(bg::reset));
+                                    work.append(color(netw_client->_cfg_cli.recv_color_fg) + color(netw_client->_cfg_cli.recv_color_bg));
                                 else
-                                    work.append(color(fg::yellow) + color(bg::reset));
+                                    work.append(color(netw_client->_cfg_cli.send_color_fg) + color(netw_client->_cfg_cli.send_color_bg));
 
                                 work.append(sl); // ncols ...
                                 work.append(color(fg::reset) + color(bg::reset));
@@ -726,9 +733,9 @@ struct ClientTerm
                                     work.append(" ");
 
                                     if (vh[i].is_receive == true)
-                                        work.append(color(fg::green) + color(bg::reset));
+                                        work.append(color(netw_client->_cfg_cli.recv_color_fg) + color(netw_client->_cfg_cli.recv_color_bg));
                                     else
-                                        work.append(color(fg::yellow) + color(bg::reset));
+                                        work.append(color(netw_client->_cfg_cli.send_color_fg) + color(netw_client->_cfg_cli.send_color_bg));
 
                                     work.append(vh[i].is_receive ? "< " : "> ");
                                     work.append(": ");
@@ -749,9 +756,9 @@ struct ClientTerm
                                     work.append(" ");
 
                                     if (vh[i].is_receive == true)
-                                        work.append(color(fg::green) + color(bg::reset));
+                                        work.append(color(netw_client->_cfg_cli.recv_color_fg) + color(netw_client->_cfg_cli.recv_color_bg));
                                     else
-                                        work.append(color(fg::yellow) + color(bg::reset));
+                                        work.append(color(netw_client->_cfg_cli.send_color_fg) + color(netw_client->_cfg_cli.send_color_bg));
 
                                     work.append(vh[i].is_receive ? "< " : "> ");
                                     work.append(": ");
@@ -849,8 +856,9 @@ struct ClientTerm
         if (_mode==0)
         {
             status_msg = color(fg::green) + color(bg::reset);
+
             if (netw_client->cryto_on)
-                status_msg += color(fg::green) + color(bg::reset) + color(style::bold) + "[Extra Cryto ON (F2)]" + color(style::reset);
+                status_msg += color(fg::green) +  color(bg::reset) + color(style::bold) + "[Extra Cryto ON (F2)]" + color(style::reset);
             else
                 status_msg += color(fg::yellow) + color(bg::reset) + color(style::bold) + "[Extra Cryto OFF (F2)]" + color(style::reset);
             status_msg += color(bg::reset) + color(fg::reset);
@@ -881,14 +889,6 @@ struct ClientTerm
             status_msg += "[my index=" + std::to_string(netw_client->my_user_index) + "]";
             status_msg += "[my username=" + netw_client->username + "]";
         }
-
-        //status_msg += " " + std::to_string(netw_client->recv_while_count1);
-        //status_msg += " " + std::to_string(netw_client->recv_while_count2);
-        //status_msg += " " + std::to_string(netw_client->recv_while_count3);
-        //status_msg += " " + std::to_string(netw_client->cli_byte_recv);
-
-        //status_msg += "[rows=" + std::to_string(nrows) + "]";
-        //status_msg += "[cols=" + std::to_string(ncols) + "]";
 
 
         draw_history(ab, is_dirty);
@@ -921,9 +921,10 @@ struct ClientTerm
         {
             if (netw_client->is_got_chat_cli_signal())
             {
-                std::stringstream ss; 
+                std::stringstream ss;
                 ss << "Exiting prompt_msg loop " << std::endl;
                 main_global::log(ss.str());
+                ss.clear();
 
                 set_edit_msg("");
                 free(buf);
@@ -950,9 +951,10 @@ struct ClientTerm
 				{
                     if (netw_client->is_got_chat_cli_signal())
                     {
-						std::stringstream ss; 
+						std::stringstream ss;
                         ss << "Exiting prompt_msg loop " << std::endl;
 						main_global::log(ss.str());
+						ss.clear();
 
                         set_edit_msg("");
                         free(buf);
@@ -1047,7 +1049,7 @@ struct ClientTerm
                     if (_mode == 3)
                     {
                         int row_cursor = first_row_usr_view + cursor_usr_y;
-                        if (row_cursor < vusrrows.size() && row_cursor >= 0) 
+                        if (row_cursor < vusrrows.size() && row_cursor >= 0)
                         {
                             if (row_cursor < netw_client->map_user_index_to_user.size() && row_cursor >= 0)
                             {
@@ -1105,12 +1107,17 @@ struct ClientTerm
             if (ct.is_file_command(message))
             {
                 filename = ct.file_from_command(message);
+                if (filename == "*")
+                {
+                    filename = ct.netw_client->_cfg_cli.default_txt_filename;
+                }
+
                 try
                 {
                     // TEST
                     //filename = "/home/allaptop/dev/CryptoChat/lnx_chatcli/bin/Debug/f.txt";
 
-                    if (file_util::fileexists(filename))
+                    if (!filename.empty() && file_util::fileexists(filename))
                     {
                         filename_key = filename + std::to_string(ct.netw_client->file_counter);
                         ct.netw_client->file_counter++;
@@ -1126,6 +1133,7 @@ struct ClientTerm
                         std::stringstream ss;
                         ss << "WARNING - File do not exist: " << filename << std::endl;
                         main_global::log(ss.str());
+                        ss.clear();
                     }
                 }
                 catch (...)
@@ -1133,14 +1141,20 @@ struct ClientTerm
                     std::stringstream ss;
                     ss << "WARNING - Invalid file: " << filename << std::endl;
                     main_global::log(ss.str());
+                    ss.clear();
                 }
             }
             else if (ct.is_binfile_command(message))
             {
                 filename = ct.file_from_command(message);
+                if (filename == "*")
+                {
+                    filename = ct.netw_client->_cfg_cli.default_bin_filename;
+                }
+
                 try
                 {
-                    if (file_util::fileexists(filename))
+                    if (!filename.empty() && file_util::fileexists(filename))
                     {
                         filename_key = filename + std::to_string(ct.netw_client->file_counter);
                         ct.netw_client->file_counter++;
@@ -1156,6 +1170,7 @@ struct ClientTerm
                         std::stringstream ss;
                         ss << "WARNING - File do not exist: " << filename << std::endl;
                         main_global::log(ss.str());
+                        ss.clear();
                     }
                 }
                 catch (...)
@@ -1163,6 +1178,7 @@ struct ClientTerm
                     std::stringstream ss;
                     ss << "WARNING - Invalid file: " << filename << std::endl;
                     main_global::log(ss.str());
+                    ss.clear();
                 }
             }
 
@@ -1198,6 +1214,7 @@ struct ClientTerm
                         ss << "WARNING - send MSG_FILE Failed : " << filename << std::endl;
                     }
                     main_global::log(ss.str());
+                    ss.clear();
                 }
             }
             else
@@ -1232,6 +1249,7 @@ struct ClientTerm
                         ss << "WARNING - send MSG_TEXT Failed : " << filename << std::endl;
                     }
                     main_global::log(ss.str());
+                    ss.clear();
                 }
             }
 
@@ -1260,8 +1278,10 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
         {
             if (netwclient->is_got_chat_cli_signal())
             {
-				std::stringstream ss; ss << "Terminating thread client_UI" << std::endl;
+				std::stringstream ss;
+				ss << "Terminating thread client_UI" << std::endl;
 				main_global::log(ss.str(), true);
+                ss.clear();
 
                 //delete ct;
                 on = false;
@@ -1270,7 +1290,7 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
 
             char* e ;
             if (ct->_mode == 0) // chat
-                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_filename>>/[[bin_filename]])", NULL);
+                e = ct->prompt_msg(term, "Entry: %s (Use ESC/Enter/F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/<<txt_file or *>>/[[bin_file or *])", NULL);
             else if (ct->_mode == 1) // file
                 e = ct->prompt_msg(term, "Entry: %s (Use F1/PAGE_UP/PAGE_DOWN/ARROW_UP/ARROW_DOWN/save)", NULL);
             else if (ct->_mode == 3) // user
@@ -1285,11 +1305,13 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
         std::stringstream ss;
         ss << "Runtime error: " << re.what() << std::endl;
         main_global::log(ss.str(),true);
+        ss.clear();
         return 2;
     } catch(...) {
         std::stringstream ss;
         ss << "Unknown error." << std::endl;
         main_global::log(ss.str(),true);
+        ss.clear();
         return 1;
     }
     return 0;
