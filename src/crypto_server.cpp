@@ -251,12 +251,6 @@ namespace crypto_socket {
 
 					while (byte_recv < NETW_MSG::MESSAGE_HEADER)
 					{
-//                        if (DEBUG_INFO)
-//                        {
-//                            std::cout << std::endl;
-//                            std::cout << "while (byte_recv < NETW_MSG::MESSAGE_HEADER)" << std::endl;
-//						}
-
                         if (new_client->getState() == STATE::CLOSED)
                         {
                             msg_ok = false;
@@ -268,8 +262,6 @@ namespace crypto_socket {
 						if (len > 0)
 						{
 							byte_recv += len;
-//							if (DEBUG_INFO)
-//                                std::cout << "recv() bytes total " << byte_recv << std::endl;
 						}
 						else
 						{
@@ -310,6 +302,8 @@ namespace crypto_socket {
                         {
                             ok = false;
                         }
+
+						 // TODO
 //                        if (ok)
 //                        {
 //                            if (message_buffer[0] != NETW_MSG::MSG_FIRST)
@@ -353,9 +347,6 @@ namespace crypto_socket {
 					size_t len_recv_buffer_call = 0;
 					while (byte_recv < expected_len)
 					{
-//                        if (DEBUG_INFO)
-//                            std::cout << "while (byte_recv < expected_len)" << std::endl;
-
                         if (new_client->getState() == STATE::CLOSED)
                         {
                             msg_ok = false;
@@ -371,8 +362,6 @@ namespace crypto_socket {
 						{
 							byte_recv += len;
 							recv_buffer.buffer.write(message_buffer, len);
-//							if (DEBUG_INFO)
-//                                std::cout << "recv() bytes total " << byte_recv << std::endl;
 						}
 						else
 						{
@@ -436,16 +425,17 @@ namespace crypto_socket {
                             MSG_VALIDATIONcounter++;
 
 						// Parse message
+						std::stringstream serr;
 						NETW_MSG::MSG m;
 						bool r;
 						if (recv_buffer.buffer.getdata()[0] == NETW_MSG::MSG_CMD_RESP_KEY_HINT)
-							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, getDEFAULT_KEY());
+							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, getDEFAULT_KEY(), serr);
 						else if (!new_client->initial_key_validation_done)
-							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, getDEFAULT_KEY());
+							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, getDEFAULT_KEY(), serr);
 						else if (!new_client->random_key_validation_done)
-							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, new_client->initial_key64);
+							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, new_client->initial_key64, serr);
 						else
-							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, new_client->random_key, new_client->previous_random_key, new_client->pending_random_key);
+							r = m.parse((char*)recv_buffer.buffer.getdata(), expected_len, new_client->random_key, serr, new_client->previous_random_key, new_client->pending_random_key);
 
 						if (r && msg_counter == 0)
                         {
@@ -514,7 +504,7 @@ namespace crypto_socket {
                                 }
                                 else if (new_client->hostname.size() == 0 && new_client->requ_hostname_waiting_resp == false)
                                 {
-                                    //f (DEBUG_INFO)
+                                    if (DEBUG_INFO)
                                         std::cout << "send MSG_CMD_REQU_HOSTNAME " << new_client->getSocketFd() << std::endl;
 
                                     NETW_MSG::MSG m;
@@ -663,6 +653,11 @@ namespace crypto_socket {
 								}
                             }
 						}
+						else if (DEBUG_INFO)
+						{
+							std::cout << serr.str() << std::endl;
+						}
+						serr.str({});
 					}
 				}
 

@@ -6,6 +6,7 @@
 #include <string>
 
 constexpr bool DEBUG_INFO = false;
+constexpr bool SELF_TEST = false;
 
 namespace cryptoAL
 {

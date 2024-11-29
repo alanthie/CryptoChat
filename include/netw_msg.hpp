@@ -346,8 +346,8 @@ struct MSG
 	std::string get_data_as_string();
 	bool is_same(MSG& msgin);
 
-	bool make_encrypt_msg(MSG& msgin, const std::string& key, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user);
-	bool make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc);
+	bool make_encrypt_msg(MSG& msgin, const std::string& key, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user, std::stringstream& serr);
+	bool make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc, std::stringstream& serr);
 
 	void make_msg(uint8_t t, const std::string& s, const std::string& key);
 	void make_msg(uint8_t t, uint32_t len_data, uint8_t* data, uint8_t* digestkey);
@@ -358,7 +358,7 @@ struct MSG
 
 	void make_msg(uint8_t* buffer_in, size_t len);
 	void make_msg(uint8_t t, const std::string& s, uint8_t* digestkey);
-	bool parse(char* message_buffer, size_t len, std::string key, std::string previous_key = {}, std::string pending_key = {});
+	bool parse(char* message_buffer, size_t len, std::string key, std::stringstream& serr, std::string previous_key = {}, std::string pending_key = {});
 
 	void make_with_padding(MSG& m);
 	void make_removing_padding(MSG& m);

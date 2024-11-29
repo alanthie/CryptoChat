@@ -90,7 +90,6 @@ namespace NETW_MSG
 
     void MSG::make_removing_padding(MSG& m)
     {
-        // MSG = MESSAGE_HEADER + data + [____pad_end_number(1-64)]
         uint32_t padding = m.buffer[m.buffer_len - 1];
 
         buffer_len = m.buffer_len - padding;
@@ -99,7 +98,7 @@ namespace NETW_MSG
         memcpy(buffer, m.buffer, m.buffer_len - padding);
     }
 
-    bool MSG::make_encrypt_msg(MSG& msgin, const std::string& key, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user)
+    bool MSG::make_encrypt_msg(MSG& msgin, const std::string& key, uint8_t crypto_flag, uint8_t from_user, uint8_t to_user, std::stringstream& serr)
     {
         std::vector<char> vmsgin(msgin.buffer_len - MESSAGE_HEADER);
         for (size_t i = MESSAGE_HEADER; i < msgin.buffer_len; i++) vmsgin[i - MESSAGE_HEADER] = msgin.buffer[i];
@@ -136,13 +135,11 @@ namespace NETW_MSG
         chk.update((char*)msgin.buffer + MESSAGE_HEADER, msgin.buffer_len - MESSAGE_HEADER);
 		uint32_t crc = chk.get_hash();
 
-        //uint8_t original_flag = msgin.buffer[MESSAGE_FLAG_START];
-
         make_msg_with_crc_and_flag(msgin.type_msg, s_encrypted3, digestkey, crc, crypto_flag, from_user, to_user);
 
-        //std::cout << "make_encrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
-
         delete[] digestkey;
+
+        serr << "chat encrypt ok   - msgin.buffer_len " << msgin.buffer_len << " ==> msgout.buffer_len " << this->buffer_len << "\n";
 
         if (DEBUG_INFO)
         {
@@ -152,15 +149,16 @@ namespace NETW_MSG
                 + file_util::get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
                 + "]" << std::endl;
             main_global::log(ss.str());
+            ss.str({});
         }
 
+        main_global::log(serr.str());
+        serr.str({});
         return true;
     }
 
-    bool MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc)
+    bool MSG::make_decrypt_msg(MSG& msgin, const std::string& key, uint32_t& crc, std::stringstream& serr)
     {
-        //std::cout << "make_decrypt_msg - entry - msgin.buffer_len - MESSAGE_HEADER " << msgin.buffer_len - MESSAGE_HEADER << "\n";
-
         std::string s = msgin.get_data_as_string(); // including padding space
         if ((s.size() % MESSAGE_FACTOR) != 0)
         {
@@ -212,7 +210,7 @@ namespace NETW_MSG
 
         crc = MSG::byteToUInt4((char*)buffer + MESSAGE_CRC_START);
 
-        //std::cout << "make_decrypt_msg - exit - this->buffer_len - MESSAGE_HEADER " << this->buffer_len - MESSAGE_HEADER << "\n";
+        serr << "chat decrypt ok   - msgin.buffer_len " << msgin.buffer_len << " ==> msgout.buffer_len " << this->buffer_len << "\n";
 
         if (DEBUG_INFO)
         {
@@ -222,8 +220,11 @@ namespace NETW_MSG
                 + file_util::get_summary_hex((char*)this->buffer + MESSAGE_HEADER, this->buffer_len - MESSAGE_HEADER)
                 << std::endl;
             main_global::log(ss.str());
+            ss.str({});
         }
 
+        main_global::log(serr.str());
+        serr.str({});
         return true;
     }
 
@@ -233,19 +234,7 @@ namespace NETW_MSG
         sha.update((uint8_t*)key.data(), key.size());
         uint8_t* digestkey = sha.digest();
 
-//        if (s.size() >= NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER)
-//        {
-//            std::string smsg = s.substr(0, NETW_MSG::MESSAGE_SIZE - MESSAGE_HEADER);
-//            make_msg(t, smsg.size(), (uint8_t*)smsg.data(), digestkey);
-//
-//            std::stringstream ss;
-//            ss << "WARNING message truncated" << std::endl;
-//            main_global::log(ss.str());
-//        }
-//        else
-        {
-            make_msg(t, s.size(), (uint8_t*)s.data(), digestkey);
-        }
+        make_msg(t, s.size(), (uint8_t*)s.data(), digestkey);
         delete[]digestkey;
     }
 
@@ -279,8 +268,6 @@ namespace NETW_MSG
                         uint32_t len_data, uint8_t* data,
                         uint8_t* digestkey)
     {
-        //if (len_data == 0) return;
-
         type_msg = t;
 
         buffer_len = len_data + MESSAGE_HEADER;
@@ -301,7 +288,7 @@ namespace NETW_MSG
 		uint32_t crc = chk.get_hash();
 		MSG::uint4ToByte(crc, (char*)buffer + MESSAGE_CRC_START);
 
-		// flag???????? all 0
+		// flags all 0? TODO
     }
 
     void MSG::make_msg(uint8_t* buffer_in, size_t len)
@@ -325,16 +312,16 @@ namespace NETW_MSG
         make_msg_with_crc_and_flag_buffer(t, (uint32_t)s.size(), (uint8_t*)s.data(), digestkey, crc, flag, from_user, to_user);
     }
 
-    bool MSG::parse(char* message_buffer, size_t len, std::string key, std::string previous_key, std::string pending_key)
+    bool MSG::parse(char* message_buffer, size_t len, std::string key, std::stringstream& serr, std::string previous_key, std::string pending_key)
     {
         std::stringstream ss;
-        // << "MSG::parse() size= " << len << std::endl;
 
         if (len < MESSAGE_HEADER)
         {
             type_msg = MSG_EMPTY;
             ss << "WARNING MSG_EMPTY msg_len = " << len << std::endl;
             main_global::log(ss.str());
+            ss.str({});
             return false;
         }
 
@@ -342,6 +329,7 @@ namespace NETW_MSG
         {
             ss << "WARNING KEY EMPTY " << std::endl;
             main_global::log(ss.str());
+            ss.str({});
             return false;
         }
 
@@ -351,6 +339,7 @@ namespace NETW_MSG
         {
             ss << "WARNING parsing - len msg is unexpected " << len << " vs " << expected_len << std::endl;
             main_global::log(ss.str());
+            ss.str({});
             return false;
         }
 
@@ -386,10 +375,14 @@ namespace NETW_MSG
 					 {
                         ss << "INFO using pending key" << std::endl;
                         main_global::log(ss.str());
+                        ss.str({});
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        return this->make_decrypt_msg(m, pending_key, crc);
+                        bool ret = this->make_decrypt_msg(m, pending_key, crc, serr);
+                        main_global::log(ss.str());
+                        serr.str({});
+                        return ret;
                     }
                 }
             }
@@ -420,10 +413,14 @@ namespace NETW_MSG
                         delete[]digestkeyprevious;
                         ss << "INFO using previous key" << std::endl;
                         main_global::log(ss.str());
+                        ss.str({});
 
                         MSG m;
                         m.make_msg((uint8_t*)message_buffer, len);
-                        return this->make_decrypt_msg(m, previous_key, crc);
+                        bool ret = this->make_decrypt_msg(m, previous_key, crc, ss);
+                        main_global::log(ss.str());
+                        ss.str({});
+                        return ret;
                     }
                 }
             }
@@ -433,6 +430,7 @@ namespace NETW_MSG
             }
 
             main_global::log(ss.str());
+            ss.str({});
             return false;
         }
         else
@@ -442,8 +440,12 @@ namespace NETW_MSG
             MSG m;
             m.make_msg((uint8_t*)message_buffer, len);
             main_global::log(ss.str());
+            ss.str({});
 
-            return this->make_decrypt_msg(m, key, crc);
+            bool ret = this->make_decrypt_msg(m, key, crc, serr);
+            main_global::log(serr.str());
+            serr.str({});
+            return ret;
         }
     }
 

@@ -654,7 +654,7 @@ public:
 						else
 						{
 							vurlkey[i].set_url(new_URL);
-							if (VERBOSE_DEBUG)
+							//if (VERBOSE_DEBUG)
                             	std::cout << "RSA Recursive NEW URL: " << new_URL << " " << new_URL.size() << std::endl;
 						}
 					}

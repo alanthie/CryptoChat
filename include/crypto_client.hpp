@@ -89,9 +89,6 @@ namespace crypto_socket {
 
 		std::atomic<bool> cryto_on = false;
 
-		//std::atomic<uint32_t> recv_while_count1 = 0;
-		//std::atomic<uint32_t> recv_while_count2 = 0;
-		//std::atomic<uint32_t> recv_while_count3 = 0;
 		std::atomic<size_t> cli_byte_recv = 0;
 
 	public:

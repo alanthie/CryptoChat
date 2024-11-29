@@ -98,7 +98,7 @@ namespace crypto_socket {
 
 		// chat layer first
 		NETW_MSG::MSG m2;
-		if (m2.make_encrypt_msg(m, key, crypto_flag, from_user, to_user) == false)
+		if (m2.make_encrypt_msg(m, key, crypto_flag, from_user, to_user, serr) == false)
 		{
 			serr << "ERROR - send_composite - make_encrypt_msg FAILED\n";
 			return -1;
