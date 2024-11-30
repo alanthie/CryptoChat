@@ -46,8 +46,6 @@ private:
 
 public:
 
-    encryptor(int a) : cfg(""), dbmgr(cfg) {} // dummy
-
     encryptor(  std::string ifilename_cfg,
                 std::string ifilename_urls,             // INPUT  (optional) FILE - URL for making KEYS
                 std::string ifilename_msg_data,         // INPUT  (required) FILE - PLAINTEXT DATA to encrypt
@@ -654,7 +652,7 @@ public:
 						else
 						{
 							vurlkey[i].set_url(new_URL);
-							//if (VERBOSE_DEBUG)
+							if (VERBOSE_DEBUG)
                             	std::cout << "RSA Recursive NEW URL: " << new_URL << " " << new_URL.size() << std::endl;
 						}
 					}
@@ -2177,7 +2175,6 @@ public:
                 }
             }
         }
-
 
 
         //--------------------------------

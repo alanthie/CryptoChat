@@ -37,7 +37,6 @@ private:
     decryptor() : cfg("") , dbmgr(cfg) {}
 
 public:
-    decryptor(int a) : cfg(""), dbmgr(cfg) {} // dummy
 
 	decryptor(  std::string ifilename_cfg,
 				std::string ifilename_puzzle,
@@ -577,7 +576,7 @@ public:
 
 					if (r)
 					{
-						//if (VERBOSE_DEBUG)
+						if (VERBOSE_DEBUG)
 						{
 							if (v.size() == 1)
 								std::cout << "unique rsa key name in URL: " << v[0] << std::endl;

@@ -488,6 +488,7 @@ namespace cryptochat
                 ss << "; URL keys source when encoding :\n";
                 ss << ";------------------------------------------------------------------------\n";
                 ss << "[r:]last=1,first=1,random=1;\n";
+                ss << "[r:]random=1;\n";
                 ss << ";\n";
                 ss << ";------------------------------------------------------------------------\n";
                 ss << "; GLOBAL parameters\n";
