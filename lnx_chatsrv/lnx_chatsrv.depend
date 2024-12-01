@@ -643,7 +643,7 @@
 	<cstdint>
 	<cstddef>
 
-1731877904 source:/home/server/dev/CryptoChat/src/encrypt.cpp
+1732387107 source:/home/server/dev/CryptoChat/src/encrypt.cpp
 	<cstdint>
 	<sstream>
 	<iostream>
@@ -653,14 +653,14 @@
 	"../include/vigenere.hpp"
 	"../include/netw_msg.hpp"
 
-1731354896 /home/server/dev/CryptoChat/include/encrypt.h
+1732387107 /home/server/dev/CryptoChat/include/encrypt.h
 	<cstdint>
 	<iostream>
 	<string>
 	"Base64.h"
 	"vigenere.hpp"
 
-1731877904 /home/server/dev/CryptoChat/include/vigenere.hpp
+1732387107 /home/server/dev/CryptoChat/include/vigenere.hpp
 	<stdio.h>
 	<string.h>
 	<string>
@@ -673,7 +673,7 @@
 	"../include/ysClient.h"
 	<stdarg.h>
 
-1731275304 /home/server/dev/CryptoChat/include/terminal.h
+1731877904 /home/server/dev/CryptoChat/include/terminal.h
 	"terminal_base.h"
 	<iostream>
 	<string>
@@ -745,7 +745,7 @@
 	<string>
 	<iostream>
 
-1731275304 /home/server/dev/CryptoChat/include/base_const.hpp
+1732914870 /home/server/dev/CryptoChat/include/base_const.hpp
 	<cstddef>
 	<map>
 	<string>
@@ -780,10 +780,11 @@
 	<string.h>
 	<cinttypes>
 
-1731877904 /home/server/dev/CryptoChat/include/netw_msg.hpp
+1732914870 /home/server/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
 	<stdexcept>
 	<string>
+	"../include/base_const.hpp"
 	"encrypt.h"
 	"random_engine.hpp"
 	"SHA256.h"
@@ -796,7 +797,7 @@
 	<sstream>
 	<iomanip>
 
-1731877904 source:/home/server/dev/CryptoChat/src/vigenere.cpp
+1732387107 source:/home/server/dev/CryptoChat/src/vigenere.cpp
 	<stdio.h>
 	<string.h>
 	<string>
@@ -838,9 +839,12 @@
 	"../include/SHA256.h"
 	"../include/crc32a.hpp"
 
-1731877904 source:/home/server/dev/CryptoChat/src/netw_msg.cpp
+1732914870 source:/home/server/dev/CryptoChat/src/netw_msg.cpp
+	"../include/crypto_const.hpp"
 	"../include/netw_msg.hpp"
 	"../include/main_global.hpp"
+	"../include/crc32a.hpp"
+	"../include/encdec_algo.hpp"
 
 1732916648 /home/allaptop/dev/CryptoChat/include/netw_msg.hpp
 	<cstring>
@@ -981,33 +985,35 @@
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1731877904 /home/server/dev/CryptoChat/include/string_util.hpp
+1732387107 /home/server/dev/CryptoChat/include/string_util.hpp
 	<cstring>
 	<iostream>
 	<string>
 	<vector>
 
-1731877973 /home/server/dev/CryptoChat/include/main_global.hpp
+1732914870 /home/server/dev/CryptoChat/include/main_global.hpp
 	<iostream>
 	<string>
 	<sstream>
 	<mutex>
 	"../include/chat_cli.hpp"
 
-1731877904 /home/server/dev/CryptoChat/include/chat_cli.hpp
+1732914870 /home/server/dev/CryptoChat/include/chat_cli.hpp
 	<iostream>
 	<limits>
 	<csignal>
 	<chrono>
-	"../include/ysClient.h"
+	"../include/crypto_client.hpp"
 	"../include/cfg_cli.hpp"
 	"../include/string_util.hpp"
 	"../include/argparse.hpp"
 	"../include/crypto_parsing.hpp"
 
-1731877904 /home/server/dev/CryptoChat/include/cfg_srv.hpp
+1732914870 /home/server/dev/CryptoChat/include/cfg_srv.hpp
 	"../include/c_plus_plus_serializer.h"
 	"../include/vigenere.hpp"
+	"../include/string_util.hpp"
+	"../include/challenge.hpp"
 
 1731877904 /home/server/dev/CryptoChat/include/c_plus_plus_serializer.h
 	<fstream>
@@ -1016,11 +1022,13 @@
 	<vector>
 	<limits.h>
 
-1731877904 /home/server/dev/CryptoChat/include/cfg_cli.hpp
+1732914870 /home/server/dev/CryptoChat/include/cfg_cli.hpp
 	<string>
 	<map>
 	"../include/c_plus_plus_serializer.h"
 	"../include/file_util.hpp"
+	"../include/terminal.h"
+	<type_traits>
 
 1731877904 /home/server/dev/CryptoChat/include/file_util.hpp
 	"crypto_const.hpp"
@@ -1082,12 +1090,12 @@
 	<iomanip>
 	<string>
 
-1731877904 /home/server/dev/CryptoChat/include/chat_srv.hpp
+1732387107 /home/server/dev/CryptoChat/include/chat_srv.hpp
 	<iostream>
 	<limits>
 	<csignal>
 	<chrono>
-	"../include/ysServer.h"
+	"../include/crypto_server.hpp"
 	"../include/cfg_srv.hpp"
 	"../include/string_util.hpp"
 	"../include/argparse.hpp"
@@ -1782,6 +1790,685 @@
 1732434761 /home/allaptop/dev/CryptoChat/src/twofish.h
 
 1732434761 source:/home/allaptop/dev/CryptoChat/src/twofish_cfb.c
+	<stdint.h>
+	<stdlib.h>
+	"twofish.h"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/ecc_point/ecc_curve.cpp
+	"../../crypto_const.hpp"
+	"ecc_curve.hpp"
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/ecc_point/ecc_curve.hpp
+	"../../crypto_const.hpp"
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<gmpxx.h>
+	"../../Buffer.hpp"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/ecc_point/ecc_elgamal.cpp
+	<stdlib.h>
+	<stdio.h>
+	<time.h>
+	"ecc_curve.hpp"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/exclusive-lock-file.cpp
+	"exclusive-lock-file.h"
+	<stdexcept>
+	<Windows.h>
+	<sys/file.h>
+	<unistd.h>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/exclusive-lock-file.h
+	<string>
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPPrime.cpp
+	"RSAGMPPrime.h"
+	<iostream>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPPrime.h
+	<gmpxx.h>
+	"RSAGMPUtils.h"
+	<thread>
+	<atomic>
+	<condition_variable>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPUtils.h
+	<gmpxx.h>
+	<stdlib.h>
+	<random>
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPTest.cpp
+	"RSAGMPTest.h"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPTest.h
+	<iostream>
+	"RSAGMP.h"
+	<stdint.h>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMP.h
+	"RSAGMPPrime.h"
+	<thread>
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA-GMP/RSAGMPUtils.cpp
+	"RSAGMPUtils.h"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigInteger.cc
+	"BigInteger.hh"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigInteger.hh
+	"BigUnsigned.hh"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigUnsigned.hh
+	"NumberlikeArray.hh"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/NumberlikeArray.hh
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigIntegerAlgorithms.cc
+	"BigIntegerAlgorithms.hh"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigIntegerAlgorithms.hh
+	"BigInteger.hh"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigIntegerUtils.cc
+	"BigIntegerUtils.hh"
+	"BigUnsignedInABase.hh"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigIntegerUtils.hh
+	"BigInteger.hh"
+	<string>
+	<iostream>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigUnsignedInABase.hh
+	"NumberlikeArray.hh"
+	"BigUnsigned.hh"
+	<string>
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigUnsigned.cc
+	"BigUnsigned.hh"
+
+1732387107 source:/home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigUnsignedInABase.cc
+	"BigUnsignedInABase.hh"
+
+1732914870 source:/home/server/dev/CryptoChat/src/chat_server_main.cpp
+	<iostream>
+	<limits>
+	<csignal>
+	<chrono>
+	"../include/crypto_server.hpp"
+	"../include/chat_srv.hpp"
+	"../include/cfg_srv.hpp"
+	"../include/string_util.hpp"
+	"../include/argparse.hpp"
+	"../include/crypto_parsing.hpp"
+	"../include/main_global.hpp"
+
+1732914870 /home/server/dev/CryptoChat/include/crypto_server.hpp
+	"socket_node.hpp"
+	<vector>
+	<functional>
+	<algorithm>
+	<thread>
+	<mutex>
+
+1732914870 /home/server/dev/CryptoChat/include/socket_node.hpp
+	"encrypt.h"
+	"random_engine.hpp"
+	"../include/netw_msg.hpp"
+	"../include/cfg_srv.hpp"
+	"SHA256.h"
+	"IDEA.hpp"
+	<cstring>
+	<stdexcept>
+	<vector>
+	<map>
+	<queue>
+	<mutex>
+	<atomic>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<unistd.h>
+	<errno.h>
+	"../include/netw_msg.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/challenge.hpp
+	<cstring>
+	<iostream>
+	<string>
+	<vector>
+	<map>
+	"string_util.hpp"
+	"file_util.hpp"
+	"vigenere.hpp"
+
+1732914870 /home/server/dev/CryptoChat/include/crypto_client.hpp
+	<iostream>
+	<functional>
+	<thread>
+	<mutex>
+	<atomic>
+	"socket_node.hpp"
+	"cfg_cli.hpp"
+	"repository.hpp"
+	"cfg_crypto.hpp"
+	"encryptor.hpp"
+	"decryptor.hpp"
+
+1732977059 /home/server/dev/CryptoChat/include/repository.hpp
+	<string>
+	<map>
+	"../include/file_util.hpp"
+	"../include/c_plus_plus_serializer.h"
+	"../include/crypto_parsing.hpp"
+	"../include/qa/rsa_gen.hpp"
+	"../include/cfg_crypto.hpp"
+	"../include/qa/RSA-GMP/RSAGMPTest.h"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/rsa_gen.hpp
+	"../uint_util.hpp"
+	"../c_plus_plus_serializer.h"
+
+1732387107 /home/server/dev/CryptoChat/include/uint_util.hpp
+	"qa/mathcommon.h"
+	"qa/RSA_generate/bigint/BigIntegerLibrary.hh"
+	"crypto_const.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/mathcommon.h
+	<math\wide_integer\uintwide_t.h>
+	"uinteger_t.hh"
+	<bitset>
+	<bits/stdc++.h>
+	<math/wide_decimal/decwide_t.h>
+	<iostream>
+	<cmath>
+	<iomanip>
+	<atomic>
+	<vector>
+	<set>
+	<thread>
+	<mutex>
+	<algorithm>
+	<unordered_map>
+	<cstdint>
+	<stdio.h>
+	<iostream>
+	<fstream>
+	<limits>
+	<map>
+	<set>
+	<future>
+	<chrono>
+	<cstdlib>
+	<stdlib.h>
+	<cstdio>
+	<type_traits>
+	<random>
+	<list>
+	<numeric>
+	<stdexcept>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/uinteger_t.hh
+	<cassert>
+	<vector>
+	<string>
+	<utility>
+	<cstring>
+	<cstdint>
+	<iostream>
+	<algorithm>
+	<stdexcept>
+	<functional>
+	<type_traits>
+	<intrin.h>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/RSA_generate/bigint/BigIntegerLibrary.hh
+	"NumberlikeArray.hh"
+	"BigUnsigned.hh"
+	"BigInteger.hh"
+	"BigIntegerAlgorithms.hh"
+	"BigUnsignedInABase.hh"
+	"BigIntegerUtils.hh"
+
+1732914870 /home/server/dev/CryptoChat/include/cfg_crypto.hpp
+	<string>
+	<map>
+	"../include/c_plus_plus_serializer.h"
+	"../include/file_util.hpp"
+	"../include/ini_parser.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/ini_parser.hpp
+	<map>
+	<string>
+	<vector>
+	<utility>
+	<sstream>
+	<fstream>
+	<stdexcept>
+	<algorithm>
+	<cctype>
+	<locale>
+
+1732977059 /home/server/dev/CryptoChat/include/encryptor.hpp
+	"crypto_const.hpp"
+	<iostream>
+	<fstream>
+	"DES.h"
+	"AESa.h"
+	"Buffer.hpp"
+	"SHA256.h"
+	"crypto_urlkey.hpp"
+	"data.hpp"
+	"puzzle.hpp"
+	"twofish.h"
+	"Salsa20.h"
+	"IDEA.hpp"
+	"crc32a.hpp"
+	"crypto_shuffle.hpp"
+	"crypto_history.hpp"
+	"cryptodata_list.hpp"
+	"crypto_keymgr.hpp"
+	"crypto_key_parser.hpp"
+	"crypto_cfg.hpp"
+	"crypto_png.hpp"
+	"ecc_util.hpp"
+	"qa/aes-whitebox/aes_whitebox.hpp"
+	"rsa_util.hpp"
+	"crypto_file.hpp"
+	"qa/SystemProperties.hpp"
+	"crypto_dbmgr.hpp"
+	"hhkey_util.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/DES.h
+	<algorithm>
+	"includes.h"
+	"SymAlg.h"
+	"DES_Const.h"
+
+1732387107 /home/server/dev/CryptoChat/include/SymAlg.h
+	<iostream>
+	<memory>
+	<stdexcept>
+
+1732387107 /home/server/dev/CryptoChat/include/DES_Const.h
+
+1732387107 /home/server/dev/CryptoChat/include/AESa.h
+	<cstdio>
+	<cstring>
+	<iostream>
+	<stdexcept>
+	<string>
+	<vector>
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_urlkey.hpp
+	<filesystem>
+	<curl/curl.h>
+	<chrono>
+	<ctime>
+	<sstream>
+	<iomanip>
+	<string>
+	"base_const.hpp"
+	"crypto_const.hpp"
+	"crypto_parsing.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/puzzle.hpp
+	<iostream>
+	<fstream>
+	"Buffer.hpp"
+	"SHA256.h"
+	"random_engine.hpp"
+	"crypto_const.hpp"
+	"data.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/twofish.h
+
+1732387107 /home/server/dev/CryptoChat/include/Salsa20.h
+	<cassert>
+	<climits>
+	<cstdint>
+	<cstring>
+	"Salsa20.inl"
+
+1732387107 /home/server/dev/CryptoChat/include/Salsa20.inl
+	"Salsa20.h"
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_shuffle.hpp
+	<iostream>
+	"Buffer.hpp"
+	<fstream>
+	<stdio.h>
+	"qa/atomic_bitvector.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/atomic_bitvector.hpp
+	<vector>
+	<atomic>
+	<cassert>
+	<cstddef>
+	<limits>
+	"iterator_tpl.h"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/iterator_tpl.h
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_history.hpp
+	"crypto_const.hpp"
+	"c_plus_plus_serializer.h"
+	"crc32a.hpp"
+	<map>
+	<string>
+
+1732387107 /home/server/dev/CryptoChat/include/cryptodata_list.hpp
+	"crypto_const.hpp"
+	"crypto_png.hpp"
+	<iostream>
+	"data.hpp"
+	<fstream>
+	<stdio.h>
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_png.hpp
+	"crypto_const.hpp"
+	"qa/Bin2PNG/lodepng.h"
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<filesystem>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/Bin2PNG/lodepng.h
+	<string.h>
+	<vector>
+	<string>
+	"lodepng.h"
+	<iostream>
+	"lodepng.h"
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_keymgr.hpp
+	"crypto_const.hpp"
+	"crypto_ecckey.hpp"
+	"qa/rsa_gen.hpp"
+	"crypto_history.hpp"
+	"data.hpp"
+	"crypto_key_parser.hpp"
+	"random_engine.hpp"
+	"crc32a.hpp"
+	"c_plus_plus_serializer.h"
+	"crypto_dbmgr.hpp"
+	"SHA256.h"
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_ecckey.hpp
+	"crypto_const.hpp"
+	"random_engine.hpp"
+	"uint_util.hpp"
+	"crc32a.hpp"
+	"SHA256.h"
+	"crypto_parsing.hpp"
+	"qa/ecc_point/ecc_curve.hpp"
+	"c_plus_plus_serializer.h"
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_key_parser.hpp
+	"crypto_const.hpp"
+	"crypto_strutil.hpp"
+	"data.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_dbmgr.hpp
+	"crypto_const.hpp"
+	"crypto_ecckey.hpp"
+	"crypto_cfg.hpp"
+	"qa/rsa_gen.hpp"
+	"crypto_history.hpp"
+	"crypto_key_parser.hpp"
+	"random_engine.hpp"
+	"data.hpp"
+	"crc32a.hpp"
+	"c_plus_plus_serializer.h"
+	"exclusive-lock-file.h"
+	<filesystem>
+	<iostream>
+	<fstream>
+	<chrono>
+	<thread>
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_cfg.hpp
+	"crypto_const.hpp"
+	"ini_parser.hpp"
+	"crypto_strutil.hpp"
+	"crypto_parsing.hpp"
+	"file_util.hpp"
+	"data.hpp"
+	<iostream>
+
+1732387107 /home/server/dev/CryptoChat/include/exclusive-lock-file.h
+	<string>
+
+1732387107 /home/server/dev/CryptoChat/include/ecc_util.hpp
+	"uint_util.hpp"
+	"crypto_const.hpp"
+	"crypto_ecckey.hpp"
+	"crypto_parsing.hpp"
+	<filesystem>
+	<iostream>
+	<fstream>
+	<filesystem>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/aes-whitebox/aes_whitebox.hpp
+	"../../crypto_const.hpp"
+	"../../random_engine.hpp"
+	"aes_whitebox_base.hpp"
+	"../../c_plus_plus_serializer.h"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/aes-whitebox/aes_whitebox_base.hpp
+	"../../crypto_const.hpp"
+	"../../c_plus_plus_serializer.h"
+
+1732914870 /home/server/dev/CryptoChat/include/rsa_util.hpp
+	"crypto_const.hpp"
+	"uint_util.hpp"
+	"qa/rsa_gen.hpp"
+	"file_util.hpp"
+	"crypto_parsing.hpp"
+	"qa/RSA-GMP/RSAGMP.h"
+	"qa/RSA-GMP/RSAGMPUtils.h"
+	"qa/RSA-GMP/RSAGMP.h"
+	"qa/RSA-GMP/RSAGMPUtils.h"
+	<filesystem>
+	<iostream>
+	<fstream>
+
+1732387107 /home/server/dev/CryptoChat/include/crypto_file.hpp
+	"crypto_const.hpp"
+	"crypto_parsing.hpp"
+	<curl/curl.h>
+	"encrypt.h"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/SystemProperties.hpp
+	<string>
+	<system_error>
+	<filesystem>
+	<variant>
+	<vector>
+	<comdef.h>
+	<WbemIdl.h>
+	<sys/utsname.h>
+
+1732387107 /home/server/dev/CryptoChat/include/hhkey_util.hpp
+	"crypto_const.hpp"
+	"crypto_ecckey.hpp"
+	"data.hpp"
+	"crypto_key_parser.hpp"
+	"random_engine.hpp"
+	"crc32a.hpp"
+	"c_plus_plus_serializer.h"
+	"qa/rsa_gen.hpp"
+	"crypto_dbmgr.hpp"
+
+1732977059 /home/server/dev/CryptoChat/include/decryptor.hpp
+	"crypto_const.hpp"
+	"file_util.hpp"
+	"ecc_util.hpp"
+	<iostream>
+	<fstream>
+	"DES.h"
+	"AESa.h"
+	"Buffer.hpp"
+	"SHA256.h"
+	"crypto_file.hpp"
+	"data.hpp"
+	"puzzle.hpp"
+	"IDEA.hpp"
+	"crc32a.hpp"
+	"crypto_shuffle.hpp"
+	"crypto_history.hpp"
+	"crypto_cfg.hpp"
+	"crypto_png.hpp"
+	"qa/aes-whitebox/aes_whitebox.hpp"
+	"qa/menu/menu.h"
+	"qa/SystemProperties.hpp"
+	"crypto_dbmgr.hpp"
+	"hhkey_util.hpp"
+
+1732387107 /home/server/dev/CryptoChat/include/qa/menu/menu.h
+	"../../crypto_cfg.hpp"
+	"../../crypto_parsing.hpp"
+	"menu_io.h"
+	<iostream>
+	<any>
+	<string>
+	<variant>
+	<vector>
+	<type_traits>
+	<optional>
+	<sstream>
+	<limits>
+	<cctype>
+	<filesystem>
+
+1732387107 /home/server/dev/CryptoChat/include/qa/menu/menu_io.h
+	"../../crypto_cfg.hpp"
+	<iostream>
+	<any>
+	<string>
+	<variant>
+	<vector>
+	<type_traits>
+	<optional>
+	<sstream>
+	<limits>
+	<cctype>
+	<filesystem>
+
+1732387107 source:/home/server/dev/CryptoChat/src/crypto_file.cpp
+	"../include/crypto_const.hpp"
+	"../include/crypto_file.hpp"
+
+1732914870 source:/home/server/dev/CryptoChat/src/crypto_keymgr.cpp
+	"../include/crypto_const.hpp"
+	"../include/crypto_keymgr.hpp"
+	"../include/crypto_ecckey.hpp"
+	"../include/qa/rsa_gen.hpp"
+	"../include/crypto_history.hpp"
+	"../include/data.hpp"
+	"../include/crypto_key_parser.hpp"
+	"../include/random_engine.hpp"
+	"../include/crc32a.hpp"
+	"../include/SHA256.h"
+	"../include/c_plus_plus_serializer.h"
+	"../include/crypto_dbmgr.hpp"
+
+1732914870 source:/home/server/dev/CryptoChat/src/crypto_server.cpp
+	"../include/challenge.hpp"
+	"../include/crc32a.hpp"
+	"../include/SHA256.h"
+	"../include/crypto_server.hpp"
+	"../include/file_util.hpp"
+	"../include/encdec_algo.hpp"
+	<iostream>
+	<string>
+
+1732387107 /home/server/dev/CryptoChat/include/encdec_algo.hpp
+	<cstring>
+	<iostream>
+	<string>
+	<vector>
+	<map>
+	"crypto_const.hpp"
+	"data.hpp"
+
+1732387107 source:/home/server/dev/CryptoChat/src/encdec_algo.cpp
+	<stdio.h>
+	<string.h>
+	<string>
+	<iostream>
+	<stdio.h>
+	<ctype.h>
+	"../include/crypto_const.hpp"
+	"../include/encdec_algo.hpp"
+	"../include/main_global.hpp"
+	"../include/data.hpp"
+	"../include/Salsa20.h"
+
+1732387107 source:/home/server/dev/CryptoChat/src/machineid.cpp
+	"../include/machineid.h"
+	<sstream>
+	<iostream>
+	<stdio.h>
+	<string.h>
+	<unistd.h>
+	<errno.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<sys/ioctl.h>
+	<sys/resource.h>
+	<sys/utsname.h>
+	<netdb.h>
+	<netinet/in.h>
+	<netinet/in_systm.h>
+	<netinet/ip.h>
+	<netinet/ip_icmp.h>
+	<net/if_dl.h>
+	<ifaddrs.h>
+	<net/if_types.h>
+	<linux/if.h>
+	<linux/sockios.h>
+	<mach-o/arch.h>
+
+1732387107 /home/server/dev/CryptoChat/include/machineid.h
+	<string>
+	<windows.h>
+	<intrin.h>
+	<iphlpapi.h>
+
+1732914870 source:/home/server/dev/CryptoChat/src/socket_node.cpp
+	<iostream>
+	<mutex>
+	"../include/base_const.hpp"
+	"../include/socket_node.hpp"
+
+1732914870 source:/home/server/dev/CryptoChat/src/srv_test.cpp
+	<iostream>
+	<limits>
+	<csignal>
+	<chrono>
+	"../include/crypto_server.hpp"
+	"../include/chat_srv.hpp"
+	"../include/cfg_srv.hpp"
+	"../include/string_util.hpp"
+	"../include/encdec_algo.hpp"
+
+1732914870 source:/home/server/dev/CryptoChat/src/twofish.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	"twofish.h"
+
+1732914870 /home/server/dev/CryptoChat/src/twofish.h
+
+1732914870 source:/home/server/dev/CryptoChat/src/twofish_cfb.c
 	<stdint.h>
 	<stdlib.h>
 	"twofish.h"

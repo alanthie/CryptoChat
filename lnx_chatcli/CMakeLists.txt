@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22)
 project(lnx_chatcli)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -61,10 +61,11 @@ add_executable(lnx_chatcli
         ../include/qa/rsa_gen.cpp
 )
 
-link_libraries(gmp curl openssl nghttp2 gssapi2 ${LIBS})
+link_libraries(gmp curl openssl nghttp2 gssapi2 pthread ${LIBS})
 
 
 target_link_libraries(lnx_chatcli
 		/usr/lib/x86_64-linux-gnu/libgmp.a
+		pthread
 		${LIBS}
 )

@@ -1343,13 +1343,13 @@ int main_client_ui(crypto_socket::crypto_client* netwclient)
         }
     } catch(const std::runtime_error& re) {
         std::stringstream ss;
-        ss << "Runtime error: " << re.what() << std::endl;
+        ss << "Runtime error main_client_ui: " << re.what() << std::endl;
         main_global::log(ss.str(),true);
         ss.clear();
         return 2;
     } catch(...) {
         std::stringstream ss;
-        ss << "Unknown error." << std::endl;
+        ss << "Unknown error exception main_client_ui." << std::endl;
         main_global::log(ss.str(),true);
         ss.clear();
         return 1;

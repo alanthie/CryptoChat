@@ -1011,6 +1011,7 @@ namespace crypto_socket {
 			if (key_valid && rnd_valid && user_valid)
 			{
 				main_client_ui(this);
+                return;
 			}
 
 			{
