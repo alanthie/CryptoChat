@@ -666,7 +666,7 @@ bool RSAGMP::KeygenN(mpzBigInteger &pubkey,
 
 		for(size_t i=0;i<vPrime.size();i++)
         {
-			std::cout << vPrime[i] << std::endl;
+			//std::cout << vPrime[i] << std::endl;
 		}
 	}
 
