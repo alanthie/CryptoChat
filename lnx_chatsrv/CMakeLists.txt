@@ -17,7 +17,7 @@ list(APPEND LIBS "${CURL_LIBRARIES}")
 
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu)
 
-include_directories(../../wide-decimal  /usr/include)
+include_directories(../../wide-decimal ../wide-integer /usr/include)
 
 add_executable(lnx_chatsrv
         ../src/Base64.cpp
