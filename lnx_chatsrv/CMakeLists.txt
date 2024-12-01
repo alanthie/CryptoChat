@@ -65,8 +65,8 @@ add_executable(lnx_chatsrv
 
 link_libraries(gmp curl openssl nghttp2 gssapi2 ${LIBS})
 
-target_link_libraries(
-lnx_chatsrv 
+target_link_libraries(lnx_chatsrv
 /usr/lib/x86_64-linux-gnu/libgmp.a
-curl
-${LIBS})
+#curl
+${LIBS}
+)

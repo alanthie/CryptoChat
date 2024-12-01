@@ -15,8 +15,6 @@ include_directories(CURL_INCLUDE_DIRS)
 set(CMAKE_REQUIRED_LIBRARIES "${CURL_LIBRARIES}")
 list(APPEND LIBS "${CURL_LIBRARIES}")
 
-
-
 LINK_DIRECTORIES(/usr/lib/x86_64-linux-gnu)
 
 include_directories(../../wide-decimal
@@ -58,7 +56,6 @@ add_executable(lnx_chatcli
         ../include/qa/RSA_generate/bigint/BigUnsignedInABase.hh
         ../include/qa/RSA_generate/bigint/NumberlikeArray.hh
         ../include/qa/RSA_generate/bigint/run-testsuite
-
         ../include/qa/ecc_point/ecc_curve.cpp
         ../include/qa/ecc_point/ecc_elgamal.cpp
         ../include/qa/rsa_gen.cpp
@@ -66,8 +63,8 @@ add_executable(lnx_chatcli
 
 link_libraries(gmp curl openssl nghttp2 gssapi2 ${LIBS})
 
-target_link_libraries(
-lnx_chatcli 
-/usr/lib/x86_64-linux-gnu/libgmp.a
-curl
-${LIBS})
+
+target_link_libraries(lnx_chatcli
+		/usr/lib/x86_64-linux-gnu/libgmp.a
+		${LIBS}
+)
