@@ -124,6 +124,7 @@ namespace crypto_socket {
 		if (listen(this->m_socketFd, this->_cfg._number_connection) == -1) {
 			throw std::runtime_error("Could not open socket for listening");
 		}
+
 	}
 
 	void crypto_server::handle_new_client(socket_node* new_client)
