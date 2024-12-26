@@ -9,6 +9,7 @@ Preview version 2024-12:
 <pre>
 Working on a version of CryptoChat that use libevent networking.
 This support thousand of users on a single thread!
+The client is now using the notcurses library
 Sources not public for now.
 
 see img/Screencast from 2024-12-16 12-07-05.webm
