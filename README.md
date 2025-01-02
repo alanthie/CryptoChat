@@ -2,6 +2,15 @@
 A chating application with sophisticated encryption-decryption
 (see Encryptions repository for details)
 
+Version 0.0.1 for Linux now available (see cryptochatv0_0_1.zip)
+<pre>
+Contents:
+lnx_chatcli
+lnx_chatsrv
+mediaviewer
+res (ressource folder for the mediaviewer)
+</pre>
+
 Preview version 2024-12:
 ![Alt text](/img/chat.png?raw=true "Preview")
 
