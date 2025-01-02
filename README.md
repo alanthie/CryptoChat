@@ -4,12 +4,17 @@ A chating application with sophisticated encryption-decryption
 
 Version 0.0.1 for Linux now available (see cryptochatv0_0_1.zip)
 <pre>
+Sources temporarily unavailable
+Donate, support or contact me at patreon : https://www.patreon.com/c/CryptoAL
 Contents:
 lnx_chatcli
 lnx_chatsrv
 mediaviewer
 res (ressource folder for the mediaviewer)
 </pre>
+
+The client has now a chatting window and a mediaviewer window
+![Alt text](/img/view.png?raw=true "View")
 
 Preview version 2024-12:
 ![Alt text](/img/chat.png?raw=true "Preview")
