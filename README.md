@@ -1,10 +1,10 @@
 # CryptoChat
-A chating application with sophisticated encryption-decryption
-(see Encryptions repository for details)
+A chating application with sophisticated encryption-decryption 
+(see Encryptions repository for details).
 
 Version 0.0.1 for Linux now available (see cryptochatv0_0_1.zip)
 <pre>
-Sources temporarily unavailable
+Latest sources now in cryptochat2 repository
 Donate, support or contact me at patreon : https://www.patreon.com/c/CryptoAL
 Contents:
 lnx_chatcli
